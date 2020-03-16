@@ -26,7 +26,7 @@ object Targets {
         Files.readString(FileSystems.getDefault.getPath("project/Versions.scala"))
       ).map(_.group(1)).getOrElse(throw new RuntimeException(s"Couldn't get `scala_$v` version from project/Versions.scala"))
   }
-  private val targetScala = Seq(scala213, scala212)
+  val targetScala = Seq(scala213, scala212)
   private val jvmPlatform = PlatformEnv(
     platform = Platform.Jvm,
     language = targetScala,
@@ -113,8 +113,34 @@ object ProjectBuilder {
     final val rootProjectSettings = Defaults.SharedOptions ++ Seq(
       "fork" in SettingScope.Raw("Global") := false,
 
+      "crossScalaVersions" := "Nil".raw,
+      "scalaVersion" := Targets.targetScala.head.value,
       "coverageOutputXML" in SettingScope.Raw("Global") := true,
       "coverageOutputHTML" in SettingScope.Raw("Global") := true,
+      "organization" in SettingScope.Raw("Global") := "net.playq",
+
+      "sonatypeProfileName" := "net.playq",
+      "sonatypeSessionName" := """s"[sbt-sonatype] ${name.value} ${version.value} ${java.util.UUID.randomUUID}"""".raw,
+      "publishTo" in SettingScope.Build :=
+        """
+          |(if (!isSnapshot.value) {
+          |    sonatypePublishToBundle.value
+          |  } else {
+          |    Some(Opts.resolver.sonatypeSnapshots)
+          |})
+          |""".stripMargin.raw,
+
+      "credentials" in SettingScope.Build += """Credentials(file(".secrets/credentials.sonatype-nexus.properties"))""".raw,
+      "homepage" in SettingScope.Build := """Some(url("https://www.playq.com/"))""".raw,
+      "licenses" in SettingScope.Build := """Seq("Apache-License" -> url("https://opensource.org/licenses/Apache-2.0"))""".raw,
+      "developers" in SettingScope.Build :=
+        """List(
+          Developer(id = "playq", name = "PlayQ", url = url("https://github.com/PlayQ")"),
+         )""".raw,
+
+      "scmInfo" in SettingScope.Build := """Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git"))""".raw,
+      "scalacOptions" in SettingScope.Build += s"""${"\"" * 3}-Xmacro-settings:scalatest-version=${Version.VExpr("V.scalatest")}${"\"" * 3}""".raw,
+
       "releaseProcess" := """Seq[ReleaseStep](
                             |  checkSnapshotDependencies,
                             |  inquireVersions,
@@ -129,14 +155,6 @@ object ProjectBuilder {
                             |  pushChanges
                             |)""".stripMargin.raw,
 
-//      "publishTargets" in SettingScope.Build := s"""Repositories.typical("playq-jfrog", Repositories.chooseUrl(isSnapshot.value, $releases, $snapshots))""".raw,
-//      "releaseResolvers" in SettingScope.Build := s"""("playq-jfrog-releases" at $releases) +: releaseResolvers.value""".raw,
-//
-//      "snapshotResolvers" in SettingScope.Build += s"""("playq-jfrog-snapshots" at $snapshots)""".raw,
-      // exclude sonatypeSnapshots
-      //      "snapshotResolvers" in SettingScope.Build := s"""("playq-jfrog-snapshots" at $snapshots) :: Nil""".raw,
-
-      "organization" in SettingScope.Raw("Global") := "net.playq",
       // sbt 1.3.0
       "onChangedBuildSource" in SettingScope.Raw("Global") := "ReloadOnSourceChanges".raw,
     )
