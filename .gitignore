@@ -121,3 +121,7 @@ hs_err_pid*
 ### Scala template
 *.class
 *.log
+
+### publish related
+keys.sh
+secrets.tar
