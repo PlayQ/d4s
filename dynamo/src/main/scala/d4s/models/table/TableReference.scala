@@ -1,7 +1,6 @@
 package d4s.models.table
 
-import d4s.codecs.circe.{DynamoAttributeEncoder, DynamoEncoder}
-import d4s.codecs.DynamoKeyAttribute
+import d4s.codecs.{D4SAttributeEncoder, D4SEncoder, DynamoKeyAttribute}
 import d4s.config.DynamoMeta
 import d4s.models.query.DynamoQuery
 import d4s.models.query.DynamoRequest.BatchWriteEntity
@@ -47,7 +46,7 @@ object TableReference {
     )
   }
 
-  def apply[H: DynamoKeyAttribute: DynamoAttributeEncoder](
+  def apply[H: DynamoKeyAttribute: D4SAttributeEncoder](
     tableName: String
   )(hashName: String)(
     implicit dynamoMeta: DynamoMeta
@@ -58,7 +57,7 @@ object TableReference {
     )
   }
 
-  def apply[H: DynamoKeyAttribute: DynamoAttributeEncoder, R: DynamoKeyAttribute: DynamoAttributeEncoder](
+  def apply[H: DynamoKeyAttribute: D4SAttributeEncoder, R: DynamoKeyAttribute: D4SAttributeEncoder](
     tableName: String
   )(hashName: String, rangeName: String)(
     implicit dynamoMeta: DynamoMeta
@@ -71,31 +70,31 @@ object TableReference {
 
   implicit final class TableReferenceOps(private val table: TableReference) extends AnyVal {
     def getItem: DynamoQuery[GetItem, GetItemResponse]                                     = GetItem(table).toQuery
-    def getItem[Item: DynamoEncoder](keyItem: Item): DynamoQuery[GetItem, GetItemResponse] = GetItem(table).toQuery.withKeyItem(keyItem)
+    def getItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[GetItem, GetItemResponse] = GetItem(table).toQuery.withKeyItem(keyItem)
     def getItem(key: Map[String, AttributeValue]): DynamoQuery[GetItem, GetItemResponse]   = GetItem(table).toQuery.withKey(key)
 
     def putItem: DynamoQuery[PutItem, PutItemResponse]                                   = PutItem(table).toQuery
-    def putItem[Item: DynamoEncoder](item: Item): DynamoQuery[PutItem, PutItemResponse]  = PutItem(table).toQuery.withItem(item)
+    def putItem[Item: D4SEncoder](item: Item): DynamoQuery[PutItem, PutItemResponse]  = PutItem(table).toQuery.withItem(item)
     def putItem(key: Map[String, AttributeValue]): DynamoQuery[PutItem, PutItemResponse] = PutItem(table).toQuery.withItemAttributeValues(key)
 
     def deleteItem: DynamoQuery[DeleteItem, DeleteItemResponse]                                     = DeleteItem(table).toQuery
-    def deleteItem[Item: DynamoEncoder](keyItem: Item): DynamoQuery[DeleteItem, DeleteItemResponse] = DeleteItem(table).toQuery.withKeyItem(keyItem)
+    def deleteItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[DeleteItem, DeleteItemResponse] = DeleteItem(table).toQuery.withKeyItem(keyItem)
     def deleteItem(key: Map[String, AttributeValue]): DynamoQuery[DeleteItem, DeleteItemResponse]   = DeleteItem(table).toQuery.withKey(key)
 
     def updateItem: DynamoQuery[UpdateItem, UpdateItemResponse]                                   = UpdateItem(table).toQuery
-    def updateItem[Item: DynamoEncoder](item: Item): DynamoQuery[UpdateItem, UpdateItemResponse]  = UpdateItem(table).toQuery.withItem(item)
+    def updateItem[Item: D4SEncoder](item: Item): DynamoQuery[UpdateItem, UpdateItemResponse]  = UpdateItem(table).toQuery.withItem(item)
     def updateItem(key: Map[String, AttributeValue]): DynamoQuery[UpdateItem, UpdateItemResponse] = UpdateItem(table).toQuery.withItemAttributeValues(key)
 
     def deleteItemBatch: DynamoQuery[DeleteItemBatch, List[BatchWriteItemResponse]] = DeleteItemBatch(table).toQuery
-    def deleteItemBatch[I: DynamoEncoder](deleteBatch: List[I]): DynamoQuery[DeleteItemBatch, List[BatchWriteItemResponse]] =
+    def deleteItemBatch[I: D4SEncoder](deleteBatch: List[I]): DynamoQuery[DeleteItemBatch, List[BatchWriteItemResponse]] =
       DeleteItemBatch(table).toQuery.withBatch(deleteBatch)
 
     def putItemBatch: DynamoQuery[PutItemBatch, List[BatchWriteItemResponse]] = PutItemBatch(table).toQuery
-    def putItemBatch[I: DynamoEncoder](putBatch: List[BatchWriteEntity[I]]): DynamoQuery[PutItemBatch, List[BatchWriteItemResponse]] =
+    def putItemBatch[I: D4SEncoder](putBatch: List[BatchWriteEntity[I]]): DynamoQuery[PutItemBatch, List[BatchWriteItemResponse]] =
       PutItemBatch(table).toQuery.withBatch(putBatch)
 
     def getItemBatch: DynamoQuery[GetItemBatch, List[BatchGetItemResponse]]                                      = GetItemBatch(table).toQuery
-    def getItemBatch[I: DynamoEncoder](getBatch: List[I]): DynamoQuery[GetItemBatch, List[BatchGetItemResponse]] = GetItemBatch(table).toQuery.withBatch(getBatch)
+    def getItemBatch[I: D4SEncoder](getBatch: List[I]): DynamoQuery[GetItemBatch, List[BatchGetItemResponse]] = GetItemBatch(table).toQuery.withBatch(getBatch)
 
     def scan: DynamoQuery[Scan, ScanResponse]                          = Scan(table).toQuery
     def scan(index: TableIndex[_, _]): DynamoQuery[Scan, ScanResponse] = Scan(table).withIndex(index).toQuery

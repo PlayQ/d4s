@@ -2,9 +2,8 @@ package d4s.models.query
 
 import java.time.ZonedDateTime
 
-import d4s.codecs.AttributeNames
 import d4s.codecs.CodecsUtils.DynamoDecoderException
-import d4s.codecs.circe.{DynamoDecoder, DynamoEncoder}
+import d4s.codecs.{AttributeNames, D4SDecoder, D4SEncoder}
 import d4s.config.ProvisionedThroughputConfig
 import d4s.implicits._
 import d4s.models.conditions.Condition
@@ -147,7 +146,7 @@ object DynamoQuery {
 
   implicit final class TweakBatchItems[DR <: DynamoRequest, BatchType[_], Dec](dynamoQuery: DynamoQuery[DR, Dec])(implicit ev: DR <:< WithBatch[DR, BatchType])
     extends WithBatch[DynamoQuery[DR, Dec], BatchType] {
-    @inline override def withBatch[I: DynamoEncoder](batchItems: List[BatchType[I]]): DynamoQuery[DR, Dec] = {
+    @inline override def withBatch[I: D4SEncoder](batchItems: List[BatchType[I]]): DynamoQuery[DR, Dec] = {
       dynamoQuery.modify(_.withBatch(batchItems))
     }
     @inline override def withBatch(batchItems: List[Map[String, AttributeValue]]): DynamoQuery[DR, Dec] = {
@@ -302,7 +301,7 @@ object DynamoQuery {
                                                                                                     ev3: DR#Rsp => {
                                                                                                       def items(): java.util.List[java.util.Map[String, AttributeValue]]
                                                                                                     }) {
-    def decodeItems[Item: DynamoDecoder: AttributeNames]: DynamoQuery[DR, List[Item]] = {
+    def decodeItems[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
@@ -315,7 +314,7 @@ object DynamoQuery {
         })
     }
 
-    def decodeItemsWithTTL[Item: DynamoDecoder: AttributeNames]: DynamoQuery[DR, List[(Item, Option[Long])]] = {
+    def decodeItemsWithTTL[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, List[(Item, Option[Long])]] = {
       val ttlName = dynamoQuery.request.table.ttlField
         .getOrElse(throw new RuntimeException(s"TTL field for table=${dynamoQuery.request.table.fullName} not specified but requested."))
       dynamoQuery
@@ -339,7 +338,7 @@ object DynamoQuery {
     ev1: DR#Rsp <:< List[A],
     ev2: A => { def responses(): java.util.Map[String, java.util.List[java.util.Map[String, AttributeValue]]] }) {
 
-    def decodeItems[Item: DynamoDecoder]: DynamoQuery[DR, List[Item]] = {
+    def decodeItems[Item: D4SDecoder]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery.decodeF(FnBIO {
         rsp => implicit F =>
           import scala.jdk.CollectionConverters._
@@ -353,7 +352,7 @@ object DynamoQuery {
   implicit final class DecodeItem[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(implicit
                                                                                                    ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
                                                                                                    ev2: DR#Rsp => { def item(): java.util.Map[String, AttributeValue] }) {
-    def decodeItem[Item: DynamoDecoder: AttributeNames]: DynamoQuery[DR, Option[Item]] = {
+    def decodeItem[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
@@ -363,7 +362,7 @@ object DynamoQuery {
         })
     }
 
-    def decodeItemWithTTL[Item: DynamoDecoder: AttributeNames]: DynamoQuery[DR, Option[(Item, Option[Long])]] = {
+    def decodeItemWithTTL[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, Option[(Item, Option[Long])]] = {
       val ttlName = dynamoQuery.request.table.ttlField
         .getOrElse(throw new RuntimeException(s"TTL field for table=${dynamoQuery.request.table.fullName} not specified but requested."))
 
@@ -377,11 +376,11 @@ object DynamoQuery {
         })
     }
 
-    def decodeItemCheckTTL[Item: DynamoDecoder: AttributeNames](now: ZonedDateTime): DynamoQuery[DR, Option[Item]] = {
+    def decodeItemCheckTTL[Item: D4SDecoder: AttributeNames](now: ZonedDateTime): DynamoQuery[DR, Option[Item]] = {
       decodeItemCheckTTL(now.toEpochSecond)
     }
 
-    def decodeItemCheckTTL[Item: DynamoDecoder: AttributeNames](nowEpochSeconds: Long): DynamoQuery[DR, Option[Item]] = {
+    def decodeItemCheckTTL[Item: D4SDecoder: AttributeNames](nowEpochSeconds: Long): DynamoQuery[DR, Option[Item]] = {
       decodeItemWithTTL.decodeWith {
         case (_, Some((item, ttl))) if ttl.forall(_ >= nowEpochSeconds) => Some(item)
         case (_, _)                                                     => None
@@ -393,7 +392,7 @@ object DynamoQuery {
                                                                                                              ev: DR#Rsp => {
                                                                                                                def attributes(): java.util.Map[String, AttributeValue]
                                                                                                              }) {
-    def decodeItem[Item: DynamoDecoder]: DynamoQuery[DR, Option[Item]] = {
+    def decodeItem[Item: D4SDecoder]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery.decodeF(FnBIO {
         response => implicit F =>
           decodeItemImpl(response.attributes())
@@ -401,23 +400,23 @@ object DynamoQuery {
     }
   }
 
-  @inline private[this] def decodeItemImpl[F[+_, +_]: BIOError, Item: DynamoDecoder](
+  @inline private[this] def decodeItemImpl[F[+_, +_]: BIOError, Item: D4SDecoder](
     itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DynamoDecoderException, Option[Item]] = {
     if (!itemJavaMap.isEmpty) {
-      F.fromEither(DynamoDecoder[Item].decode(itemJavaMap).map(Some(_)))
+      F.fromEither(D4SDecoder[Item].decode(itemJavaMap).map(Some(_)))
     } else {
       F.pure(None)
     }
   }
 
-  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: DynamoDecoder](ttlName: String)(
+  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: D4SDecoder](ttlName: String)(
     itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DynamoDecoderException, Option[(Item, Option[Long])]] = {
     if (!itemJavaMap.isEmpty) {
       F.fromEither {
         for {
-          item <- DynamoDecoder[Item].decode(itemJavaMap)
+          item <- D4SDecoder[Item].decode(itemJavaMap)
           ttl  = Option(itemJavaMap.get(ttlName)).flatMap(i => Option(i.n()).map(_.toLong))
         } yield Some((item, ttl))
       }

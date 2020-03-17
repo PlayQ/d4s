@@ -2,8 +2,7 @@ package d4s.models.table
 
 import java.util
 
-import d4s.codecs.DynamoKeyAttribute
-import d4s.codecs.circe.DynamoAttributeEncoder
+import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
 import fs2.INothing
 import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, AttributeValue, KeySchemaElement, KeyType}
 
@@ -45,12 +44,12 @@ object DynamoKey {
   def apply[H](hashKey: DynamoField[H]): DynamoKey[H, INothing]                       = DynamoKey(hashKey, None)
   def apply[H, R](hashKey: DynamoField[H], rangeKey: DynamoField[R]): DynamoKey[H, R] = DynamoKey(hashKey, Some(rangeKey))
 
-  def apply[H](hashKey: String)(implicit ev0: DynamoKeyAttribute[H], ev1: DynamoAttributeEncoder[H]): DynamoKey[H, INothing] =
+  def apply[H](hashKey: String)(implicit ev0: DynamoKeyAttribute[H], ev1: D4SAttributeEncoder[H]): DynamoKey[H, INothing] =
     DynamoKey(DynamoField[H](hashKey), None)
   def apply[H, R](hashKey: String, rangeKey: String)(implicit
                                                      ev0: DynamoKeyAttribute[H],
-                                                     ev1: DynamoAttributeEncoder[H],
+                                                     ev1: D4SAttributeEncoder[H],
                                                      ev2: DynamoKeyAttribute[R],
-                                                     ev3: DynamoAttributeEncoder[R]): DynamoKey[H, R] =
+                                                     ev3: D4SAttributeEncoder[R]): DynamoKey[H, R] =
     DynamoKey(DynamoField[H](hashKey), Some(DynamoField[R](rangeKey)))
 }

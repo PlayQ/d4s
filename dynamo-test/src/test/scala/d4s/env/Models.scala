@@ -2,12 +2,11 @@ package d4s.env
 
 import java.util.UUID
 
-import io.circe.Codec
-import io.circe.derivation
-import izumi.fundamentals.platform.language.Quirks
+import d4s.codecs.{D4SEncoder, WithD4S}
 import d4s.config.DynamoMeta
 import d4s.models.table.index.GlobalIndex
 import d4s.models.table.{DynamoKey, TableDDL, TableDef, TableReference}
+import izumi.fundamentals.platform.language.Quirks
 import software.amazon.awssdk.services.dynamodb.model.{Projection, ProjectionType}
 
 import scala.util.Random
@@ -17,18 +16,14 @@ object Models {
   private def tableName() = s"t1${UUID.randomUUID()}"
 
   final case class Table1Key(key1: String, key2: String)
-  object Table1Key {
-    implicit val codec: Codec.AsObject[Table1Key] = derivation.deriveCodec[Table1Key]
-  }
+  object Table1Key extends WithD4S[Table1Key]
 
   final case class Table1Item(v1: String, v2: String)
   final case class Table1ItemWithCounter(key1: String, key2: String, counterField: Long)
 
-  object Table1Item {
-    implicit val codec: Codec.AsObject[Table1Item] = derivation.deriveCodec[Table1Item]
-  }
+  object Table1Item extends WithD4S[Table1Item]
   object Table1ItemWithCounter {
-    implicit val codec: Codec.AsObject[Table1ItemWithCounter] = derivation.deriveCodec[Table1ItemWithCounter]
+    implicit val codec: D4SEncoder[Table1ItemWithCounter] = D4SEncoder.derived[Table1ItemWithCounter]
   }
 
   class TestTable1(implicit dynamoMeta: DynamoMeta) extends TableDef {
@@ -107,7 +102,7 @@ object Models {
 
   final case class InterpreterTestKey(field1: String, field2: Int)
   object InterpreterTestKey {
-    implicit val codec: Codec.AsObject[InterpreterTestKey] = derivation.deriveCodec[InterpreterTestKey]
+    implicit val codec: D4SEncoder[InterpreterTestKey] = D4SEncoder.derived[InterpreterTestKey]
   }
 
   final case class InterpreterTestPayload(field1: String, field2: Int, field3: String, p: RandomPayload) {
@@ -122,13 +117,13 @@ object Models {
       new InterpreterTestPayload(key.field1, key.field2, field3, p)
     }
 
-    implicit val codec: Codec.AsObject[InterpreterTestPayload] = derivation.deriveCodec[InterpreterTestPayload]
+    implicit val codec: D4SEncoder[InterpreterTestPayload] = D4SEncoder.derived[InterpreterTestPayload]
   }
 
   final case class RandomPayload(field1: String, randomArray: Set[Int])
   object RandomPayload {
     def apply(field1: String): RandomPayload = RandomPayload(field1, List.fill(10)(Random.nextInt(10)).toSet)
 
-    implicit val codec: Codec.AsObject[RandomPayload] = derivation.deriveCodec[RandomPayload]
+    implicit val codec: D4SEncoder[RandomPayload] = D4SEncoder.derived[RandomPayload]
   }
 }

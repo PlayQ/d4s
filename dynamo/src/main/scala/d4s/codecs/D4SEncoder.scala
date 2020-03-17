@@ -15,6 +15,8 @@ object D4SAttributeEncoder {
   def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
 
   final def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue = D4SAttributeEncoder[T].encodeAttribute(item)
+  final def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] =
+    Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
 
   implicit val stringEncoder: D4SAttributeEncoder[String] = AttributeValue.builder().s(_).build()
   implicit val boolEncoder: D4SAttributeEncoder[Boolean]  = AttributeValue.builder().bool(_).build()

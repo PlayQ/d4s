@@ -1,6 +1,6 @@
 package d4s.models
 
-import d4s.codecs.DynamoKeyAttribute
+import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
 import d4s.codecs.circe.DynamoAttributeEncoder
 import d4s.models.FieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
 import d4s.models.conditions._
@@ -24,7 +24,7 @@ object FieldOps {
   final class StringTypedFieldOpsCtor(private val name: String) extends AnyVal {
     def of[T]: TypedFieldOps[T] = new TypedFieldOps[T](name)
 
-    def field[T: DynamoKeyAttribute: DynamoAttributeEncoder]: DynamoField[T] = DynamoField(name)
+    def field[T: DynamoKeyAttribute: D4SAttributeEncoder]: DynamoField[T] = DynamoField(name)
 
     def existsField: Condition.attribute_exists           = Condition.attribute_exists(List(name))
     def notExists: Condition.attribute_not_exists         = Condition.attribute_not_exists(List(name))
