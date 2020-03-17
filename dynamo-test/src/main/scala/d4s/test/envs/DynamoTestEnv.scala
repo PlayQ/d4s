@@ -34,8 +34,8 @@ trait DynamoTestEnv {
   )
 
   def dockerConf: Docker.ClientConfig = Docker.ClientConfig(
-    readTimeoutMs    = 5000,
-    connectTimeoutMs = 1000,
+    readTimeoutMs    = 10000,
+    connectTimeoutMs = 3000,
     allowReuse       = true,
     useRemote        = false,
     useRegistry      = false,
