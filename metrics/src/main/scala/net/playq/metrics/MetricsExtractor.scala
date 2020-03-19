@@ -18,7 +18,7 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
 
   final val allRoles = s"${rolesInfo.requiredRoleBindings.map(_.descriptor.id).mkString(";")}${MacroMetricSaver.defaultMetricRole}"
 
-  def collectMetrics: (List[circe.Error], Set[MetricDef]) = {
+  def collectMetrics: Set[MetricDef] = {
     val scan         = new ClassGraph().scan()
     val resourceList = scan.getResourcesMatchingPattern(s"$metricsDir/.*".r.pattern)
 
@@ -34,7 +34,9 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
             .filter(_.nonEmpty)
             .map(io.circe.parser.decode[MetricDef])
       }.partitionEither(identity)
-      (errors, inRoles(rawFetched.toSet))
+
+      reportErrors(errors)
+      inRoles(rawFetched.toSet)
     } finally {
       resourceList.close()
       scan.close()
@@ -42,4 +44,10 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
   }
 
   @inline private def inRoles(metrics: Set[MetricDef]): Set[MetricDef] = metrics.filter(m => allRoles.contains(m.role))
+
+  private def reportErrors(errors: List[io.circe.Error]): Unit = {
+    if (errors.nonEmpty) {
+      logger.crit(s"Couldn't read some of the metrics - $errors")
+    }
+  }
 }
