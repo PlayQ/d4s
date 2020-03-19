@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 import cats.instances.list._
 import cats.syntax.foldable._
-import io.circe
 import io.github.classgraph.ClassGraph
 import izumi.distage.roles.model.meta.RolesInfo
 import logstage.IzLogger
