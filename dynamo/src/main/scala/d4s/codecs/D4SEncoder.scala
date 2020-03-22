@@ -5,6 +5,7 @@ import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
@@ -35,9 +36,9 @@ object D4SAttributeEncoder {
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
-  implicit def mapLikeEncoder[V, M[_, _] <: Map[String, V]](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[String, V]] = {
-    item: M[String, V] =>
-      val map = item.map { case (str, attr) => str -> V.encodeAttribute(attr) }.asJava
+  implicit def mapLikeEncoder[K, V, M[K, V] <: Map[K, V]](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[K, V]] = {
+    item: M[K, V] =>
+      val map = item.map[String, AttributeValue] { case (str, attr) => str.toString -> V.encodeAttribute(attr) }.asJava
       AttributeValue.builder().m(map).build()
   }
 

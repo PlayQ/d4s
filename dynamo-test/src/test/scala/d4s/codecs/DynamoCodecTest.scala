@@ -16,7 +16,8 @@ class DynamoCodecTest extends AnyWordSpec with Checkers with DynamoRnd {
     c: Boolean,
     d: String,
     e: Seq[Int],
-    f: Option[Unit]
+    f: Option[Unit],
+    m: Map[String, Int]
   )
   object TestNoDouble {
     implicit val codec: Codec.AsObject[TestNoDouble] = derivation.deriveCodec[TestNoDouble]

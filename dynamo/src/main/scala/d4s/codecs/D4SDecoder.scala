@@ -110,7 +110,10 @@ object D4SDecoder {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
       ctx.constructMonadic {
         p =>
-          p.typeclass.decodeAttribute(item(p.label))
+          item.get(p.label) match {
+            case Some(value) => p.typeclass.decodeAttribute(value)
+            case None => Left(new CannotDecodeAttributeValue(s"Cannot find parameter with name ${p.label}", None))
+          }
       }
     }
 
