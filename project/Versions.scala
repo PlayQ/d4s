@@ -1,7 +1,7 @@
 object V {
   val scala_212     = "2.12.10"
   val scala_213     = "2.13.1"
-  val izumi_version = "0.10.2-M8-ZIORC16"
+  val izumi_version = "0.10.3-M1"
 
   // compiler
   val kind_projector = "0.11.0"
@@ -9,7 +9,7 @@ object V {
 //  val neme_plugin = "0.0.5"
 
   // java
-  val aws_java_sdk   = "1.11.729"
+  val aws_java_sdk   = "1.11.758"
   val aws_java_sdk_2 = "2.7.36"
 //  val log4j_to_slf4j   = "2.11.2"
 //  val log4j12_to_slf4j = "1.7.26"
@@ -30,8 +30,8 @@ object V {
 
   val cats             = "2.1.1"
   val cats_effect      = "2.1.1"
-  val zio              = "1.0.0-RC16"
-  val zio_interop_cats = "2.0.0.0-RC7"
+  val zio              = "1.0.0-RC18-2"
+  val zio_interop_cats = "2.0.0.0-RC12"
 
   val scalatest                = "3.1.1"
   val scalatestplus_scalacheck = "3.1.1.1"
