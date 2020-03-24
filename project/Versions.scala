@@ -9,7 +9,7 @@ object V {
 //  val neme_plugin = "0.0.5"
 
   // java
-  val aws_java_sdk   = "1.11.758"
+  val aws_java_sdk   = "1.11.750"
   val aws_java_sdk_2 = "2.7.36"
 //  val log4j_to_slf4j   = "2.11.2"
 //  val log4j12_to_slf4j = "1.7.26"
