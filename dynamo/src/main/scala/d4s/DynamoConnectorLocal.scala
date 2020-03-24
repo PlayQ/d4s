@@ -43,7 +43,7 @@ class DynamoConnectorLocal[F[-_, +_, +_]: BIO3: BIOLocal] extends DynamoConnecto
 }
 
 object DynamoConnectorLocal {
-  sealed trait WithDynamoConnector[F[-_, +_, +_]] {
+  trait WithDynamoConnector[F[-_, +_, +_]] {
     def connector: DynamoConnector[F[Any, +?, +?]]
   }
   object WithDynamoConnector {
