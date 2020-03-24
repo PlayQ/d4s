@@ -10,8 +10,7 @@ import izumi.functional.bio.{BIO3, BIOLocal, F}
 
 import scala.language.implicitConversions
 
-class DynamoConnectorLocal[F[- _, + _, + _]: BIO3: BIOLocal]
-    extends DynamoConnector[F[WithDynamoConnector[F], +?, +?]] {
+class DynamoConnectorLocal[F[-_, +_, +_]: BIO3: BIOLocal] extends DynamoConnector[F[WithDynamoConnector[F], +?, +?]] {
   override def runUnrecorded[DR <: DynamoRequest, A](
     q: DynamoExecution[DR, _, A]
   ): F[WithDynamoConnector[F], Throwable, A] = {
@@ -28,17 +27,14 @@ class DynamoConnectorLocal[F[- _, + _, + _]: BIO3: BIOLocal]
 
   override def run[DR <: DynamoRequest, Dec, A](label: String)(
     q: DynamoExecution[DR, Dec, A]
-  )(implicit macroTimeSaver: MacroMetricDynamoTimer[label.type],
-    macroMeterSaver: MacroMetricDynamoMeter[label.type])
-    : F[WithDynamoConnector[F], DynamoException, A] = {
+  )(implicit macroTimeSaver: MacroMetricDynamoTimer[label.type], macroMeterSaver: MacroMetricDynamoMeter[label.type]): F[WithDynamoConnector[F], DynamoException, A] = {
     F.access(_.connector.run(label)(q))
   }
 
   override def runStreamed[DR <: DynamoRequest, Dec, A](label: String)(
     q: DynamoExecution.Streamed[DR, Dec, A]
   )(implicit macroTimeSaver: MacroMetricDynamoTimer[label.type],
-    macroMeterSaver: MacroMetricDynamoMeter[label.type])
-    : Stream[F[WithDynamoConnector[F], DynamoException, ?], A] = {
+    macroMeterSaver: MacroMetricDynamoMeter[label.type]): Stream[F[WithDynamoConnector[F], DynamoException, ?], A] = {
     Stream
       .force[F[WithDynamoConnector[F], DynamoException, ?], A] {
         F.askWith(_.connector.runStreamed(label)(q))
