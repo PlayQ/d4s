@@ -598,7 +598,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
     "DynamoConnectorLocal (d4z) should perform actions" in scopeIO {
       ctx =>
         import ctx._
-        val payload = InterpreterTestPayload("perform put", 12, "f3", RandomPayload("f2"))
+        val payload = InterpreterTestPayload("perform put2", 321, "f3", RandomPayload("f2"))
         (for {
           _     <- d4z.runUnrecorded(testTable.table.putItem(payload))
           get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
