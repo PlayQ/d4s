@@ -5,7 +5,6 @@ import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
-import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
