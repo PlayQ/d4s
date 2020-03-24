@@ -26,11 +26,11 @@ trait DynamoRnd extends ScalacheckShapeless {
     Entropy[F].nextLong().map(l => instance.arbitrary.pureApply(Gen.Parameters.default, Seed(l)))
   def randomEntropy[F[_]: Entropy: Functor, Z: Arbitrary]: F[Z] = randomEntropy(implicitly[Arbitrary[Z]])
 
-  def randomEntropy2[F[_, +_]: Entropy2: BIOFunctor, Z](instance: Arbitrary[Z]): F[Nothing, Z] = {
+  def randomEntropy2[F[+_, +_]: Entropy2: BIOFunctor, Z](instance: Arbitrary[Z]): F[Nothing, Z] = {
     import izumi.functional.bio.catz._
     randomEntropy(instance)
   }
-  def randomEntropy2[F[_, +_]: Entropy2: BIOFunctor, Z: Arbitrary]: F[Nothing, Z] = randomEntropy2(implicitly[Arbitrary[Z]])
+  def randomEntropy2[F[+_, +_]: Entropy2: BIOFunctor, Z: Arbitrary]: F[Nothing, Z] = randomEntropy2(implicitly[Arbitrary[Z]])
 
   implicit def arbitraryZonedDateTime: Arbitrary[ZonedDateTime] = Arbitrary {
     for {

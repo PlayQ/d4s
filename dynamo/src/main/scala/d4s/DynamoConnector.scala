@@ -28,11 +28,6 @@ trait DynamoConnector[F[+_, +_]] {
 }
 
 object DynamoConnector {
-
-  trait WithDynamoConnector[F[+_, +_]] {
-    def connector: DynamoConnector[F]
-  }
-
   final case class DynamoException(queryName: String, cause: Throwable)
     extends RuntimeException(s"Dynamo query `$queryName` failed due to error=${cause.getMessage}", cause)
 

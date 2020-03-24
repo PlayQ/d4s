@@ -38,6 +38,6 @@ object DynamoEncoder {
   }
   /** ObjectEncoder == DynamoEncoder */
   implicit def fromJsonObjectEncoder[T: Encoder.AsObject]: DynamoEncoder[T] = {
-    _.asJsonObject.toMap.mapValues(jsonToAttribute).toMap
+    _.asJsonObject.toMap.view.mapValues(jsonToAttribute).toMap
   }
 }

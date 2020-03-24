@@ -145,7 +145,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         val randomPayload = RandomPayload("f2")
-        val stressed = IO.traverse(1 to 200) {
+        val stressed = IO.foreach(1 to 200) {
           indx =>
             IO(InterpreterTestPayload("perform put/get/delete batch", indx, "xxx", randomPayload))
         }
@@ -383,7 +383,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             .retryWithPrefix(testTable.ddl)
           _ <- connector
             .runUnrecorded(get)
-            .evalMap[IO[Throwable, ?], Set[InterpreterTestPayload]](res => ref.update(_ ++ res)).compile.drain
+            .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
           all <- ref.get
           _   <- assertIO(all.size == expectedSize)
 
@@ -526,7 +526,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               connector
                 .run("repeatable-query-run")(query).foldM(
                   _ =>
-                    ZIO.sleep(fromScala(3.second)).provide(zio.clock.Clock.Live) *>
+                    ZIO.sleep(fromScala(3.second)).provideLayer(zio.clock.Clock.live) *>
                     retryPolicy(attempts - 1),
                   _ => ZIO.unit
                 )
@@ -593,6 +593,18 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           read2 <- connector.runUnrecorded(get)
           _     <- assertIO(read2.isEmpty)
         } yield ()
+    }
+
+    "DynamoConnectorLocal (d4z) should perform actions" in scopeIO {
+      ctx =>
+        import ctx._
+        val payload = InterpreterTestPayload("perform put", 12, "f3", RandomPayload("f2"))
+        (for {
+          _     <- d4z.runUnrecorded(testTable.table.putItem(payload))
+          get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          read1 <- d4z.runUnrecorded(get)
+          _     <- assertIO(read1.contains(payload))
+        } yield ()).provide(connector)
     }
 
   }

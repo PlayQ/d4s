@@ -16,7 +16,7 @@ import software.amazon.awssdk.services.dynamodb.model.BillingMode
 import zio.IO
 
 abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DistageBIOSpecScalatest[IO] with DynamoTestEnv with AssertIO {
-  protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): ProviderMagnet[IO[_, _]] = ctor.provider.map(f)
+  protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map(f(_).unit)
 
   override def config: TestConfig = TestConfig(
     pluginConfig     = PluginConfig.const(D4STestPlugin),
@@ -24,9 +24,6 @@ abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) 
     forcedRoots      = additionalRoots,
     moduleOverrides  = moduleOverrides,
     configBaseName   = "test",
-    // Set parallel envs to false so that memoized docker from the previous environment is reused when the next environment starts up
-    // (FIXME: distage-docker currently does not handle multiples of the same docker starting at the same time)
-    parallelEnvs = false
   )
 
   override def moduleOverrides: Module = super.moduleOverrides overridenBy new ModuleDef {
