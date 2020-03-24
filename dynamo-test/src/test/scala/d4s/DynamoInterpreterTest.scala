@@ -2,6 +2,8 @@ package d4s
 
 import java.util.UUID
 
+import cats.syntax.apply._
+import d4s.codecs.circe.DynamoEncoder._
 import d4s.DynamoInterpreterTest.Ctx
 import d4s.codecs.{D4SAttributeEncoder, D4SCodec}
 import d4s.env.Models._
@@ -11,6 +13,7 @@ import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.DynamoField
 import d4s.util.OffsetLimit
+import io.circe.Decoder
 import zio.interop.catz._
 import zio.{IO, Ref, ZIO}
 
@@ -214,6 +217,15 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
 
         final case class AdditionalFields(field4: String, field5: Int)
         object AdditionalFields {
+          implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
+        }
+
+        final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
+        object ExtendedPayload {
+          implicit val codec: D4SCodec[ExtendedPayload] = D4SCodec.derive
+          implicit val attrNames: AttributeNames[ExtendedPayload] = {
+            AttributeNames(AttributeNames[InterpreterTestPayload].attributeNames ++ AttributeNames[AdditionalFields].attributeNames)
+          }
           implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
         }
 
@@ -571,6 +583,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           delete = testTable.table
             .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
             .withPrefix(prefix)
+            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
