@@ -35,9 +35,9 @@ object D4SAttributeEncoder {
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
-  implicit def mapLikeEncoder[K, V, M[K, V] <: Map[K, V]](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[K, V]] = {
-    item: M[K, V] =>
-      val map = item.map[String, AttributeValue] { case (str, attr) => str.toString -> V.encodeAttribute(attr) }.asJava
+  implicit def mapLikeEncoder[M[x] <: scala.collection.Map[String, x], V](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[V]] = {
+    item: M[V] =>
+      val map = item.map { case (str, attr) => str -> V.encodeAttribute(attr) }.asJava
       AttributeValue.builder().m(map).build()
   }
 

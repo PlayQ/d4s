@@ -2,12 +2,8 @@ package d4s
 
 import java.util.UUID
 
-import cats.syntax.apply._
-import d4s.codecs.circe.DynamoEncoder._
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.circe.DynamoAttributeEncoder.encodeAttribute
-import d4s.codecs.AttributeNames
-import d4s.codecs.circe.DynamoAttributeEncoder
+import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -15,7 +11,6 @@ import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.DynamoField
 import d4s.util.OffsetLimit
-import io.circe.Decoder
 import zio.interop.catz._
 import zio.{IO, Ref, ZIO}
 
@@ -39,6 +34,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         val payload = InterpreterTestPayload("perform put", 12, "f3", RandomPayload("f2"))
+
         for {
           _     <- connector.runUnrecorded(testTable.table.putItem(payload))
           get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
@@ -145,7 +141,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         val randomPayload = RandomPayload("f2")
-        val stressed = IO.foreach(1 to 200) {
+        val stressed = IO.traverse(1 to 200) {
           indx =>
             IO(InterpreterTestPayload("perform put/get/delete batch", indx, "xxx", randomPayload))
         }
@@ -215,18 +211,15 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         import ctx.testTable.table
-        import io.circe.{Codec, derivation}
 
         final case class AdditionalFields(field4: String, field5: Int)
         object AdditionalFields {
-          implicit val codec: Codec.AsObject[AdditionalFields] = derivation.deriveCodec[AdditionalFields]
+          implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
         }
 
         final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
         object ExtendedPayload {
-          implicit val decoder: Decoder[ExtendedPayload] = {
-            Decoder[InterpreterTestPayload].map2(Decoder[AdditionalFields])(ExtendedPayload(_, _))
-          }
+          implicit val codec: D4SCodec[ExtendedPayload] = D4SCodec.derive
           implicit val attrNames: AttributeNames[ExtendedPayload] = {
             AttributeNames(AttributeNames[InterpreterTestPayload].attributeNames ++ AttributeNames[AdditionalFields].attributeNames)
           }
@@ -248,8 +241,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .updateItem(modifiedPayload1)
               .withCondition(complexCondition)
               .withUpdateExpression("SET field4 = :field4, field5 = :field5 REMOVE field9")
-              .withAttributeValues(":field4" -> DynamoAttributeEncoder.encodeAttribute("FIELD4"))
-              .withAttributeValues(":field5" -> DynamoAttributeEncoder.encodeAttribute(8))
+              .withAttributeValues(":field4" -> D4SAttributeEncoder.encodeAttribute("FIELD4"))
+              .withAttributeValues(":field5" -> D4SAttributeEncoder.encodeAttribute(8))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(assert(failure.isEmpty)))
 
@@ -257,19 +250,19 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table.updateItem(modifiedPayload1).withCondition(complexCondition).optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isDefined))
 
-          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
-          _     <- assertIO(item1.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("FIELD4", 8))))
+          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
+          _     <- assertIO(item1.get == AdditionalFields("FIELD4", 8))
 
           _ <- connector.runUnrecorded {
             table
               .updateItem(key)
               .withUpdateExpression("SET field4 = :field4")
-              .withAttributeValues(":field4" -> DynamoAttributeEncoder.encodeAttribute("X"))
+              .withAttributeValues(":field4" -> D4SAttributeEncoder.encodeAttribute("X"))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isEmpty))
 
-          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
-          _     <- assertIO(item2.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("X", 8))))
+          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
+          _     <- assertIO(item2.get == AdditionalFields("X", 8))
         } yield ()
     }
 
@@ -285,7 +278,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         for {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload1))
 
-          query = testTable.table.query.withKey(Map("field1" -> encodeAttribute[String](hash))).decodeItems[InterpreterTestPayload]
+          query = testTable.table.query.withKey(Map("field1" -> D4SAttributeEncoder.encodeAttribute(hash))).decodeItems[InterpreterTestPayload]
           res1  <- connector.runUnrecorded(query)
           _     <- assertIO(res1.size == 1)
           _     <- connector.runUnrecorded(testTable.table.putItem(payload2))
@@ -383,7 +376,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             .retryWithPrefix(testTable.ddl)
           _ <- connector
             .runUnrecorded(get)
-            .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
+            .evalMap[IO[Throwable, ?], Set[InterpreterTestPayload]](res => ref.update(_ ++ res)).compile.drain
           all <- ref.get
           _   <- assertIO(all.size == expectedSize)
 
@@ -481,7 +474,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> DynamoAttributeEncoder.encodeAttribute(0L))
+              .withAttributeValues(":value" -> D4SAttributeEncoder.encodeAttribute(0L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }
@@ -490,7 +483,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> DynamoAttributeEncoder.encodeAttribute(1L))
+              .withAttributeValues(":value" -> D4SAttributeEncoder.encodeAttribute(1L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }
@@ -526,7 +519,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               connector
                 .run("repeatable-query-run")(query).foldM(
                   _ =>
-                    ZIO.sleep(fromScala(3.second)).provideLayer(zio.clock.Clock.live) *>
+                    ZIO.sleep(fromScala(3.second)).provide(zio.clock.Clock.Live) *>
                     retryPolicy(attempts - 1),
                   _ => ZIO.unit
                 )
@@ -586,7 +579,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           delete = testTable.table
             .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
             .withPrefix(prefix)
-            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
