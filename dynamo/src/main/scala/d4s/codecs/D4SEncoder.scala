@@ -59,6 +59,7 @@ trait D4SEncoder[T] extends D4SAttributeEncoder[T] {
   }
 }
 
+
 object D4SEncoder {
   def apply[T: D4SEncoder]: D4SEncoder[T] = implicitly
 
