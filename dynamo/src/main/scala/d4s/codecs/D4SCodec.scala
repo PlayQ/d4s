@@ -1,7 +1,6 @@
 package d4s.codecs
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
-import scala.language.implicitConversions
 
 trait D4SCodec[A] extends D4SAttributeEncoder[A] with D4SAttributeDecoder[A] {
   self =>

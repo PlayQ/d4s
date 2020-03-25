@@ -1,6 +1,6 @@
 package d4s.codecs
 
-import d4s.codecs.circe.{DynamoDecoder, DynamoEncoder}
+import d4s.codecs.circe.D4SCirceCodec
 import d4s.env.DynamoRnd
 import io.circe.{Codec, derivation}
 import org.scalacheck.Prop
@@ -10,64 +10,60 @@ import org.scalatestplus.scalacheck.Checkers
 @SuppressWarnings(Array("EitherGet", "FinalModifierOnCaseClass"))
 class DynamoCodecTest extends AnyWordSpec with Checkers with DynamoRnd {
 
-  case class TestNoDouble(
+  case class TestCaseClass(
     a: Int,
     b: Long,
     c: Boolean,
     d: String,
     e: Seq[Int],
     f: Option[Unit],
-    m: Map[String, Int]
+    m: Map[String, Int],
+    wrap: TestDataWrap
   )
-  object TestNoDouble {
-    implicit val codec: Codec.AsObject[TestNoDouble] = derivation.deriveCodec[TestNoDouble]
+  object TestCaseClass {
+    implicit val circeCodec: Codec.AsObject[TestCaseClass] = derivation.deriveCodec[TestCaseClass]
+  }
+
+  case class TestDataWrap(data: String)
+  object TestDataWrap {
+    implicit val circeCodec: Codec.AsObject[TestDataWrap] = derivation.deriveCodec[TestDataWrap]
+    implicit val magnoliaCodec: D4SCodec[TestDataWrap] = D4SCodec.derive[TestDataWrap]
   }
 
   case class TestByteArray(a: Array[Byte])
 
   case class TestDouble(a: Double)
   object TestDouble {
-    implicit val codec: Codec.AsObject[TestDouble] = derivation.deriveCodec[TestDouble]
+    implicit val circeCodec: Codec.AsObject[TestDouble] = derivation.deriveCodec[TestDouble]
   }
 
-  case class Name(value: String) {
-    override def toString: String = s"Name#$value"
-  }
-  object Name {
-    def fromStr(value: String) = Name(value.split("#").last)
-  }
-  case class User(name: Name)
-  case class UserStored(name: String) {
-    def toAPI = User(Name.fromStr(name))
-  }
-
-  "encode/decode TestNoDouble" in check {
+  "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
-      testData: TestNoDouble =>
-        val encoded = DynamoEncoder[TestNoDouble].encode(testData)
-        val decoded = DynamoDecoder[TestNoDouble].decode(encoded).toOption.get
-        testData == decoded
+      testData: TestCaseClass =>
+        val circeCodec    = D4SCirceCodec.derive[TestCaseClass]
+        val magnoliaCodec = D4SCodec.derive[TestCaseClass]
+
+        val encoded = circeCodec.encode(testData)
+        val decoded = circeCodec.decode(encoded).toOption.get
+
+        val magnoliaEncoded = magnoliaCodec.encode(testData)
+        val magnoliaDecoded = magnoliaCodec.decode(magnoliaEncoded).toOption.get
+        testData == decoded && decoded == magnoliaDecoded && encoded == magnoliaEncoded
     }
   }
 
   "encode/decode TestDouble" in check {
     Prop.forAllNoShrink {
       testData: TestDouble =>
-        val encoded = DynamoEncoder[TestDouble].encode(testData)
-        val decoded = DynamoDecoder[TestDouble].decode(encoded).toOption.get
-        testData == decoded
-    }
-  }
+        val circeCodec    = D4SCirceCodec.derive[TestDouble]
+        val magnoliaCodec = D4SCodec.derive[TestDouble]
 
-  "new decoder test" in check {
-    implicit val encoder: D4SEncoder[TestNoDouble] = D4SEncoder.derived[TestNoDouble]
-    implicit val decoder: D4SDecoder[TestNoDouble] = D4SDecoder.derived[TestNoDouble]
+        val encoded = circeCodec.encode(testData)
+        val decoded = circeCodec.decode(encoded).toOption.get
 
-    Prop.forAllNoShrink {
-      testData: TestNoDouble =>
-        val encoded = D4SEncoder[TestNoDouble].encode(testData)
-        val decoded = D4SDecoder[TestNoDouble].decode(encoded).toOption.get
-        testData == decoded
+        val magnoliaEncoded = magnoliaCodec.encode(testData)
+        val magnoliaDecoded = magnoliaCodec.decode(magnoliaEncoded).toOption.get
+        testData == decoded && decoded == magnoliaDecoded && encoded == magnoliaEncoded
     }
   }
 
