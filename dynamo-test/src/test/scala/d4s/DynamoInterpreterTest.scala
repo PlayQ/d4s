@@ -423,7 +423,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           put = testTable.table
             .putItemBatch(items)
             .withPrefix(prefix)
-            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(put)
 
@@ -441,7 +440,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           delete = testTable.table
             .deleteItemBatch(items.map(_.item.key))
             .withPrefix(prefix)
-            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
