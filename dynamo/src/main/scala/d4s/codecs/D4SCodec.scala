@@ -11,8 +11,8 @@ trait D4SCodec[A] extends D4SEncoder[A] with D4SDecoder[A] {
 }
 
 object D4SCodec {
-  def apply[A: D4SCodec]: D4SCodec[A] = implicitly
-
+  def apply[A: D4SCodec]: D4SCodec[A]              = implicitly
+  def from[T: D4SEncoder: D4SDecoder]: D4SCodec[T] = fromPair(D4SEncoder[T], D4SDecoder[T])
   def fromPair[T](encoder: D4SEncoder[T], decoder: D4SDecoder[T]): D4SCodec[T] = new D4SCodec[T] {
     override def encode(item: T): Map[String, AttributeValue]                                             = encoder.encode(item)
     override def decode(item: Map[String, AttributeValue]): Either[CodecsUtils.DynamoDecoderException, T] = decoder.decode(item)
@@ -28,5 +28,5 @@ object D4SCodec {
     def imap2[B, C](another: D4SCodec[B])(to: (T, B) => C)(from: C => (T, B)): D4SCodec[C] = fromPair(encoder.contramap2(another)(from), decoder.map2(another)(to))
   }
 
-  def derive[A](implicit derivedCodec: DerivationDerivedCodec[A]): D4SCodec[A] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
+  def derive[A](implicit derivedCodec: D4SDerivedCodec[A]): D4SCodec[A] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
 }
