@@ -1,42 +1,13 @@
 package d4s.codecs
 
+import d4s.codecs.Fixtures._
 import d4s.codecs.circe.D4SCirceCodec
-import d4s.env.DynamoRnd
-import io.circe.{Codec, derivation}
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 
 @SuppressWarnings(Array("EitherGet", "FinalModifierOnCaseClass"))
-class DynamoCodecTest extends AnyWordSpec with Checkers with DynamoRnd {
-
-  case class TestCaseClass(
-    a: Int,
-    b: Long,
-    c: Boolean,
-    d: String,
-    e: Seq[Int],
-    f: Option[Unit],
-    m: Map[String, Int],
-    wrap: TestDataWrap
-  )
-  object TestCaseClass {
-    implicit val circeCodec: Codec.AsObject[TestCaseClass] = derivation.deriveCodec[TestCaseClass]
-  }
-
-  case class TestDataWrap(data: String)
-  object TestDataWrap {
-    implicit val circeCodec: Codec.AsObject[TestDataWrap] = derivation.deriveCodec[TestDataWrap]
-    implicit val magnoliaCodec: D4SCodec[TestDataWrap] = D4SCodec.derive[TestDataWrap]
-  }
-
-  case class TestByteArray(a: Array[Byte])
-
-  case class TestDouble(a: Double)
-  object TestDouble {
-    implicit val circeCodec: Codec.AsObject[TestDouble] = derivation.deriveCodec[TestDouble]
-  }
-
+class DynamoCodecTest extends AnyWordSpec with Checkers {
   "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
       testData: TestCaseClass =>

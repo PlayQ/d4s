@@ -12,8 +12,8 @@ trait D4SCirceEncoder[T] extends D4SEncoder[T] {
 }
 
 object D4SCirceEncoder {
-  def apply[T: D4SCirceEncoder]: D4SCirceEncoder[T]   = implicitly
-  def derived[T: Encoder.AsObject]: D4SCirceEncoder[T] = _.asJsonObject.toMap.view.mapValues(jsonToAttribute).toMap
+  def apply[T: D4SCirceEncoder]: D4SCirceEncoder[T]    = implicitly
+  def derived[T: Encoder.AsObject]: D4SCirceEncoder[T] = _.asJsonObject.toMap.map { case (k, v) => k -> jsonToAttribute(v) }
 
   def jsonToAttribute(json: Json): AttributeValue = {
     json.fold(
