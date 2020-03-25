@@ -5,6 +5,7 @@ import d4s.env.Models._
 import d4s.models.table.TableDef
 import d4s.test.envs.DynamoTestEnv
 import distage.Tag
+import izumi.distage.config.ConfigModuleDef
 import izumi.distage.constructors.AnyConstructor
 import izumi.distage.model.definition.{Module, ModuleDef}
 import izumi.distage.model.providers.ProviderMagnet
@@ -26,7 +27,7 @@ abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) 
     configBaseName   = "test",
   )
 
-  override def moduleOverrides: Module = super.moduleOverrides overridenBy new ModuleDef {
+  override def moduleOverrides: Module = super.moduleOverrides overridenBy new ConfigModuleDef {
     make[DynamoMeta].from {
       DynamoMeta(ProvisioningConfig(cfgDefault, List(TableProvisionedThroughputConfig("table1", cfgForTable1, Nil))), _: AwsNameSpace, None)
     }

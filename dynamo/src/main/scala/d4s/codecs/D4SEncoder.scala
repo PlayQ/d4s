@@ -15,6 +15,8 @@ object D4SAttributeEncoder {
   def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
 
   final def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue = D4SAttributeEncoder[T].encodeAttribute(item)
+  final def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] =
+    Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
 
   implicit val stringEncoder: D4SAttributeEncoder[String] = AttributeValue.builder().s(_).build()
   implicit val boolEncoder: D4SAttributeEncoder[Boolean]  = AttributeValue.builder().bool(_).build()
@@ -33,8 +35,8 @@ object D4SAttributeEncoder {
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
-  implicit def mapLikeEncoder[V, M[_, _] <: Map[String, V]](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[String, V]] = {
-    item: M[String, V] =>
+  implicit def mapLikeEncoder[M[x] <: scala.collection.Map[String, x], V](implicit V: D4SAttributeEncoder[V]): D4SAttributeEncoder[M[V]] = {
+    item: M[V] =>
       val map = item.map { case (str, attr) => str -> V.encodeAttribute(attr) }.asJava
       AttributeValue.builder().m(map).build()
   }

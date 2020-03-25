@@ -94,6 +94,12 @@ object D4SAttributeDecoder {
 trait D4SDecoder[T] extends D4SAttributeDecoder[T] {
   def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]
   def decode(item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decode(item.asScala.toMap)
+
+  override final def decodeAttribute(item: AttributeValue): Either[DynamoDecoderException, T] = {
+    Option(item.m())
+      .toRight(new CannotDecodeAttributeValue(s"Couldn't decode dynamo item=$item as object. Does not have an `M` attribute (not a JSON object)", None))
+      .flatMap(decode)
+  }
 }
 
 object D4SDecoder {
@@ -110,18 +116,16 @@ object D4SDecoder {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
       ctx.constructMonadic {
         p =>
-          p.typeclass.decodeAttribute(item(p.label))
+          item.get(p.label) match {
+            case Some(value) => p.typeclass.decodeAttribute(value)
+            case None        => Left(new CannotDecodeAttributeValue(s"Cannot find parameter with name ${p.label}", None))
+          }
       }
     }
-
-    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T] = ctx.constructMonadic(_.typeclass.decodeAttribute(v))
   }
 
   def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = new D4SDecoder[T] {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] =
       ctx.subtypes.dropWhile(s => s.typeclass.decode(item).isLeft).head.typeclass.decode(item)
-
-    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T] =
-      ctx.subtypes.dropWhile(s => s.typeclass.decodeAttribute(v).isLeft).head.typeclass.decodeAttribute(v)
   }
 }

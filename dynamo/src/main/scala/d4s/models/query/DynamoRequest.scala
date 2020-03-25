@@ -1,6 +1,6 @@
 package d4s.models.query
 
-import d4s.codecs.circe.DynamoEncoder
+import d4s.codecs.D4SEncoder
 import d4s.models.conditions.Condition
 import d4s.models.table.index.TableIndex
 import d4s.models.table.{DynamoField, TablePrefix, TableReference}
@@ -82,10 +82,10 @@ object DynamoRequest {
   trait WithAttributeValues[A] {
     def withAttributeValues(f: Map[String, AttributeValue] => Map[String, AttributeValue]): A
 
-    final def withAttributeValues(add: Map[String, AttributeValue]): A                = withAttributeValues(_ ++ add)
-    final def withAttributeValues(value: (String, AttributeValue)): A                 = withAttributeValues(_ + value)
-    final def withAttribute[Item: DynamoEncoder](value: Item): A                      = withAttributeValues(DynamoEncoder[Item].encode(value))
-    final def withAttributes[I1: DynamoEncoder, I2: DynamoEncoder](v1: I1, v2: I2): A = withAttributeValues(DynamoEncoder[I1].encode(v1) ++ DynamoEncoder[I2].encode(v2))
+    final def withAttributeValues(add: Map[String, AttributeValue]): A          = withAttributeValues(_ ++ add)
+    final def withAttributeValues(value: (String, AttributeValue)): A           = withAttributeValues(_ + value)
+    final def withAttribute[Item: D4SEncoder](value: Item): A                   = withAttributeValues(D4SEncoder[Item].encode(value))
+    final def withAttributes[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withAttributeValues(D4SEncoder[I1].encode(v1) ++ D4SEncoder[I2].encode(v2))
   }
 
   trait WithAttributeNames[A] {
@@ -109,7 +109,7 @@ object DynamoRequest {
 
   trait WithStartKey[A] {
     def withStartKeyMap(startKey: java.util.Map[String, AttributeValue]): A
-    final def withStartKey[Key: DynamoEncoder](startKey: Key): A = withStartKeyMap(DynamoEncoder[Key].encode(startKey).asJava)
+    final def withStartKey[Key: D4SEncoder](startKey: Key): A = withStartKeyMap(D4SEncoder[Key].encode(startKey).asJava)
   }
 
   trait WithConsistent[A] {
@@ -119,7 +119,7 @@ object DynamoRequest {
   trait WithBatch[A, BatchType[_]] {
     def batchItems: List[Map[String, AttributeValue]]
     /** overwrites batch list, subsequent calls do not append */
-    def withBatch[I: DynamoEncoder](batchItems: List[BatchType[I]]): A
+    def withBatch[I: D4SEncoder](batchItems: List[BatchType[I]]): A
     /** overwrites batch list, subsequent calls do not append */
     def withBatch(batchItems: List[Map[String, AttributeValue]]): A
   }
@@ -134,17 +134,17 @@ object DynamoRequest {
     final def withKey(add: Map[String, AttributeValue]): A        = withKey(_ ++ add)
     final def withKey(value: (String, AttributeValue)): A         = withKey(_ + value)
     final def withKeyField[T](field: DynamoField[T])(value: T): A = withKey(_ + field.bind(value))
-    final def withKeyItem[Item: DynamoEncoder](value: Item): A    = withKey(_ ++ DynamoEncoder[Item].encode(value))
+    final def withKeyItem[Item: D4SEncoder](value: Item): A       = withKey(_ ++ D4SEncoder[Item].encode(value))
   }
 
   trait WithItem[A] {
     def withItemAttributeValues(f: Map[String, AttributeValue] => Map[String, AttributeValue]): A
 
-    final def withItemAttributeValues(add: Map[String, AttributeValue]): A       = withItemAttributeValues(_ ++ add)
-    final def withItemAttributeValues(value: (String, AttributeValue)): A        = withItemAttributeValues(_ + value)
-    final def withItemField[T](field: DynamoField[T])(value: T): A               = withItemAttributeValues(_ + field.bind(value))
-    final def withItem[Item: DynamoEncoder](value: Item): A                      = withItemAttributeValues(DynamoEncoder[Item].encode(value))
-    final def withItems[I1: DynamoEncoder, I2: DynamoEncoder](v1: I1, v2: I2): A = withItemAttributeValues(DynamoEncoder[I1].encode(v1) ++ DynamoEncoder[I2].encode(v2))
+    final def withItemAttributeValues(add: Map[String, AttributeValue]): A = withItemAttributeValues(_ ++ add)
+    final def withItemAttributeValues(value: (String, AttributeValue)): A  = withItemAttributeValues(_ + value)
+    final def withItemField[T](field: DynamoField[T])(value: T): A         = withItemAttributeValues(_ + field.bind(value))
+    final def withItem[Item: D4SEncoder](value: Item): A                   = withItemAttributeValues(D4SEncoder[Item].encode(value))
+    final def withItems[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withItemAttributeValues(D4SEncoder[I1].encode(v1) ++ D4SEncoder[I2].encode(v2))
   }
 
   type HasTableReference[A]       = A => WithTableReference[A]

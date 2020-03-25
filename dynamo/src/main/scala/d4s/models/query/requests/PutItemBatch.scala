@@ -1,6 +1,6 @@
 package d4s.models.query.requests
 
-import d4s.codecs.circe.{DynamoAttributeEncoder, DynamoEncoder}
+import d4s.codecs.{D4SAttributeEncoder, D4SEncoder}
 import d4s.models.query.DynamoRequest
 import d4s.models.query.DynamoRequest.{BatchWriteEntity, DynamoWriteBatchRequest, WithBatch, WithTableReference}
 import d4s.models.table.TableReference
@@ -15,18 +15,18 @@ final case class PutItemBatch(
   with WithTableReference[PutItemBatch]
   with WithBatch[PutItemBatch, DynamoRequest.BatchWriteEntity] {
 
-  override def withBatch[I: DynamoEncoder](batchItems: List[DynamoRequest.BatchWriteEntity[I]]): PutItemBatch = {
+  override def withBatch[I: D4SEncoder](batchItems: List[DynamoRequest.BatchWriteEntity[I]]): PutItemBatch = {
     withBatch {
       table.ttlField match {
         case Some(ttlName) =>
           batchItems.map {
             case BatchWriteEntity(item, ttl) =>
-              val mbTTL = ttl.map(DynamoAttributeEncoder.encodePlain(ttlName, _))
-              DynamoEncoder[I].encode(item) ++ mbTTL.getOrElse(Map.empty)
+              val mbTTL = ttl.map(D4SAttributeEncoder.encodePlain(ttlName, _))
+              D4SEncoder[I].encode(item) ++ mbTTL.getOrElse(Map.empty)
           }
 
         case None =>
-          batchItems.map(i => DynamoEncoder[I].encode(i.item))
+          batchItems.map(i => D4SEncoder[I].encode(i.item))
       }
     }
   }
