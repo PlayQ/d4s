@@ -3,7 +3,7 @@ package d4s
 import java.util.UUID
 
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec}
+import d4s.codecs.{D4SAttributeEncoder, D4SCodec}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -141,7 +141,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         val randomPayload = RandomPayload("f2")
-        val stressed = IO.traverse(1 to 200) {
+        val stressed = IO.foreach(1 to 200) {
           indx =>
             IO(InterpreterTestPayload("perform put/get/delete batch", indx, "xxx", randomPayload))
         }
@@ -215,14 +215,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         final case class AdditionalFields(field4: String, field5: Int)
         object AdditionalFields {
           implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
-        }
-
-        final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
-        object ExtendedPayload {
-          implicit val codec: D4SCodec[ExtendedPayload] = D4SCodec.derive
-          implicit val attrNames: AttributeNames[ExtendedPayload] = {
-            AttributeNames(AttributeNames[InterpreterTestPayload].attributeNames ++ AttributeNames[AdditionalFields].attributeNames)
-          }
         }
 
         val key              = InterpreterTestKey("perform update with updateExpression", 3)
@@ -376,7 +368,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             .retryWithPrefix(testTable.ddl)
           _ <- connector
             .runUnrecorded(get)
-            .evalMap[IO[Throwable, ?], Set[InterpreterTestPayload]](res => ref.update(_ ++ res)).compile.drain
+            .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
           all <- ref.get
           _   <- assertIO(all.size == expectedSize)
 
@@ -519,7 +511,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               connector
                 .run("repeatable-query-run")(query).foldM(
                   _ =>
-                    ZIO.sleep(fromScala(3.second)).provide(zio.clock.Clock.Live) *>
+                    ZIO.sleep(fromScala(3.second)).provideLayer(zio.clock.Clock.live) *>
                     retryPolicy(attempts - 1),
                   _ => ZIO.unit
                 )
