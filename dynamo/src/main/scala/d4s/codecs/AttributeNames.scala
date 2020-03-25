@@ -6,6 +6,7 @@ import scala.reflect.macros.blackbox
 /** Retrieves a `ProjectionExpression` for case class `T` */
 final case class AttributeNames[T](attributeNames: Set[String]) {
   def projectionExpression: String = attributeNames.mkString("", ", ", "")
+  def combine[A](t2: AttributeNames[_]): AttributeNames[A] = AttributeNames(this.attributeNames ++ t2.attributeNames)
 }
 
 object AttributeNames {

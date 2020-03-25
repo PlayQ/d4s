@@ -36,7 +36,7 @@ object D4SAttributeDecoder {
     Either.fromTry(Try(attr.bool().booleanValue())).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Boolean.", Some(err)))
 
   implicit val unitDecoder: D4SAttributeDecoder[Unit] = attr =>
-    if (attr.m().isEmpty) Right(()) else Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Boolean.", None))
+    if (attr.m().isEmpty) Right(()) else Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Unit.", None))
 
   implicit val sdkBytesDecoder: D4SAttributeDecoder[Array[Byte]] = attr =>
     Either.fromTry(Try(attr.b().asByteArray())).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Array[Byte]", Some(err)))
@@ -92,6 +92,7 @@ object D4SAttributeDecoder {
 }
 
 trait D4SDecoder[T] extends D4SAttributeDecoder[T] {
+  self =>
   def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]
   def decode(item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decode(item.asScala.toMap)
 
@@ -100,20 +101,24 @@ trait D4SDecoder[T] extends D4SAttributeDecoder[T] {
       .toRight(new CannotDecodeAttributeValue(s"Couldn't decode dynamo item=$item as object. Does not have an `M` attribute (not a JSON object)", None))
       .flatMap(decode)
   }
+
+  def flatMap[T1](f: T => D4SDecoder[T1]): D4SDecoder[T1]                  = item => self.decode(item).map(f).flatMap(_.decode(item))
+  def map[T1](f: T => T1): D4SDecoder[T1]                                  = item => decode(item).map(f)
+  def map2[T1, A](another: D4SDecoder[T1])(f: (T, T1) => A): D4SDecoder[A] = flatMap(t => another.map(t1 => f(t, t1)))
 }
 
 object D4SDecoder {
   def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
+  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[_]]
 
   def decode[A: D4SDecoder](item: Map[String, AttributeValue]): Either[DynamoDecoderException, A]           = D4SDecoder[A].decode(item)
   def decode[A: D4SDecoder](item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, A] = D4SDecoder[A].decode(item)
   def decodeAttribute[A: D4SAttributeDecoder](v: AttributeValue): Either[DynamoDecoderException, A]         = D4SAttributeDecoder[A].decodeAttribute(v)
 
+  /** Magnolia instances. */
   type Typeclass[T] = D4SAttributeDecoder[T]
-  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[Nothing]]
-
-  def combine[T](ctx: CaseClass[D4SAttributeDecoder, T]): D4SDecoder[T] = new D4SDecoder[T] {
-    override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
+  def combine[T](ctx: CaseClass[D4SAttributeDecoder, T]): D4SDecoder[T] = {
+    item =>
       ctx.constructMonadic {
         p =>
           item.get(p.label) match {
@@ -121,11 +126,12 @@ object D4SDecoder {
             case None        => Left(new CannotDecodeAttributeValue(s"Cannot find parameter with name ${p.label}", None))
           }
       }
-    }
   }
-
-  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = new D4SDecoder[T] {
-    override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] =
-      ctx.subtypes.dropWhile(s => s.typeclass.decode(item).isLeft).head.typeclass.decode(item)
+  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = {
+    item =>
+      import cats.implicits._
+      ctx.subtypes.toList
+        .collectFirstSome(_.typeclass.decode(item).toOption)
+        .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
   }
 }

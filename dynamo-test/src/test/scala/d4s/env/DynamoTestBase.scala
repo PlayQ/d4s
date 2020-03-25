@@ -7,7 +7,7 @@ import d4s.test.envs.DynamoTestEnv
 import distage.Tag
 import izumi.distage.config.ConfigModuleDef
 import izumi.distage.constructors.AnyConstructor
-import izumi.distage.model.definition.{Module, ModuleDef}
+import izumi.distage.model.definition.Module
 import izumi.distage.model.providers.ProviderMagnet
 import izumi.distage.plugins.PluginConfig
 import izumi.distage.testkit.TestConfig

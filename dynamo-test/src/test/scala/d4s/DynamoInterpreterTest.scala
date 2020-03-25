@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.syntax.apply._
 import d4s.codecs.circe.DynamoEncoder._
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.{D4SAttributeEncoder, D4SCodec}
+import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, D4SDecoder}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -222,11 +222,14 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
 
         final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
         object ExtendedPayload {
-          implicit val codec: D4SCodec[ExtendedPayload] = D4SCodec.derive
-          implicit val attrNames: AttributeNames[ExtendedPayload] = {
-            AttributeNames(AttributeNames[InterpreterTestPayload].attributeNames ++ AttributeNames[AdditionalFields].attributeNames)
-          }
-          implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
+          implicit val decoder: D4SDecoder[ExtendedPayload] = D4SDecoder[InterpreterTestPayload].map2(D4SDecoder[AdditionalFields])(ExtendedPayload(_, _))
+          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
+        }
+
+        final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
+        object ExtendedPayload {
+          implicit val decoder: D4SDecoder[ExtendedPayload] = D4SDecoder[InterpreterTestPayload].map2(D4SDecoder[AdditionalFields])(ExtendedPayload(_, _))
+          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
         }
 
         val key              = InterpreterTestKey("perform update with updateExpression", 3)
@@ -254,8 +257,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table.updateItem(modifiedPayload1).withCondition(complexCondition).optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isDefined))
 
-          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
-          _     <- assertIO(item1.get == AdditionalFields("FIELD4", 8))
+          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
+          _     <- assertIO(item1.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("FIELD4", 8))))
 
           _ <- connector.runUnrecorded {
             table
@@ -265,8 +268,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isEmpty))
 
-          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
-          _     <- assertIO(item2.get == AdditionalFields("X", 8))
+          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
+          _     <- assertIO(item2.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("X", 8))))
         } yield ()
     }
 
