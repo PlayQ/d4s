@@ -3,11 +3,14 @@ package d4s.codecs
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import scala.language.implicitConversions
 
-trait D4SCodec[A] {
+trait D4SCodec[A] extends D4SAttributeEncoder[A] with D4SAttributeDecoder[A] {
   self =>
 
   def encoder: D4SEncoder[A]
   def decoder: D4SDecoder[A]
+
+  final def encodeAttribute(item: A): AttributeValue = encoder.encodeAttribute(item)
+  final def decodeAttribute(item: AttributeValue): Either[CodecsUtils.DynamoDecoderException, A] = decoder.decodeAttribute(item)
 
   final def encode(item: A): Map[String, AttributeValue]                                             = encoder.encode(item)
   final def decode(item: Map[String, AttributeValue]): Either[CodecsUtils.DynamoDecoderException, A] = decoder.decode(item)
@@ -29,7 +32,4 @@ object D4SCodec {
     val encoder: D4SEncoder[A] = derivedCodec.enc
     val decoder: D4SDecoder[A] = derivedCodec.dec
   }
-
-  implicit def AttachD4SDecoder[T](self: D4SCodec[T]): D4SDecoder[T] = self.decoder
-  implicit def AttachD4SEncoder[T](self: D4SCodec[T]): D4SEncoder[T] = self.encoder
 }
