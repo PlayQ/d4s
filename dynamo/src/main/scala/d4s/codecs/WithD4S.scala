@@ -1,7 +1,7 @@
 package d4s.codecs
 
-import scala.reflect.macros.blackbox
 import scala.language.experimental.macros
+import scala.reflect.macros.blackbox
 
 abstract class WithD4S[T](implicit val derivedCodec: DerivationDerivedCodec[T]) {
   def this(proxy: WithD4S[T]) = this()(DerivationDerivedCodec(proxy.enc, proxy.dec))

@@ -115,6 +115,8 @@ object D4SDecoder {
   def decode[A: D4SDecoder](item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, A] = D4SDecoder[A].decode(item)
   def decodeAttribute[A: D4SAttributeDecoder](v: AttributeValue): Either[DynamoDecoderException, A]         = D4SAttributeDecoder[A].decodeAttribute(v)
 
+  implicit def fromCodec[T](implicit self: D4SCodec[T]): D4SDecoder[T] = self.decoder
+
   /** Magnolia instances. */
   type Typeclass[T] = D4SAttributeDecoder[T]
   def combine[T](ctx: CaseClass[D4SAttributeDecoder, T]): D4SDecoder[T] = {

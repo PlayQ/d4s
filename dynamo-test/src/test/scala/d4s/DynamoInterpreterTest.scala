@@ -2,10 +2,8 @@ package d4s
 
 import java.util.UUID
 
-import cats.syntax.apply._
-import d4s.codecs.circe.DynamoEncoder._
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, D4SDecoder}
+import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -13,7 +11,6 @@ import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.DynamoField
 import d4s.util.OffsetLimit
-import io.circe.Decoder
 import zio.interop.catz._
 import zio.{IO, Ref, ZIO}
 
@@ -219,16 +216,10 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         object AdditionalFields {
           implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
         }
-
         final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
         object ExtendedPayload {
-          implicit val decoder: D4SDecoder[ExtendedPayload] = D4SDecoder[InterpreterTestPayload].map2(D4SDecoder[AdditionalFields])(ExtendedPayload(_, _))
-          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
-        }
-
-        final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
-        object ExtendedPayload {
-          implicit val decoder: D4SDecoder[ExtendedPayload] = D4SDecoder[InterpreterTestPayload].map2(D4SDecoder[AdditionalFields])(ExtendedPayload(_, _))
+          implicit val codec: D4SCodec[ExtendedPayload] =
+            D4SCodec[InterpreterTestPayload].timap2(D4SCodec[AdditionalFields])(ExtendedPayload(_, _))(ext => ext.payload -> ext.additionalFields)
           implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
         }
 
