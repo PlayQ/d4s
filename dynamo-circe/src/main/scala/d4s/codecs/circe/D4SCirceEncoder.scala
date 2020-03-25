@@ -7,13 +7,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
-trait D4SCirceEncoder[T] extends D4SEncoder[T] {
-  def encode(item: T): Map[String, AttributeValue]
-}
-
 object D4SCirceEncoder {
-  def apply[T: D4SCirceEncoder]: D4SCirceEncoder[T]    = implicitly
-  def derived[T: Encoder.AsObject]: D4SCirceEncoder[T] = _.asJsonObject.toMap.map { case (k, v) => k -> jsonToAttribute(v) }
+  def derived[T: Encoder.AsObject]: D4SEncoder[T] = _.asJsonObject.toMap.map { case (k, v) => k -> jsonToAttribute(v) }
 
   def jsonToAttribute(json: Json): AttributeValue = {
     json.fold(

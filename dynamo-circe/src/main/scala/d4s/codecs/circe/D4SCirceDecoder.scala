@@ -9,11 +9,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
-trait D4SCirceDecoder[T] extends D4SDecoder[T]
-
 object D4SCirceDecoder {
-  def apply[A: D4SCirceDecoder]: D4SCirceDecoder[A] = implicitly
-  def derived[T: Decoder]: D4SCirceDecoder[T] = new D4SCirceDecoder[T] {
+
+  def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
     /** Not typesafe. This will only succeed if `T` is encoded as a JsonObject (has ObjectEncoder instance) */
     def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
       for {

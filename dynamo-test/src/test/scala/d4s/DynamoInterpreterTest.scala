@@ -219,7 +219,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
         object ExtendedPayload {
           implicit val codec: D4SCodec[ExtendedPayload] =
-            D4SCodec[InterpreterTestPayload].timap2(D4SCodec[AdditionalFields])(ExtendedPayload(_, _))(ext => ext.payload -> ext.additionalFields)
+            InterpreterTestPayload.codec.imap2(AdditionalFields.codec)(ExtendedPayload(_, _))(ext => ext.payload -> ext.additionalFields)
           implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
         }
 

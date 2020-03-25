@@ -35,8 +35,6 @@ object D4SEncoder {
   def encodeJava[T: D4SEncoder](item: T): java.util.Map[String, AttributeValue] = D4SEncoder[T].encodeJava(item)
   def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue          = D4SAttributeEncoder[T].encodeAttribute(item)
 
-  implicit def fromCodec[T](implicit self: D4SCodec[T]): D4SEncoder[T] = self.encoder
-
   /** Magnolia instances. */
   type Typeclass[T] = D4SAttributeEncoder[T]
   def combine[T](ctx: CaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {

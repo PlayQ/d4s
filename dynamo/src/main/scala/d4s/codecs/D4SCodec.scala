@@ -2,33 +2,31 @@ package d4s.codecs
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
-trait D4SCodec[A] extends D4SAttributeEncoder[A] with D4SAttributeDecoder[A] {
-  self =>
+trait D4SCodec[A] extends D4SEncoder[A] with D4SDecoder[A] {
+  def encode(item: A): Map[String, AttributeValue]
+  def decode(item: Map[String, AttributeValue]): Either[CodecsUtils.DynamoDecoderException, A]
 
-  def encoder: D4SEncoder[A]
-  def decoder: D4SDecoder[A]
-
-  final def encodeAttribute(item: A): AttributeValue = encoder.encodeAttribute(item)
-  final def decodeAttribute(item: AttributeValue): Either[CodecsUtils.DynamoDecoderException, A] = decoder.decodeAttribute(item)
-
-  final def encode(item: A): Map[String, AttributeValue]                                             = encoder.encode(item)
-  final def decode(item: Map[String, AttributeValue]): Either[CodecsUtils.DynamoDecoderException, A] = decoder.decode(item)
-
-  final def timap[B](to: A => B)(from: B => A): D4SCodec[B] = new D4SCodec[B] {
-    override val encoder: D4SEncoder[B] = self.encoder.contramap(from)
-    override val decoder: D4SDecoder[B] = self.decoder.map(to)
-  }
-  final def timap2[B, C](another: D4SCodec[B])(to: (A, B) => C)(from: C => (A, B)): D4SCodec[C] = new D4SCodec[C] {
-    override val encoder: D4SEncoder[C] = self.encoder.contramap2(another.encoder)(from)
-    override val decoder: D4SDecoder[C] = self.decoder.map2(another.decoder)(to)
-  }
+  def imap[B](to: A => B)(from: B => A): D4SCodec[B]
+  def imap2[B, C](another: D4SCodec[B])(to: (A, B) => C)(from: C => (A, B)): D4SCodec[C]
 }
 
 object D4SCodec {
   def apply[A: D4SCodec]: D4SCodec[A] = implicitly
 
-  def derive[A](implicit derivedCodec: DerivationDerivedCodec[A]): D4SCodec[A] = new D4SCodec[A] {
-    val encoder: D4SEncoder[A] = derivedCodec.enc
-    val decoder: D4SDecoder[A] = derivedCodec.dec
+  def fromPair[T](encoder: D4SEncoder[T], decoder: D4SDecoder[T]): D4SCodec[T] = new D4SCodec[T] {
+    override def encode(item: T): Map[String, AttributeValue]                                             = encoder.encode(item)
+    override def decode(item: Map[String, AttributeValue]): Either[CodecsUtils.DynamoDecoderException, T] = decoder.decode(item)
+
+    override def flatMap[T1](f: T => D4SDecoder[T1]): D4SDecoder[T1]                  = decoder.flatMap(f)
+    override def map[T1](f: T => T1): D4SDecoder[T1]                                  = decoder.map(f)
+    override def map2[T1, A](another: D4SDecoder[T1])(f: (T, T1) => A): D4SDecoder[A] = decoder.map2(another)(f)
+
+    override def contramap[T1](f: T1 => T): D4SEncoder[T1]                                  = encoder.contramap(f)
+    override def contramap2[T1, A](another: D4SEncoder[T1])(f: A => (T, T1)): D4SEncoder[A] = encoder.contramap2(another)(f)
+
+    def imap[B](to: T => B)(from: B => T): D4SCodec[B]                                     = fromPair(encoder.contramap(from), decoder.map(to))
+    def imap2[B, C](another: D4SCodec[B])(to: (T, B) => C)(from: C => (T, B)): D4SCodec[C] = fromPair(encoder.contramap2(another)(from), decoder.map2(another)(to))
   }
+
+  def derive[A](implicit derivedCodec: DerivationDerivedCodec[A]): D4SCodec[A] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
 }
