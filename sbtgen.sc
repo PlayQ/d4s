@@ -238,10 +238,10 @@ object ProjectBuilder {
       ),
       Artifact(
         name = Projects.dynamo_test,
-        libs = (Seq(
+        libs = Seq(
           distage_docker,
           distage_testkit,
-        ) ++ circe).map(_ in Scope.Compile.all) ++ Seq(
+        ).map(_ in Scope.Compile.all) ++ Seq(
           scalatest,
           scalatestplus_scalacheck,
           scalacheck_shapeless
