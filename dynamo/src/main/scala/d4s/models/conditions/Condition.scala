@@ -1,6 +1,7 @@
 package d4s.models.conditions
 
-import d4s.codecs.circe.DynamoAttributeEncoder
+import d4s.codecs
+import d4s.codecs.D4SAttributeEncoder
 import d4s.models.conditions.Condition.{FinalCondition, and, not, or}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
@@ -66,25 +67,25 @@ object Condition {
     }
   }
 
-  final case class between[T: DynamoAttributeEncoder](field: String, left: T, right: T) extends Condition.Direct {
+  final case class between[T: codecs.D4SAttributeEncoder](field: String, left: T, right: T) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val leftId       = s":l_$nesting"
       val rightId      = s":r_$nesting"
       val (alias, map) = createAlias(field)
       val attrValues: Map[String, AttributeValue] = {
-        DynamoAttributeEncoder.encodePlain(leftId, left) ++
-        DynamoAttributeEncoder.encodePlain(rightId, right)
+        D4SAttributeEncoder.encodePlain(leftId, left) ++
+        D4SAttributeEncoder.encodePlain(rightId, right)
       }
       val condExpr = s"$alias between $leftId and $rightId"
       FinalCondition(attrValues, map, Option(condExpr))
     }
   }
 
-  final case class in[T: DynamoAttributeEncoder](field: String, items: Set[T]) extends Condition.Direct {
+  final case class in[T: codecs.D4SAttributeEncoder](field: String, items: Set[T]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val attrValues: Map[String, AttributeValue] = items.zipWithIndex.foldLeft(Map.empty[String, AttributeValue]) {
         case (acc, (item, id)) =>
-          acc ++ DynamoAttributeEncoder.encodePlain(s":item${nesting}_$id", item)
+          acc ++ D4SAttributeEncoder.encodePlain(s":item${nesting}_$id", item)
       }
       val (alias, map) = createAlias(field)
       val condExpr     = s"$alias in (${attrValues.keySet.mkString(",")})"
@@ -92,10 +93,10 @@ object Condition {
     }
   }
 
-  final case class logical[T: DynamoAttributeEncoder](field: String, operator: LogicalOperator, value: T) extends Condition.Direct {
+  final case class logical[T: codecs.D4SAttributeEncoder](field: String, operator: LogicalOperator, value: T) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val valName      = s":v_$nesting"
-      val attrValues   = DynamoAttributeEncoder.encodePlain(valName, value)
+      val attrValues   = D4SAttributeEncoder.encodePlain(valName, value)
       val (alias, map) = createAlias(field)
       val condExpr     = s"$alias ${operator.asString} $valName"
       FinalCondition(attrValues, map, Some(condExpr))
@@ -106,7 +107,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val valName      = s":vb_$nesting"
-      val attrValues   = DynamoAttributeEncoder.encodePlain(valName, prefix)
+      val attrValues   = D4SAttributeEncoder.encodePlain(valName, prefix)
       val condExpr     = s"begins_with($alias, $valName)"
       FinalCondition(attrValues, map, Some(condExpr))
     }

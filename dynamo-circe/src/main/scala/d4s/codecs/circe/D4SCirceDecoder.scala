@@ -2,47 +2,33 @@ package d4s.codecs.circe
 
 import cats.implicits._
 import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValueAsJson, CirceDecodeException, DynamoDecoderException}
-import d4s.codecs.circe.DynamoDecoder.attributeToJson
+import d4s.codecs.D4SDecoder
 import io.circe.{Decoder, Json}
 import software.amazon.awssdk.core.util.{DefaultSdkAutoConstructList, DefaultSdkAutoConstructMap}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
-class DynamoDecoder[T: Decoder] {
+object D4SCirceDecoder {
 
-  /** Not typesafe. This will only succeed if `T` is encoded as a JsonObject (has ObjectEncoder instance) */
-  def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
-    for {
-      json <- item.toList
-        .traverse(_.traverse(attributeToJson)).map(Json.fromFields(_))
-        .toRight(new CannotDecodeAttributeValueAsJson(item.toString))
-      res <- json.as[T].left.map(new CirceDecodeException(item.toString, json, _))
-    } yield res
+  def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
+    /** Not typesafe. This will only succeed if `T` is encoded as a JsonObject (has ObjectEncoder instance) */
+    def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
+      for {
+        json <- item.toList
+          .traverse(_.traverse(attributeToJson)).map(Json.fromFields(_))
+          .toRight(new CannotDecodeAttributeValueAsJson(item.toString))
+        res <- json.as[T].left.map(new CirceDecodeException(item.toString, json, _))
+      } yield res
+    }
+
+    /** This will succeed even if `T` is not encoded as a JsonObject */
+    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T] = {
+      attributeToJson(v)
+        .toRight(new CannotDecodeAttributeValueAsJson(v.toString))
+        .flatMap(json => json.as[T].left.map(new CirceDecodeException(v.toString, json, _)))
+    }
   }
-
-  final def decode(item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
-    decode(item.asScala.toMap)
-  }
-
-  /** This will succeed even if `T` is not encoded as a JsonObject */
-  def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T] = {
-    attributeToJson(v)
-      .toRight(new CannotDecodeAttributeValueAsJson(v.toString))
-      .flatMap(json => json.as[T].left.map(new CirceDecodeException(v.toString, json, _)))
-  }
-
-}
-
-object DynamoDecoder {
-  def apply[A: DynamoDecoder]: DynamoDecoder[A] = implicitly
-
-  def decode[A: DynamoDecoder](item: Map[String, AttributeValue]): Either[DynamoDecoderException, A]           = DynamoDecoder[A].decode(item)
-  def decode[A: DynamoDecoder](item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, A] = DynamoDecoder[A].decode(item)
-  def decodeAttribute[A: DynamoDecoder](v: AttributeValue): Either[DynamoDecoderException, A]                  = DynamoDecoder[A].decodeAttribute(v)
-
-  /** Decoder == DynamoDecoder */
-  implicit def fromJsonDecoder[T: Decoder]: DynamoDecoder[T] = new DynamoDecoder[T]
 
   def attributeToJson(v: AttributeValue): Option[Json] = {
     v.asBool.map(Json.fromBoolean) orElse

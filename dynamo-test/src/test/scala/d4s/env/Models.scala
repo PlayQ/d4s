@@ -120,14 +120,12 @@ object Models {
     def apply(key: InterpreterTestKey)(field3: String, p: RandomPayload): InterpreterTestPayload = {
       new InterpreterTestPayload(key.field1, key.field2, field3, p)
     }
-
     implicit val codec: D4SCodec[InterpreterTestPayload] = D4SCodec.derive[InterpreterTestPayload]
   }
 
   final case class RandomPayload(field1: String, randomArray: Set[Int])
   object RandomPayload {
     def apply(field1: String): RandomPayload = RandomPayload(field1, List.fill(10)(Random.nextInt(10)).toSet)
-
     implicit val codec: D4SCodec[RandomPayload] = D4SCodec.derive[RandomPayload]
   }
 }

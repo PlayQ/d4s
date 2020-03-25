@@ -189,6 +189,7 @@ object ProjectBuilder {
     final val metrics = ArtifactId("metrics")
     final val dynamo = ArtifactId("dynamo")
     final val dynamo_test = ArtifactId("dynamo-test")
+    final val dynamo_circe = ArtifactId("dynamo-circe")
   }
 
   final val dynamo_agg = Aggregate(
@@ -216,7 +217,7 @@ object ProjectBuilder {
       ),
       Artifact(
         name = Projects.dynamo,
-        libs = (Seq(
+        libs = Seq(
           zio_core,
           zio_interop,
           fs2,
@@ -226,7 +227,7 @@ object ProjectBuilder {
           aws_dynamo,
           aws_impl_apache,
           magnolia,
-        ) ++ circe).map(_ in Scope.Compile.all)  ++ Seq(
+        ).map(_ in Scope.Compile.all)  ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
         settings = ProjectSettings.crossScalaSources,
@@ -237,10 +238,19 @@ object ProjectBuilder {
       ),
       Artifact(
         name = Projects.dynamo_test,
-        libs = (Seq(
+        libs = Seq(
           distage_docker,
           distage_testkit,
-        ) ++ circe).map(_ in Scope.Compile.all) ++ Seq(
+        ).map(_ in Scope.Compile.all) ++ Seq(
+          scalatest,
+          scalatestplus_scalacheck,
+          scalacheck_shapeless
+        ).map(_ in Scope.Test.all),
+        depends = Seq(Projects.dynamo),
+      ),
+      Artifact(
+        name = Projects.dynamo_circe,
+        libs = circe.map(_ in Scope.Compile.all) ++ Seq(
           scalatest,
           scalatestplus_scalacheck,
           scalacheck_shapeless

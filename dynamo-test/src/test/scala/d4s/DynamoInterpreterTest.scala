@@ -3,7 +3,7 @@ package d4s
 import java.util.UUID
 
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.{D4SAttributeEncoder, D4SCodec}
+import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -216,6 +216,12 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         object AdditionalFields {
           implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
         }
+        final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
+        object ExtendedPayload {
+          implicit val codec: D4SCodec[ExtendedPayload] =
+            InterpreterTestPayload.codec.imap2(AdditionalFields.codec)(ExtendedPayload(_, _))(ext => ext.payload -> ext.additionalFields)
+          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
+        }
 
         val key              = InterpreterTestKey("perform update with updateExpression", 3)
         val payload          = InterpreterTestPayload(key)("f3", RandomPayload("f22"))
@@ -242,8 +248,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table.updateItem(modifiedPayload1).withCondition(complexCondition).optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isDefined))
 
-          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
-          _     <- assertIO(item1.get == AdditionalFields("FIELD4", 8))
+          item1 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
+          _     <- assertIO(item1.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("FIELD4", 8))))
 
           _ <- connector.runUnrecorded {
             table
@@ -253,8 +259,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isEmpty))
 
-          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[AdditionalFields])
-          _     <- assertIO(item2.get == AdditionalFields("X", 8))
+          item2 <- connector.runUnrecorded(table.getItem(key).decodeItem[ExtendedPayload])
+          _     <- assertIO(item2.contains(ExtendedPayload(modifiedPayload1, AdditionalFields("X", 8))))
         } yield ()
     }
 
@@ -417,7 +423,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           put = testTable.table
             .putItemBatch(items)
             .withPrefix(prefix)
-            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(put)
 
@@ -435,7 +440,6 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           delete = testTable.table
             .deleteItemBatch(items.map(_.item.key))
             .withPrefix(prefix)
-            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
@@ -571,6 +575,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           delete = testTable.table
             .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
             .withPrefix(prefix)
+            .exec
             .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
