@@ -4,7 +4,7 @@ import java.util
 import java.util.UUID
 
 import cats.syntax.either._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, CastedMagnolia, DynamoDecoderException}
+import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, DynamoDecoderException}
 import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -33,7 +33,7 @@ trait D4SDecoder[T] {
 
 object D4SDecoder {
   def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
-  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[_]]
+  def derived[T]: D4SDecoder[T] = macro Magnolia.gen[T]
   def attributeDecoder[T](attributeDecoder: AttributeValue => Either[DynamoDecoderException, T]): D4SDecoder[T] = new D4SDecoder[T] {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] =
       Left(new CannotDecodeAttributeValue(s"Cannot decode map to a single value.", None))
