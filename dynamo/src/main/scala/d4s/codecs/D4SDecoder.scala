@@ -93,7 +93,7 @@ object D4SDecoder {
   }
   implicit val uuidDecoder: D4SDecoder[UUID] = attributeDecoder {
     attr =>
-      Either.fromTry(Try(UUID.fromString(attr.n()))).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as UUID", Some(err)))
+      Either.fromTry(Try(UUID.fromString(attr.s()))).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as UUID", Some(err)))
   }
   implicit val sdkBytesDecoder: D4SDecoder[SdkBytes] = attributeDecoder {
     attr =>

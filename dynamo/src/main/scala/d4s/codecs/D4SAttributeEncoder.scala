@@ -25,7 +25,7 @@ object D4SAttributeEncoder {
   implicit val longEncoder: D4SAttributeEncoder[Long]                = n => AttributeValue.builder().n(n.toString).build()
   implicit val doubleEncoder: D4SAttributeEncoder[Double]            = n => AttributeValue.builder().n(n.toString).build()
   implicit val unitEncoder: D4SAttributeEncoder[Unit]                = _ => AttributeValue.builder().m(Map.empty[String, AttributeValue].asJava).build()
-  implicit val uuidEncoder: D4SAttributeEncoder[UUID]                = n => AttributeValue.builder().n(n.toString).build()
+  implicit val uuidEncoder: D4SAttributeEncoder[UUID]                = n => AttributeValue.builder().s(n.toString).build()
 
   implicit val bytesEncoder: D4SAttributeEncoder[Array[Byte]] = n => AttributeValue.builder().b(SdkBytes.fromByteArray(n)).build()
   implicit val sdkBytesEncoder: D4SAttributeEncoder[SdkBytes] = n => AttributeValue.builder().b(n).build()
