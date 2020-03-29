@@ -1,10 +1,12 @@
 package d4s.codecs
 
 import java.util
+import java.util.UUID
 
 import cats.syntax.either._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, CastedMagnolia, DynamoDecoderException}
+import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, DynamoDecoderException}
 import magnolia._
+import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.collection.compat._
@@ -31,7 +33,7 @@ trait D4SDecoder[T] {
 
 object D4SDecoder {
   def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
-  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[_]]
+  def derived[T]: D4SDecoder[T] = macro Magnolia.gen[T]
   def attributeDecoder[T](attributeDecoder: AttributeValue => Either[DynamoDecoderException, T]): D4SDecoder[T] = new D4SDecoder[T] {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] =
       Left(new CannotDecodeAttributeValue(s"Cannot decode map to a single value.", None))
@@ -89,7 +91,15 @@ object D4SDecoder {
     attr =>
       if (attr.m().isEmpty) Right(()) else Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Unit.", None))
   }
-  implicit val sdkBytesDecoder: D4SDecoder[Array[Byte]] = attributeDecoder {
+  implicit val uuidDecoder: D4SDecoder[UUID] = attributeDecoder {
+    attr =>
+      Either.fromTry(Try(UUID.fromString(attr.n()))).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as UUID", Some(err)))
+  }
+  implicit val sdkBytesDecoder: D4SDecoder[SdkBytes] = attributeDecoder {
+    attr =>
+      Either.fromOption(Option(attr.b()), new CannotDecodeAttributeValue(s"Cannot decode $attr as SdkBytes", None))
+  }
+  implicit val arrayBytesDecoder: D4SDecoder[Array[Byte]] = attributeDecoder {
     attr =>
       Either.fromTry(Try(attr.b().asByteArray())).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Array[Byte]", Some(err)))
   }

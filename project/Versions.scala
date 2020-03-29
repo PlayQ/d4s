@@ -5,15 +5,10 @@ object V {
 
   // compiler
   val kind_projector = "0.11.0"
-//  val scapegoat      = "1.4.1"
-//  val neme_plugin = "0.0.5"
 
   // java
   val aws_java_sdk   = "1.11.750"
   val aws_java_sdk_2 = "2.7.36"
-//  val log4j_to_slf4j   = "2.11.2"
-//  val log4j12_to_slf4j = "1.7.26"
-//  val slf4j            = "1.7.28"
 
   // scala
   val scalacheck           = "1.14.1"
