@@ -27,5 +27,5 @@ object DynamoField {
     DynamoField(name, fieldAttribute.attrType, encoder.encodeAttribute)
   }
 
-  @inline implicit final def fieldToTypedFieldOps[T](field: DynamoField[T]): TypedFieldOps[T] = new TypedFieldOps[T](field.name)
+  @inline implicit final def fieldToTypedFieldOps[T](field: DynamoField[T]): TypedFieldOps[T] = new TypedFieldOps[T](List(field.name))
 }

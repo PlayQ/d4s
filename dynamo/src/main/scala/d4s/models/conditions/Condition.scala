@@ -22,8 +22,6 @@ trait Condition {
 }
 
 object Condition {
-  private[this] def createAlias(field: String): (String, Map[String, String]) = createAlias(List(field))
-
   private[this] def createAlias(path: List[String]): (String, Map[String, String]) = {
     val aliasToPart = path.map(s => s"#${s.replaceAll("\\.", "")}" -> s).toMap
     val fullPath    = aliasToPart.keys.mkString(".")
@@ -67,11 +65,11 @@ object Condition {
     }
   }
 
-  final case class between[T: codecs.D4SAttributeEncoder](field: String, left: T, right: T) extends Condition.Direct {
+  final case class between[T: D4SAttributeEncoder](path: List[String], left: T, right: T) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val leftId       = s":l_$nesting"
       val rightId      = s":r_$nesting"
-      val (alias, map) = createAlias(field)
+      val (alias, map) = createAlias(path)
       val attrValues: Map[String, AttributeValue] = {
         D4SAttributeEncoder.encodePlain(leftId, left) ++
         D4SAttributeEncoder.encodePlain(rightId, right)
@@ -81,23 +79,23 @@ object Condition {
     }
   }
 
-  final case class in[T: codecs.D4SAttributeEncoder](field: String, items: Set[T]) extends Condition.Direct {
+  final case class in[T: codecs.D4SAttributeEncoder](path: List[String], items: Set[T]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val attrValues: Map[String, AttributeValue] = items.zipWithIndex.foldLeft(Map.empty[String, AttributeValue]) {
         case (acc, (item, id)) =>
           acc ++ D4SAttributeEncoder.encodePlain(s":item${nesting}_$id", item)
       }
-      val (alias, map) = createAlias(field)
+      val (alias, map) = createAlias(path)
       val condExpr     = s"$alias in (${attrValues.keySet.mkString(",")})"
       FinalCondition(attrValues, map, Option(condExpr))
     }
   }
 
-  final case class logical[T: codecs.D4SAttributeEncoder](field: String, operator: LogicalOperator, value: T) extends Condition.Direct {
+  final case class logical[T: D4SAttributeEncoder](path: List[String], operator: LogicalOperator, value: T) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val valName      = s":v_$nesting"
       val attrValues   = D4SAttributeEncoder.encodePlain(valName, value)
-      val (alias, map) = createAlias(field)
+      val (alias, map) = createAlias(path)
       val condExpr     = s"$alias ${operator.asString} $valName"
       FinalCondition(attrValues, map, Some(condExpr))
     }

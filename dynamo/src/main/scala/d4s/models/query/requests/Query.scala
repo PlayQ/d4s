@@ -73,7 +73,7 @@ final case class Query(
     val evaluatedCondition =
       (condition :: keyConditionAttributeValues.toList.map {
         case (k, v) =>
-          logical(k, LogicalOperator.==, v)
+          logical(List(k), LogicalOperator.==, v)
       }).foldLeft[Condition](ZeroCondition)(and).eval
 
     val evaluatedFilter = filterExpression.eval
