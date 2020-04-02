@@ -1,4 +1,3 @@
-build.sbt
 project/plugins.sbt
 
 .idea
