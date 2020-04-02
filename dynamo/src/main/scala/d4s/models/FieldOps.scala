@@ -15,6 +15,8 @@ trait FieldOps {
 object FieldOps {
 
   final class PathBasedFieldOpsCtor(private val path: List[String]) extends AnyVal {
+    def of[T]: TypedFieldOps[T] = new TypedFieldOps[T](path)
+
     def existsField: Condition.attribute_exists           = Condition.attribute_exists(path)
     def notExists: Condition.attribute_not_exists         = Condition.attribute_not_exists(path)
     def beginsWith(substr: String): Condition.begins_with = Condition.begins_with(path, substr)
