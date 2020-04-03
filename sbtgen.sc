@@ -192,9 +192,9 @@ object ProjectBuilder {
   object Projects {
     final val aws_common = ArtifactId("aws-common")
     final val metrics = ArtifactId("metrics")
-    final val dynamo = ArtifactId("dynamo")
-    final val dynamo_test = ArtifactId("dynamo-test")
-    final val dynamo_circe = ArtifactId("dynamo-circe")
+    final val dynamo = ArtifactId("d4s")
+    final val dynamo_test = ArtifactId("d4s-test")
+    final val dynamo_circe = ArtifactId("d4s-circe")
   }
 
   final val dynamo_agg = Aggregate(
@@ -272,7 +272,7 @@ object ProjectBuilder {
   )
 
   final val root = Project(
-    name = ArtifactId("d4s"),
+    name = ArtifactId("d4s-root"),
     aggregates = {
       Seq(dynamo_agg)
     },

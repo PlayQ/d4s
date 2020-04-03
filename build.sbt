@@ -222,7 +222,7 @@ lazy val `metrics` = project.in(file("./metrics"))
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
-lazy val `dynamo` = project.in(file("./dynamo"))
+lazy val `d4s` = project.in(file("./d4s"))
   .dependsOn(
     `aws-common` % "test->compile;compile->compile",
     `metrics` % "test->compile;compile->compile"
@@ -342,9 +342,9 @@ lazy val `dynamo` = project.in(file("./dynamo"))
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
-lazy val `dynamo-test` = project.in(file("./dynamo-test"))
+lazy val `d4s-test` = project.in(file("./d4s-test"))
   .dependsOn(
-    `dynamo` % "test->compile;compile->compile"
+    `d4s` % "test->compile;compile->compile"
   )
   .settings(
     libraryDependencies ++= Seq(
@@ -447,9 +447,9 @@ lazy val `dynamo-test` = project.in(file("./dynamo-test"))
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
-lazy val `dynamo-circe` = project.in(file("./dynamo-circe"))
+lazy val `d4s-circe` = project.in(file("./d4s-circe"))
   .dependsOn(
-    `dynamo` % "test->compile;compile->compile"
+    `d4s` % "test->compile;compile->compile"
   )
   .settings(
     libraryDependencies ++= Seq(
@@ -564,9 +564,9 @@ lazy val `d4s-agg` = (project in file(".agg/.-d4s-agg"))
   .aggregate(
     `aws-common`,
     `metrics`,
-    `dynamo`,
-    `dynamo-test`,
-    `dynamo-circe`
+    `d4s`,
+    `d4s-test`,
+    `d4s-circe`
   )
 
 lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
@@ -576,12 +576,12 @@ lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
   .aggregate(
     `aws-common`,
     `metrics`,
-    `dynamo`,
-    `dynamo-test`,
-    `dynamo-circe`
+    `d4s`,
+    `d4s-test`,
+    `d4s-circe`
   )
 
-lazy val `d4s-jvm` = (project in file(".agg/.agg-jvm"))
+lazy val `d4s-root-jvm` = (project in file(".agg/.agg-jvm"))
   .settings(
     skip in publish := true
   )
@@ -589,7 +589,7 @@ lazy val `d4s-jvm` = (project in file(".agg/.agg-jvm"))
     `d4s-agg-jvm`
   )
 
-lazy val `d4s` = (project in file("."))
+lazy val `d4s-root` = (project in file("."))
   .settings(
     skip in publish := true,
     publishMavenStyle in ThisBuild := true,
