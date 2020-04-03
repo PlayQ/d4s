@@ -638,6 +638,9 @@ lazy val `d4s` = (project in file("."))
     credentials in ThisBuild += Credentials(file(".secrets/credentials.sonatype-nexus.properties")),
     homepage in ThisBuild := Some(url("https://www.playq.com/")),
     licenses in ThisBuild := Seq("Apache-License" -> url("https://opensource.org/licenses/Apache-2.0")),
+    developers in ThisBuild := List(
+              Developer(id = "playq", name = "PlayQ", url = url("https://github.com/PlayQ"), email = "platform-team@playq.net"),
+            ),
     scmInfo in ThisBuild := Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git")),
     scalacOptions in ThisBuild += """-Xmacro-settings:scalatest-version=VExpr(V.scalatest)""",
     releaseProcess := Seq[ReleaseStep](

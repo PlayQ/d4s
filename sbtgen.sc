@@ -134,6 +134,11 @@ object ProjectBuilder {
       "homepage" in SettingScope.Build := """Some(url("https://www.playq.com/"))""".raw,
       "licenses" in SettingScope.Build := """Seq("Apache-License" -> url("https://opensource.org/licenses/Apache-2.0"))""".raw,
 
+      "developers" in SettingScope.Build :=
+        """List(
+          Developer(id = "playq", name = "PlayQ", url = url("https://github.com/PlayQ"), email = "platform-team@playq.net"),
+        )""".raw,
+
       "scmInfo" in SettingScope.Build := """Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git"))""".raw,
       "scalacOptions" in SettingScope.Build += s"""${"\"" * 3}-Xmacro-settings:scalatest-version=${Version.VExpr("V.scalatest")}${"\"" * 3}""".raw,
 
