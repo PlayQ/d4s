@@ -10,9 +10,14 @@ It's powered by [Izumi](https://izumi.7mind.io/latest/release/doc/index.html), u
 
 include the following components:
 
-1. d4s – core package, the lib itself.
-2. d4s-circe – provides circe codecs to encode the data.
-3. d4s-test - provides test enviroment and docker containers via DIstage TestKit.
-4. metrics - a small yet convinient package for metrics aggregation.
-5. aws-common - tagging and namespaces
+1. _d4s_ – core package, the lib itself.
+2. _d4s-circe_ – provides circe codecs to encode the data.
+3. _d4s-test_ - provides test enviroment and docker containers via DIstage TestKit.
+4. _metrics_ - a small yet convinient package for metrics aggregation.
+5. _aws-common_ - tagging and namespaces
+
+Example project:
+
+- [d4s-example](https://github.com/VladPodilnyk/scalaua2020)
+
    
