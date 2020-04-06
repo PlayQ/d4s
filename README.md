@@ -18,6 +18,6 @@ include the following components:
 
 Example project:
 
-- [d4s-example](https://github.com/VladPodilnyk/scalaua2020)
+- [d4s-example](https://github.com/VladPodilnyk/d4s-example)
 
    
