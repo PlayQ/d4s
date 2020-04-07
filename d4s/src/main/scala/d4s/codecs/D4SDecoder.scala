@@ -71,6 +71,14 @@ object D4SDecoder {
     attr =>
       Either.fromOption(Option(attr.s()), new CannotDecodeAttributeValue(s"Cannot decode $attr as String.", None))
   }
+  implicit val byteDecoder: D4SDecoder[Byte] = attributeDecoder {
+    attr =>
+      Either.fromTry(Try(attr.n().toByte)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Byte.", Some(err)))
+  }
+  implicit val shortDecoder: D4SDecoder[Short] = attributeDecoder {
+    attr =>
+      Either.fromTry(Try(attr.n().toShort)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Short.", Some(err)))
+  }
   implicit val intDecoder: D4SDecoder[Int] = attributeDecoder {
     attr =>
       Either.fromTry(Try(attr.n().toInt)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Int.", Some(err)))
