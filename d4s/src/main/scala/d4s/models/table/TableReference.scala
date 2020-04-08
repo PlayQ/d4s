@@ -120,5 +120,9 @@ object TableReference {
       QueryDeleteBatch(table).withKey(key).toQuery
     def queryDeleteBatch(index: TableIndex[_, _], key: Map[String, AttributeValue]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKey(key).toQuery
+    def queryDeleteBatch[H](index: TableIndex[H, _], hashKey: H): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+      QueryDeleteBatch(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
+    def queryDeleteBatch[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+      QueryDeleteBatch(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery
   }
 }
