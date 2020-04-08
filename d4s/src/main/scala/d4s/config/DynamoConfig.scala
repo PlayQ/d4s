@@ -3,8 +3,8 @@ package d4s.config
 import scala.concurrent.duration.FiniteDuration
 
 final case class DynamoConfig(
-  /*private val*/ endpointUrl: Option[String],
-  /*private val*/ region: Option[String],
+  private val endpointUrl: Option[String],
+  private val region: Option[String],
   connectionTimeout: FiniteDuration,
   backupEnabled: Option[Boolean],
 ) {
