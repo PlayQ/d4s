@@ -37,7 +37,7 @@ object D4SEncoder {
 
   /** Magnolia instances. */
   type Typeclass[T] = D4SAttributeEncoder[T]
-  def combine[T](ctx: CaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     item =>
       ctx.parameters.map {
         p =>
