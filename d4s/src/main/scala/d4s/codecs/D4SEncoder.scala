@@ -37,7 +37,7 @@ object D4SEncoder {
 
   /** Magnolia instances. */
   type Typeclass[T] = D4SAttributeEncoder[T]
-  def combine[T](ctx: CaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     item =>
       ctx.parameters.map {
         p =>
@@ -54,4 +54,7 @@ object D4SEncoder {
 
   // special case, we don't need to do anything with Map[String, AttributeValue]
   implicit val attributeMapEncoder: D4SEncoder[Map[String, AttributeValue]] = a => a
+
+  implicit def plainMapEncoder[T: D4SAttributeEncoder]: D4SEncoder[Map[String, T]] =
+    m => m.mapValues(D4SAttributeEncoder[T].encodeAttribute(_)).toMap
 }

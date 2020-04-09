@@ -21,9 +21,11 @@ object D4SAttributeEncoder {
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a
   implicit val stringEncoder: D4SAttributeEncoder[String]            = AttributeValue.builder().s(_).build()
   implicit val boolEncoder: D4SAttributeEncoder[Boolean]             = AttributeValue.builder().bool(_).build()
-  implicit val intEncoder: D4SAttributeEncoder[Int]                  = n => AttributeValue.builder().n(n.toString).build()
-  implicit val longEncoder: D4SAttributeEncoder[Long]                = n => AttributeValue.builder().n(n.toString).build()
-  implicit val doubleEncoder: D4SAttributeEncoder[Double]            = n => AttributeValue.builder().n(n.toString).build()
+  implicit val byteEncoder: D4SAttributeEncoder[Byte]                = numericAttributeEncoder[Byte]
+  implicit val shortEncoder: D4SAttributeEncoder[Short]              = numericAttributeEncoder[Short]
+  implicit val intEncoder: D4SAttributeEncoder[Int]                  = numericAttributeEncoder[Int]
+  implicit val longEncoder: D4SAttributeEncoder[Long]                = numericAttributeEncoder[Long]
+  implicit val doubleEncoder: D4SAttributeEncoder[Double]            = numericAttributeEncoder[Double]
   implicit val unitEncoder: D4SAttributeEncoder[Unit]                = _ => AttributeValue.builder().m(Map.empty[String, AttributeValue].asJava).build()
   implicit val uuidEncoder: D4SAttributeEncoder[UUID]                = n => AttributeValue.builder().s(n.toString).build()
 
@@ -49,4 +51,6 @@ object D4SAttributeEncoder {
     item: Option[T] =>
       item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
   }
+
+  private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }

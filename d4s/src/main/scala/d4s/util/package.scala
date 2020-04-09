@@ -2,7 +2,7 @@ package d4s
 
 package object util {
 
-  private[util] def leftpadLongInvertNegative(long: Long): String = {
+  def leftpadLongInvertNegative(long: Long): String = {
     val str = leftpadLong(long)
     if (long < 0) negateDigits(str) else str
   }

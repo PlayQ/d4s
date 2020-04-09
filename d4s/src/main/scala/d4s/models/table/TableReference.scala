@@ -108,6 +108,9 @@ object TableReference {
     def query(index: TableIndex[_, _]): DynamoQuery[Query, QueryResponse]                                   = Query(table).withIndex(index).toQuery
     def query(key: Map[String, AttributeValue]): DynamoQuery[Query, QueryResponse]                          = Query(table).withKey(key).toQuery
     def query(index: TableIndex[_, _], key: Map[String, AttributeValue]): DynamoQuery[Query, QueryResponse] = Query(table).withIndex(index).withKey(key).toQuery
+    def query[H](index: TableIndex[H, _], hashKey: H): DynamoQuery[Query, QueryResponse]                    = Query(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
+    def query[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[Query, QueryResponse]    = Query(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery
+
 
     def queryDeleteBatch: DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]]                          = QueryDeleteBatch(table).toQuery
     def queryDeleteBatch(maxParallelDeletes: Int): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] = QueryDeleteBatch(table, Some(maxParallelDeletes)).toQuery
@@ -117,5 +120,9 @@ object TableReference {
       QueryDeleteBatch(table).withKey(key).toQuery
     def queryDeleteBatch(index: TableIndex[_, _], key: Map[String, AttributeValue]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKey(key).toQuery
+    def queryDeleteBatch[H](index: TableIndex[H, _], hashKey: H): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+      QueryDeleteBatch(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
+    def queryDeleteBatch[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+      QueryDeleteBatch(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery
   }
 }
