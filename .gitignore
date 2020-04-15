@@ -1,5 +1,3 @@
-project/plugins.sbt
-
 .idea
 buildinfo.sh
 /local.sbt

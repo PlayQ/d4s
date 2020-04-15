@@ -13,7 +13,7 @@ object D4SCirceDecoder {
 
   def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
     /** Not typesafe. This will only succeed if `T` is encoded as a JsonObject (has ObjectEncoder instance) */
-    def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
+    override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
       for {
         json <- item.toList
           .traverse(_.traverse(attributeToJson)).map(Json.fromFields(_))

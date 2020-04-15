@@ -3,9 +3,9 @@ package d4s.codecs
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
-//abstract class WithD4S[T]()(implicit val derivedCodec: D4SDerivedCodec[T]) {
-//  implicit val codec: D4SCodec[T] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
-//}
+abstract class WithD4S[T]()(implicit derivedCodec: D4SDerivedCodec[T]) {
+  implicit val codec: D4SCodec[T] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
+}
 
 final class MaterializeDerivationMacros(val c: blackbox.Context) {
   import c.universe._

@@ -23,7 +23,7 @@ object Fixtures {
   case class TestDataWrap(data: String)
   object TestDataWrap {
     implicit val circeCodec: Codec.AsObject[TestDataWrap] = derivation.deriveCodec[TestDataWrap]
-    implicit val magnoliaCodec: D4SCodec[TestDataWrap]    = D4SCodec.derive[TestDataWrap]
+    implicit val magnoliaCodec: D4SCodec[TestDataWrap]    = D4SCodec.derived[TestDataWrap]
     implicit lazy val arbitrary: Arbitrary[TestDataWrap]  = MkArbitrary[TestDataWrap].arbitrary
   }
 
