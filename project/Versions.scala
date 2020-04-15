@@ -12,7 +12,7 @@ object V {
 
   // scala
   val scalacheck           = "1.14.1"
-  val scalacheck_shapeless = "1.2.4"
+  val scalacheck_shapeless = "1.2.5"
 
   val fs2 = "2.2.2"
 
