@@ -21,7 +21,7 @@ object V {
   val circe_generic_extras = "0.13.0"
   val circe_derivation     = "0.13.0-M1"
 
-  val magnolia_version = "0.14.2"
+  val magnolia_version = "0.14.4"
 
   val cats             = "2.1.1"
   val cats_effect      = "2.1.1"
