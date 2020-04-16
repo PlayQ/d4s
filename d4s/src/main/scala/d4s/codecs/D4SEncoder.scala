@@ -45,4 +45,6 @@ object D4SEncoder {
           Map(subtype.typeName.short -> subtype.typeclass.encodeAttribute(subtype.cast(item)))
       }
   }
+
+  implicit val attributeMapEncoder: D4SEncoder[Map[String, AttributeValue]] = a => a
 }
