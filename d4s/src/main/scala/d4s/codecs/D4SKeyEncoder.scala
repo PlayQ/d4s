@@ -1,7 +1,5 @@
 package d4s.codecs
 
-import java.util.UUID
-
 trait D4SKeyEncoder[T] {
   def encode(item: T): String
 }
