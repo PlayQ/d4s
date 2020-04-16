@@ -12,19 +12,10 @@ import scala.jdk.CollectionConverters._
 object D4SCirceDecoder {
 
   def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
-    /** Not typesafe. This will only succeed if `T` is encoded as a JsonObject (has ObjectEncoder instance) */
-    def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = {
-      for {
-        json <- item.toList
-          .traverse(_.traverse(attributeToJson)).map(Json.fromFields(_))
-          .toRight(new CannotDecodeAttributeValueAsJson(item.toString))
-        res <- json.as[T].left.map(new CirceDecodeException(item.toString, json, _))
-      } yield res
-    }
-
-    /** This will succeed even if `T` is not encoded as a JsonObject */
-    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T] = {
-      attributeToJson(v)
+    override def decode(v: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decodeImpl(v, attributeMapToJson(v))
+    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T]     = decodeImpl(v, attributeToJson(v))
+    @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DynamoDecoderException, T] = {
+      maybeJson
         .toRight(new CannotDecodeAttributeValueAsJson(v.toString))
         .flatMap(json => json.as[T].left.map(new CirceDecodeException(v.toString, json, _)))
     }
@@ -38,7 +29,11 @@ object D4SCirceDecoder {
     v.asCollection.flatMap(v => v.traverse(attributeToJson).map(Json.fromValues)) orElse
     v.asStringsSet.map(v => Json.fromValues(v.map(Json.fromString))) orElse
     v.asNumberSet.map(v => Json.fromValues(v.map(Json.fromString))) orElse
-    v.asMap.flatMap(v => v.toList.traverse(_.traverse(attributeToJson)).map(Json.fromFields(_)))
+    v.asMap.flatMap(attributeMapToJson)
+  }
+
+  def attributeMapToJson(v: Map[String, AttributeValue]): Option[Json] = {
+    v.toList.traverse(_.traverse(attributeToJson)).map(Json.fromFields(_))
   }
 
   @SuppressWarnings(Array("IsInstanceOf"))

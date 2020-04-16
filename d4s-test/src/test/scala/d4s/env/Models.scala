@@ -2,7 +2,7 @@ package d4s.env
 
 import java.util.UUID
 
-import d4s.codecs.D4SCodec
+import d4s.codecs.{D4SCodec, WithD4S}
 import d4s.config.DynamoMeta
 import d4s.models.table.index.GlobalIndex
 import d4s.models.table.{DynamoKey, TableDDL, TableDef, TableReference}
@@ -16,19 +16,13 @@ object Models {
   private def tableName() = s"t1${UUID.randomUUID()}"
 
   final case class Table1Key(key1: String, key2: String)
-  object Table1Key {
-    implicit val codec: D4SCodec[Table1Key] = D4SCodec.derive[Table1Key]
-  }
+  object Table1Key extends WithD4S[Table1Key]
 
   final case class Table1Item(v1: String, v2: String)
-  final case class Table1ItemWithCounter(key1: String, key2: String, counterField: Long)
+  object Table1Item extends WithD4S[Table1Item]
 
-  object Table1Item {
-    implicit val codec: D4SCodec[Table1Item] = D4SCodec.derive[Table1Item]
-  }
-  object Table1ItemWithCounter {
-    implicit val codec: D4SCodec[Table1ItemWithCounter] = D4SCodec.derive[Table1ItemWithCounter]
-  }
+  final case class Table1ItemWithCounter(key1: String, key2: String, counterField: Long)
+  object Table1ItemWithCounter extends WithD4S[Table1ItemWithCounter]
 
   class TestTable1(implicit dynamoMeta: DynamoMeta) extends TableDef {
     override val table: TableReference = TableReference[String, String]("table1")("key1", "key2")
@@ -105,14 +99,12 @@ object Models {
   }
 
   final case class InterpreterTestKey(field1: String, field2: Int)
-  object InterpreterTestKey {
-    implicit val codec: D4SCodec[InterpreterTestKey] = D4SCodec.derive[InterpreterTestKey]
-  }
+  object InterpreterTestKey extends WithD4S[InterpreterTestKey]
 
   final case class InterpreterTestPayload(field1: String, field2: Int, field3: String, p: RandomPayload) {
     def key: InterpreterTestKey = InterpreterTestKey(field1, field2)
   }
-  object InterpreterTestPayload {
+  object InterpreterTestPayload extends WithD4S[InterpreterTestPayload] {
     def apply(field1: String, field2: Int)(field3: String, p: RandomPayload)(implicit dummy: DummyImplicit): InterpreterTestPayload = {
       Quirks.discard(dummy)
       new InterpreterTestPayload(field1, field2, field3, p)
@@ -120,12 +112,11 @@ object Models {
     def apply(key: InterpreterTestKey)(field3: String, p: RandomPayload): InterpreterTestPayload = {
       new InterpreterTestPayload(key.field1, key.field2, field3, p)
     }
-    implicit val codec: D4SCodec[InterpreterTestPayload] = D4SCodec.derive[InterpreterTestPayload]
   }
 
   final case class RandomPayload(field1: String, randomArray: Set[Int])
   object RandomPayload {
-    def apply(field1: String): RandomPayload = RandomPayload(field1, List.fill(10)(Random.nextInt(10)).toSet)
-    implicit val codec: D4SCodec[RandomPayload] = D4SCodec.derive[RandomPayload]
+    def apply(field1: String): RandomPayload    = RandomPayload(field1, List.fill(10)(Random.nextInt(10)).toSet)
+    implicit val codec: D4SCodec[RandomPayload] = D4SCodec.derived[RandomPayload]
   }
 }

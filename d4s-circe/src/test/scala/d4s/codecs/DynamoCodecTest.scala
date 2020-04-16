@@ -11,8 +11,8 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
   "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
       testData: TestCaseClass =>
-        val circeCodec    = D4SCirceCodec.derive[TestCaseClass]
-        val magnoliaCodec = D4SCodec.derive[TestCaseClass]
+        val circeCodec    = D4SCirceCodec.derived[TestCaseClass]
+        val magnoliaCodec = D4SCodec.derived[TestCaseClass]
 
         val encoded = circeCodec.encode(testData)
         val decoded = circeCodec.decode(encoded).toOption.get
@@ -26,8 +26,8 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
   "encode/decode TestDouble" in check {
     Prop.forAllNoShrink {
       testData: TestDouble =>
-        val circeCodec    = D4SCirceCodec.derive[TestDouble]
-        val magnoliaCodec = D4SCodec.derive[TestDouble]
+        val circeCodec    = D4SCirceCodec.derived[TestDouble]
+        val magnoliaCodec = D4SCodec.derived[TestDouble]
 
         val encoded = circeCodec.encode(testData)
         val decoded = circeCodec.decode(encoded).toOption.get

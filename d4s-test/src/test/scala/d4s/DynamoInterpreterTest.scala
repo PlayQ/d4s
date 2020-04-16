@@ -3,7 +3,7 @@ package d4s
 import java.util.UUID
 
 import d4s.DynamoInterpreterTest.Ctx
-import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec}
+import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, WithD4S}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
@@ -213,9 +213,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         import ctx.testTable.table
 
         final case class AdditionalFields(field4: String, field5: Int)
-        object AdditionalFields {
-          implicit val codec: D4SCodec[AdditionalFields] = D4SCodec.derive[AdditionalFields]
-        }
+        object AdditionalFields extends WithD4S[AdditionalFields]
         final case class ExtendedPayload(payload: InterpreterTestPayload, additionalFields: AdditionalFields)
         object ExtendedPayload {
           implicit val codec: D4SCodec[ExtendedPayload] =
