@@ -4,8 +4,15 @@ import io.circe.Json
 
 object CodecsUtils {
 
-  sealed abstract class DynamoDecoderException(message: String, cause: Option[Throwable]) extends RuntimeException(message, cause.orNull)
+  sealed abstract class DynamoDecoderException(message: String, cause: Option[Throwable]) extends RuntimeException(message, cause.orNull) {
+    def union(that: DynamoDecoderException): DynamoDecoderException = {
+      val errorLog = message + "\n" + that.getMessage
+      new DynamoDecoderException(errorLog, None) {}
+    }
+  }
+
   final class CannotDecodeAttributeValue(val msg: String, val cause: Option[Throwable]) extends DynamoDecoderException(msg, cause)
+  final class CannotDecodeKeyValue(val msg: String, val cause: Option[Throwable]) extends DynamoDecoderException(msg, cause)
 
   final class CannotDecodeAttributeValueAsJson(val item: String)
     extends DynamoDecoderException(

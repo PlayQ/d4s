@@ -44,14 +44,20 @@ object D4SAttributeEncoder {
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
+  implicit def mapLikeEncoder2[M[k, v] <: scala.collection.Map[k, v], K, V](implicit V: D4SAttributeEncoder[V], K: D4SKeyEncoder[K]): D4SAttributeEncoder[M[K, V]] = {
+    item: M[K, V] =>
+      val map = item.map { case (k, v) => K.encode(k) -> V.encodeAttribute(v) }.asJava
+      AttributeValue.builder().m(map).build()
+  }
+
   implicit def optionEncoder[T](implicit T: D4SAttributeEncoder[T]): D4SAttributeEncoder[Option[T]] = {
     item: Option[T] =>
       item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
   }
 
-  implicit def mapLikeEncoder[M[x] <: scala.collection.Map[String, x], V](implicit V: D4SAttributeEncoder[V]): D4SEncoder[M[V]] = {
-    _.map { case (str, attr) => str -> V.encodeAttribute(attr) }.toMap
-  }
+//  implicit def mapLikeEncoder[M[x] <: scala.collection.Map[String, x], V](implicit V: D4SAttributeEncoder[V]): D4SEncoder[M[V]] = {
+//    _.map { case (str, attr) => str -> V.encodeAttribute(attr) }.toMap
+//  }
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }
