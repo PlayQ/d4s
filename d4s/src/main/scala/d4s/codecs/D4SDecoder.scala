@@ -21,9 +21,15 @@ trait D4SDecoder[T] {
   def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]           = decode(item.asJava)
   def decode(item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decodeAttribute(AttributeValue.builder().m(item).build())
 
-  final def flatMap[T1](f: T => D4SDecoder[T1]): D4SDecoder[T1]                  = attr => self.decodeAttribute(attr).map(f).flatMap(_.decodeAttribute(attr))
-  final def map[T1](f: T => T1): D4SDecoder[T1]                                  = attr => decodeAttribute(attr).map(f)
-  final def map2[T1, A](another: D4SDecoder[T1])(f: (T, T1) => A): D4SDecoder[A] = flatMap(t => another.map(t1 => f(t, t1)))
+  final def flatMap[T1](f: T => D4SDecoder[T1]): D4SDecoder[T1]                    = attr => self.decodeAttribute(attr).map(f).flatMap(_.decodeAttribute(attr))
+  final def map[T1](f: T => T1): D4SDecoder[T1]                                    = attr => decodeAttribute(attr).map(f)
+  final def map2[T1, A](another: D4SDecoder[T1])(f: (T, T1) => A): D4SDecoder[A]   = flatMap(t => another.map(t1 => f(t, t1)))
+  final def contramapAttribute(f: AttributeValue => AttributeValue): D4SDecoder[T] = attr => decodeAttribute(f(attr))
+  def contramapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SDecoder[T] = {
+    attr =>
+      val newAttr = Option(attr.m()).fold(attr)(m => AttributeValue.builder().m(f(m.asScala.toMap).asJava).build())
+      decodeAttribute(newAttr)
+  }
 }
 
 object D4SDecoder {
@@ -36,13 +42,16 @@ object D4SDecoder {
 
   def attributeDecoder[T](attributeDecoder: AttributeValue => Either[DynamoDecoderException, T]): D4SDecoder[T] = attributeDecoder(_)
 
-  def objectDecoder[T](objectDecoder: Map[String, AttributeValue] => Either[DynamoDecoderException, T]): Typeclass[T] = new D4SDecoder[T] {
+  def objectDecoder[T](objectDecoder: Map[String, AttributeValue] => Either[DynamoDecoderException, T]): D4SDecoder[T] = new D4SDecoder[T] {
     override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]      = objectDecoder(item)
     override def decode(item: util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decode(item.asScala.toMap)
     override def decodeAttribute(attr: AttributeValue): Either[DynamoDecoderException, T] = {
       Option(attr.m())
         .toRight(new CannotDecodeAttributeValue(s"Couldn't decode dynamo item=$attr as object. Does not have an `M` attribute (not a JSON object)", None))
         .flatMap(decode)
+    }
+    override def contramapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SDecoder[T] = {
+      D4SDecoder.objectDecoder(objectDecoder apply f(_))
     }
   }
 

@@ -9,6 +9,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 trait D4SCodec[A] extends D4SEncoder[A] with D4SDecoder[A] {
   final def imap[B](to: A => B)(from: B => A): D4SCodec[B]                                     = fromPair(contramap(from), map(to))
   final def imap2[B, C](another: D4SCodec[B])(to: (A, B) => C)(from: C => (A, B)): D4SCodec[C] = fromPair(contramap2(another)(from), map2(another)(to))
+
+  final def imapObject(to: Map[String, AttributeValue] => Map[String, AttributeValue])(from: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SCodec[A] =
+    fromPair(mapObject(to), contramapObject(from))
 }
 
 object D4SCodec {
