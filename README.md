@@ -16,8 +16,28 @@ include the following components:
 4. _metrics_ - a small yet convinient package for metrics aggregation.
 5. _aws-common_ - tagging and namespaces
 
+Quickstart
+===========
+The latest version is `1.0.2`. To use it just add the following line to your `build.sbt` file:
+```
+// available for 2.12 and 2.13
+libraryDependencies += "net.playq" %% "d4s" %% "1.0.2"
+```
+In case you want to have Circe codecs you should also add this:
+```
+// available for 2.12 and 2.13
+libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.2"
+```
+If you want to use only the metrics package from `d4s` you can add it like this:
+```
+// available for 2.12 and 2.13
+libraryDependencies += "net.playq" %% "metrics" %% "1.0.2"
+```
+
 Example project:
 
 - [d4s-example](https://github.com/VladPodilnyk/d4s-example)
 
+Materials and docs (microsite in work):
+- [ScalaUA presentation](docs/presentation/scalaua.pdf)
    
