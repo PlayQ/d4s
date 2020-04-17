@@ -47,4 +47,6 @@ object D4SEncoder {
   }
 
   implicit val attributeMapEncoder: D4SEncoder[Map[String, AttributeValue]] = a => a
+  implicit def plainMapEncoder[T: D4SAttributeEncoder]: D4SEncoder[Map[String, T]] =
+    m => m.mapValues(D4SAttributeEncoder[T].encodeAttribute(_)).toMap
 }
