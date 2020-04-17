@@ -8,6 +8,8 @@ import d4s.models.query.{DynamoQuery, DynamoRequest}
 import fs2.Stream
 import izumi.functional.bio.BIOTemporal
 
+import scala.reflect.ClassTag
+
 trait ExecutionStrategy[DR <: DynamoRequest, -Dec, +A] extends ExecutionStrategy.Dependent[DR, Dec, FThrowable[?[_, `+_`], A]] {
   def apply[F[+_, +_]](input: StrategyInput[F, DR, Dec]): F[Throwable, A]
 }
@@ -18,10 +20,13 @@ object ExecutionStrategy {
     implicit val F: BIOTemporal[F],
     implicit val interpreter: DynamoInterpreter[F],
     private[d4s] val streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?] = FunctionK.id[F[Throwable, ?]],
-    interpreterErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]]     = PartialFunction.empty
+    interpreterErrorHandler: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty
   ) {
-    def tapInterpreterError(f: PartialFunction[Throwable, F[Throwable, Unit]]): StrategyInput[F, DR, Dec] = {
+    def tapInterpreterError(f: PartialFunction[DynamoException, F[Nothing, Unit]]): StrategyInput[F, DR, Dec] = {
       copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)
+    }
+    def skipErrorLog[Err: ClassTag]: StrategyInput[F, DR, Dec] = {
+      tapInterpreterError { case DynamoException(_, _: Err) => F.unit }
     }
   }
 

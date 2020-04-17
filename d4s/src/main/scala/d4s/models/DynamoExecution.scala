@@ -2,7 +2,6 @@ package d4s.models
 
 import cats.MonadError
 import cats.effect.concurrent.Ref
-import d4s.DynamoConnector.DynamoException
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput, StreamFThrowable, UnknownF}
 import d4s.models.query.DynamoRequest.{PageableRequest, WithLimit, WithProjectionExpression, WithSelect, WithTableReference}
 import d4s.models.query.requests._
@@ -18,6 +17,7 @@ import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
 
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   dynamoQuery: DynamoQuery[DR, Dec],
@@ -33,7 +33,12 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def void: DynamoExecution[DR, Dec, Unit] = {
     map(_ => ())
   }
-  def tapInterpreterError(handler: StrategyInput[UnknownF, DR, Dec] => PartialFunction[Throwable, UnknownF[Throwable, Unit]]): DynamoExecution[DR, Dec, A] = {
+  def skipErrorLog[Err: ClassTag]: DynamoExecution[DR, Dec, A] = {
+    tapInterpreterError(in => { case DynamoException(_, _: Err) => in.F.unit })
+  }
+  def tapInterpreterError(
+    handler: StrategyInput[UnknownF, DR, Dec] => PartialFunction[DynamoException, UnknownF[Nothing, Unit]]
+  ): DynamoExecution[DR, Dec, A] = {
     copy(executionStrategy = ExecutionStrategy[DR, Dec, A] {
       in =>
         executionStrategy(in.tapInterpreterError(handler(in) orElse in.interpreterErrorHandler))
@@ -53,9 +58,9 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
 
   def optConditionFailure: DynamoExecution[DR, Dec, Option[ConditionalCheckFailedException]] = {
     redeem({
-      case err: ConditionalCheckFailedException => _.F.pure(Some(err))
-      case err: Throwable                       => _.F.fail(err)
-    }, _ => _.F.pure(None)).tapInterpreterError(ctx => { case _: ConditionalCheckFailedException => ctx.F.unit })
+      case DynamoException(_, err: ConditionalCheckFailedException) => _.F.pure(Some(err))
+      case err: Throwable                                           => _.F.fail(err)
+    }, _ => _.F.pure(None)).skipErrorLog[ConditionalCheckFailedException]
   }
 
   def boolConditionSuccess: DynamoExecution[DR, Dec, Boolean] = {
@@ -98,10 +103,10 @@ object DynamoExecution {
 
   def createTable[F[+_, +_]](table: TableReference, ddl: TableDDL, sleep: Duration = 1.second): DynamoExecution[CreateTable, CreateTableResponse, Unit] = {
     CreateTable(table, ddl).toQuery.exec
-      .tapInterpreterError(ctx => { case _: ResourceInUseException => ctx.F.unit }).redeem(
+      .skipErrorLog[ResourceInUseException].redeem(
         {
-          case _: ResourceInUseException => _.F.unit
-          case e                         => _.F.fail(e)
+          case DynamoException(_, _: ResourceInUseException) => _.F.unit
+          case e                                             => _.F.fail(e)
         }, {
           rsp => in =>
             import in._
@@ -234,7 +239,7 @@ object DynamoExecution {
       val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
       retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
-        nested(in.tapInterpreterError { case _: ResourceNotFoundException => F.unit })
+        nested(in.skipErrorLog[ResourceNotFoundException])
       }
   }
 
@@ -244,8 +249,7 @@ object DynamoExecution {
     import cats.syntax.flatMap._
 
     attemptAction.handleErrorWith {
-      case e @ (_: ResourceNotFoundException | _: ResourceInUseException | DynamoException(_, _: ResourceNotFoundException) |
-          DynamoException(_, _: ResourceInUseException)) =>
+      case e @ DynamoException(_, _: ResourceNotFoundException | _: ResourceInUseException) =>
         if (attempts > 0) {
           prepareTable >>
           sleep >>
@@ -348,7 +352,7 @@ object DynamoExecution {
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
-          nested(in.tapInterpreterError { case _: ResourceNotFoundException => F.unit })
+          nested(in.skipErrorLog[ResourceNotFoundException])
         }
     }
 
