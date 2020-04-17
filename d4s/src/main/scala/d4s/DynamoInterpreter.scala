@@ -1,6 +1,7 @@
 package d4s
 
 import d4s.config.{DynamoBatchConfig, DynamoConfig}
+import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, WithBatch}
 import d4s.models.query._
 import d4s.models.query.requests._
@@ -13,7 +14,10 @@ import software.amazon.awssdk.services.dynamodb.model._
 import scala.concurrent.duration._
 
 trait DynamoInterpreter[F[_, _]] {
-  def run[DR <: DynamoRequest, Dec](q: DynamoQuery[DR, Dec]): F[Throwable, DR#Rsp]
+  def run[DR <: DynamoRequest, Dec](
+    q: DynamoQuery[DR, Dec],
+    logTapError: PartialFunction[Throwable, F[Throwable, Unit]]
+  ): F[Throwable, DR#Rsp]
 }
 
 object DynamoInterpreter {
@@ -26,45 +30,51 @@ object DynamoInterpreter {
     log: LogBIO[F],
   ) extends DynamoInterpreter[F] {
 
-    override def run[DR <: DynamoRequest.Aux[_, _], Dec](q: DynamoQuery[DR, Dec]): F[Throwable, DR#Rsp] = {
-      runImpl[DR, Dec, DR#Rq, DR#Rsp](q)
+    override def run[DR <: DynamoRequest.Aux[_, _], Dec](
+      q: DynamoQuery[DR, Dec],
+      customErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]]
+    ): F[Throwable, DR#Rsp] = {
+      runImpl[DR, Dec, DR#Rq, DR#Rsp](q, customErrorHandler)
     }
 
-    private[this] def runImpl[DR <: DynamoRequest.Aux[Rq, Rsp], Dec, Rq, Rsp](query: DynamoQuery[DR, Dec]): F[Throwable, Rsp] = {
+    private[this] def runImpl[DR <: DynamoRequest.Aux[Rq, Rsp], Dec, Rq, Rsp](
+      query: DynamoQuery[DR, Dec],
+      customErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]]
+    ): F[Throwable, Rsp] = {
       query.request match {
         case q: CreateTable =>
-          client.raw(_.createTable(q.toAmz)).logThrowable("CreateTable", q.table.fullName) <*
+          client.raw(_.createTable(q.toAmz)).logThrowable("CreateTable", q.table.fullName, customErrorHandler) <*
           log.info(s"Created ${q.table.fullName -> "tableName"}; ${q.ddl.provisioning -> "provisioning"}.")
         case q: UpdateTTL =>
-          client.raw(_.updateTimeToLive(q.toAmz)).logThrowable("UpdateTimeToLive", q.table.fullName) <*
+          client.raw(_.updateTimeToLive(q.toAmz)).logThrowable("UpdateTimeToLive", q.table.fullName, customErrorHandler) <*
           log.info(s"Updated TTL for ${q.table.fullName -> "tableName"} ${q.table.ttlField -> "ttlField"}.")
         case q: DeleteTable =>
-          client.raw(_.deleteTable(q.toAmz)).logThrowable("DeleteTable", q.table.fullName) <*
+          client.raw(_.deleteTable(q.toAmz)).logThrowable("DeleteTable", q.table.fullName, customErrorHandler) <*
           log.info(s"Deleted ${q.table.fullName -> "tableName"}.")
         case q: UpdateTableTags =>
-          updateTableTags(q.toAmz).logThrowable("UpdateTableTags", q.table.fullName) <*
+          updateTableTags(q.toAmz).logThrowable("UpdateTableTags", q.table.fullName, customErrorHandler) <*
           log.info(s"Tags for ${q.table.fullName -> "tableName"} were updated, ${q.dynamoResourceName}. ${q.table.tags ++ q.tagsToAdd -> "tags"}")
         case q: UpdateTable =>
-          client.raw(_.updateTable(q.toAmz)).logThrowable("UpdateTable", q.table.fullName) <*
+          client.raw(_.updateTable(q.toAmz)).logThrowable("UpdateTable", q.table.fullName, customErrorHandler) <*
           log.info(s"Table ${q.table.fullName -> "tableName"} were updated, ${q.toAmz.toString -> "request"}")
 
-        case q: DescribeTable => client.raw(_.describeTable(q.toAmz)).logThrowable("DescribeTable", q.table.fullName)
+        case q: DescribeTable => client.raw(_.describeTable(q.toAmz)).logThrowable("DescribeTable", q.table.fullName, customErrorHandler)
         case q: ListTables    => client.raw(_.listTables(q.toAmz)).logThrowable("ListTables")
 
-        case q: Query => client.raw(_.query(q.toAmz)).logThrowable("Query", q.table.fullName)
-        case q: Scan  => client.raw(_.scan(q.toAmz)).logThrowable("Scan", q.table.fullName)
+        case q: Query => client.raw(_.query(q.toAmz)).logThrowable("Query", q.table.fullName, customErrorHandler)
+        case q: Scan  => client.raw(_.scan(q.toAmz)).logThrowable("Scan", q.table.fullName, customErrorHandler)
 
-        case q: GetItem    => client.raw(_.getItem(q.toAmz)).logThrowable("GetItem", q.table.fullName)
-        case q: PutItem    => client.raw(_.putItem(q.toAmz)).logThrowable("PutItem", q.table.fullName)
-        case q: DeleteItem => client.raw(_.deleteItem(q.toAmz)).logThrowable("DeleteItem", q.table.fullName)
-        case q: UpdateItem => client.raw(_.updateItem(q.toAmz)).logThrowable("UpdateItem", q.table.fullName)
+        case q: GetItem    => client.raw(_.getItem(q.toAmz)).logThrowable("GetItem", q.table.fullName, customErrorHandler)
+        case q: PutItem    => client.raw(_.putItem(q.toAmz)).logThrowable("PutItem", q.table.fullName, customErrorHandler)
+        case q: DeleteItem => client.raw(_.deleteItem(q.toAmz)).logThrowable("DeleteItem", q.table.fullName, customErrorHandler)
+        case q: UpdateItem => client.raw(_.updateItem(q.toAmz)).logThrowable("UpdateItem", q.table.fullName, customErrorHandler)
 
-        case q: DeleteItemBatch  => runWriteBatch(q).logThrowable("DeleteItemBatch", q.table.fullName)
-        case q: PutItemBatch     => runWriteBatch(q).logThrowable("WriteItemBatch", q.table.fullName)
-        case q: GetItemBatch     => runGetBatch(q).logThrowable("GetItemBatch", q.table.fullName)
-        case q: QueryDeleteBatch => runQueryDeleteBatch(q).logThrowable("QueryDeleteBatch", q.table.fullName)
+        case q: DeleteItemBatch  => runWriteBatch(q).logThrowable("DeleteItemBatch", q.table.fullName, customErrorHandler)
+        case q: PutItemBatch     => runWriteBatch(q).logThrowable("WriteItemBatch", q.table.fullName, customErrorHandler)
+        case q: GetItemBatch     => runGetBatch(q).logThrowable("GetItemBatch", q.table.fullName, customErrorHandler)
+        case q: QueryDeleteBatch => runQueryDeleteBatch(q).logThrowable("QueryDeleteBatch", q.table.fullName, customErrorHandler)
 
-        case q: UpdateContinuousBackups => updateContinuousBackups(q.toAmz).logThrowable("UpdateContinuousBackups", q.table.fullName)
+        case q: UpdateContinuousBackups => updateContinuousBackups(q.toAmz).logThrowable("UpdateContinuousBackups", q.table.fullName, customErrorHandler)
 
         case r: RawRequest[_, _] => r.interpret(r.toAmz)(F, client)
       }
@@ -79,7 +89,7 @@ object DynamoInterpreter {
         .execStreamedFlatten
 
       exec
-        .executionStrategy(exec.dynamoQuery)(DynamoExecutionContext(F, this))
+        .executionStrategy(StrategyInput(exec.dynamoQuery, DynamoExecutionContext(F, this)))
         .chunkN(batchConfig.writeBatchSize)
         .parEvalMap(rq.maxParallelDeletes.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(rq.table, itemsChunk.toList)))
         .flatMap(fs2.Stream.emits)
@@ -158,14 +168,15 @@ object DynamoInterpreter {
   }
 
   private[this] implicit final class ThrowableDynamoOps[F[+_, +_], A](private val f: F[Throwable, A]) extends AnyVal {
-    def logThrowable(operation: String, tableName: String)(implicit F: BIOError[F], log: LogBIO[F]): F[Throwable, A] = {
+    def logThrowable(
+      operation: String,
+      tableName: String,
+      errorHandler: PartialFunction[Throwable, F[Throwable, Unit]]
+    )(implicit F: BIOError[F], log: LogBIO[F]): F[Throwable, A] = {
       f.tapError {
-        case _: ConditionalCheckFailedException =>
-          log.debug(s"Dynamo: ConditionalCheckFailedException during executing $operation for $tableName.")
-        case _: ResourceNotFoundException =>
-          log.debug(s"Dynamo: ResourceNotFoundException during executing $operation for $tableName.")
-        case failure =>
-          log.error(s"Dynamo: Got error during executing $operation for $tableName. ${failure -> "Failure"}.")
+        errorHandler orElse {
+          case failure => log.error(s"Dynamo: Got error during executing $operation for $tableName. ${failure -> "Failure"}.")
+        }
       }
     }
 

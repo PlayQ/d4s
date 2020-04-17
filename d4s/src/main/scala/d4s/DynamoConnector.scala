@@ -5,6 +5,7 @@ import d4s.DynamoConnector.DynamoException
 import d4s.health.DynamoDBHealthChecker
 import d4s.metrics.{MacroMetricDynamoMeter, MacroMetricDynamoTimer}
 import d4s.models.DynamoExecution
+import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest
 import fs2.Stream
 import izumi.functional.bio.{BIOTemporal, F}
@@ -46,7 +47,7 @@ object DynamoConnector {
       runUnrecordedImpl(q)
 
     private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[_, _]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
-      q.executionStrategy(q.dynamoQuery)(DynamoExecutionContext(F, interpreter))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, DynamoExecutionContext(F, interpreter)))
     }
 
     override def run[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution[DR, Dec, A])(
@@ -68,7 +69,7 @@ object DynamoConnector {
         recordMetrics(label)(_)
       }
 
-      q.executionStrategy(q.dynamoQuery)(DynamoExecutionContext(F, interpreter, recordStreamPage))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, DynamoExecutionContext(F, interpreter, recordStreamPage)))
         .translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]] {
           _.leftMap(DynamoException(label, _))
         })

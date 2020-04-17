@@ -296,11 +296,11 @@ object DynamoQuery {
       dynamoQuery.decodeWith((a, c) => (c, a.consumedCapacity()))
   }
 
-  implicit final class DecodeItems[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(implicit
-                                                                                                    ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
-                                                                                                    ev3: DR#Rsp => {
-                                                                                                      def items(): java.util.List[java.util.Map[String, AttributeValue]]
-                                                                                                    }) {
+  implicit final class DecodeItems[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(
+    implicit
+    ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
+    ev3: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] }
+  ) {
     def decodeItems[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery
         .modify(
