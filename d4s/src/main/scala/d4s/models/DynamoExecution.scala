@@ -104,8 +104,9 @@ object DynamoExecution {
             case None    => F.unit
             case Some(_) => interpreter.run(DynamoQuery(UpdateTTL(table))).void
           }
-          val tagResources = interpreter.run(DynamoQuery(UpdateTableTags(table, rsp.tableDescription().tableArn())))
-
+          val tagResources = F.when(table.tags.nonEmpty) {
+            interpreter.run(DynamoQuery(UpdateTableTags(table, rsp.tableDescription().tableArn()))).void
+          }
           val updateContinuousBackups = ddl.backupEnabled match {
             case Some(true) => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)))
             case _          => F.unit
@@ -113,8 +114,8 @@ object DynamoExecution {
 
           // wait until the table appears
           retryIfTableNotFound(attempts = 120, F.sleep(sleep).widenError[Throwable])(F.unit) {
-            updateTTL *> tagResources
-          } *> updateContinuousBackups.void
+            updateTTL *> tagResources *> updateContinuousBackups.void
+          }
       }
     )
   }
@@ -178,7 +179,7 @@ object DynamoExecution {
   }
 
   def paged[DR <: DynamoRequest: PageableRequest, Dec](limit: Option[Int] = None): ExecutionStrategy[DR, Dec, List[Dec]] = {
-    pagedImpl(limit)(identity)
+    pagedImpl(limit)(identity(_))
   }
 
   private[this] def pagedImpl[DR <: DynamoRequest, Dec, A](
