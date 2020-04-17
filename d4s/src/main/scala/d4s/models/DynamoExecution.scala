@@ -56,7 +56,7 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
     redeem({
       case err: ConditionalCheckFailedException => _.F.pure(Some(err))
       case err: Throwable                       => _.F.fail(err)
-    }, _ => _.F.pure(None))
+    }, _ => _.F.pure(None)).tapInterpreterError(ctx => { case _: ConditionalCheckFailedException => ctx.F.unit })
   }
 
   def boolConditionSuccess: DynamoExecution[DR, Dec, Boolean] = {
@@ -356,7 +356,7 @@ object DynamoExecution {
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, ctx))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
-          nested(in.tapInterpreterError{ case _: ResourceNotFoundException => F.unit })
+          nested(in.tapInterpreterError { case _: ResourceNotFoundException => F.unit })
         }
     }
 
