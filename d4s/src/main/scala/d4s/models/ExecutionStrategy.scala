@@ -14,7 +14,11 @@ object ExecutionStrategy {
     query: DynamoQuery[DR, Dec],
     ctx: DynamoExecutionContext[F],
     interpreterErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]] = PartialFunction.empty
-  )
+  ) {
+    def tapInterpreterError(f: PartialFunction[Throwable, F[Throwable, Unit]]): StrategyInput[F, DR, Dec] = {
+      copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)
+    }
+  }
 
   private[models] type FThrowable[F[_, +_], +A]        = F[Throwable, A]
   private[models] type StreamFThrowable[+F[_, +_], +A] = Stream[F[Throwable, ?], A]

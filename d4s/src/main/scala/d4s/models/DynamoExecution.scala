@@ -37,7 +37,7 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def tapInterpreterError(handler: DynamoExecutionContext[UnknownF] => PartialFunction[Throwable, UnknownF[Throwable, Unit]]): DynamoExecution[DR, Dec, A] = {
     copy(executionStrategy = ExecutionStrategy[DR, Dec, A] {
       in =>
-        executionStrategy(StrategyInput(in.query, in.ctx, handler(in.ctx) orElse in.interpreterErrorHandler))
+        executionStrategy(in.tapInterpreterError(handler(in.ctx) orElse in.interpreterErrorHandler))
     })
   }
   def redeem[B](err: Throwable => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, B],
@@ -239,7 +239,7 @@ object DynamoExecution {
       val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, ctx))
 
       retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
-        nested(StrategyInput(query, ctx, { case _: ResourceNotFoundException => ctx.F.unit }))
+        nested(in.tapInterpreterError { case _: ResourceNotFoundException => ctx.F.unit })
       }
   }
 
@@ -356,7 +356,7 @@ object DynamoExecution {
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, ctx))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
-          nested(StrategyInput(query, ctx, { case _: ResourceNotFoundException => ctx.F.unit }))
+          nested(in.tapInterpreterError{ case _: ResourceNotFoundException => F.unit })
         }
     }
 
