@@ -67,7 +67,7 @@ object DynamoTablesService {
 
     override def listTables: F[Throwable, List[String]] = {
       val exec = DynamoExecution.listTables
-      exec.executionStrategy(StrategyInput(exec.dynamoQuery, DynamoExecutionContext(F, interpreter)))
+      exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
     }
 
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]] = {
@@ -80,7 +80,7 @@ object DynamoTablesService {
             val newTable = tweak(ddl.table)
             val exec     = DynamoExecution.createTable[F](newTable, ddl.ddl)
             log.info(s"Going to create ${newTable.fullName}; ${ddl.ddl.provisioning -> "provisioning"}.") *>
-            exec.executionStrategy(StrategyInput(exec.dynamoQuery, DynamoExecutionContext(F, interpreter)))
+            exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
         }.void
     }
 

@@ -89,7 +89,7 @@ object DynamoInterpreter {
         .execStreamedFlatten
 
       exec
-        .executionStrategy(StrategyInput(exec.dynamoQuery, DynamoExecutionContext(F, this)))
+        .executionStrategy(StrategyInput(exec.dynamoQuery, F, this))
         .chunkN(batchConfig.writeBatchSize)
         .parEvalMap(rq.maxParallelDeletes.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(rq.table, itemsChunk.toList)))
         .flatMap(fs2.Stream.emits)

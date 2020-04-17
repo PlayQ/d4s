@@ -47,7 +47,7 @@ object DynamoConnector {
       runUnrecordedImpl(q)
 
     private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[_, _]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
-      q.executionStrategy(StrategyInput(q.dynamoQuery, DynamoExecutionContext(F, interpreter)))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter))
     }
 
     override def run[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution[DR, Dec, A])(
@@ -69,15 +69,17 @@ object DynamoConnector {
         recordMetrics(label)(_)
       }
 
-      q.executionStrategy(StrategyInput(q.dynamoQuery, DynamoExecutionContext(F, interpreter, recordStreamPage)))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter, recordStreamPage))
         .translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]] {
           _.leftMap(DynamoException(label, _))
         })
     }
 
-    private[this] def recordMetrics[A](label: String)(f: F[Throwable, A])(implicit
-                                                                          macroTimeSaver: MacroMetricDynamoTimer[label.type],
-                                                                          macroMeterSaver: MacroMetricDynamoMeter[label.type]): F[Throwable, A] = {
+    private[this] def recordMetrics[A](label: String)(f: F[Throwable, A])(
+      implicit
+      macroTimeSaver: MacroMetricDynamoTimer[label.type],
+      macroMeterSaver: MacroMetricDynamoMeter[label.type]
+    ): F[Throwable, A] = {
       metrics.withTimer(label) {
         f.tapError {
           exception =>

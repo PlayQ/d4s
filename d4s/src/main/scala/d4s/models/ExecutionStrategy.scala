@@ -1,9 +1,12 @@
 package d4s.models
 
-import d4s.DynamoExecutionContext
+import cats.arrow.FunctionK
+import cats.~>
+import d4s.DynamoInterpreter
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput}
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import fs2.Stream
+import izumi.functional.bio.BIOTemporal
 
 trait ExecutionStrategy[DR <: DynamoRequest, -Dec, +A] extends ExecutionStrategy.Dependent[DR, Dec, FThrowable[?[_, `+_`], A]] {
   def apply[F[+_, +_]](input: StrategyInput[F, DR, Dec]): F[Throwable, A]
@@ -12,8 +15,10 @@ trait ExecutionStrategy[DR <: DynamoRequest, -Dec, +A] extends ExecutionStrategy
 object ExecutionStrategy {
   final case class StrategyInput[F[+_, +_], DR <: DynamoRequest, +Dec](
     query: DynamoQuery[DR, Dec],
-    ctx: DynamoExecutionContext[F],
-    interpreterErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]] = PartialFunction.empty
+    implicit val F: BIOTemporal[F],
+    implicit val interpreter: DynamoInterpreter[F],
+    private[d4s] val streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?] = FunctionK.id[F[Throwable, ?]],
+    interpreterErrorHandler: PartialFunction[Throwable, F[Throwable, Unit]]     = PartialFunction.empty
   ) {
     def tapInterpreterError(f: PartialFunction[Throwable, F[Throwable, Unit]]): StrategyInput[F, DR, Dec] = {
       copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)
