@@ -41,10 +41,10 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
-      "2.12.10"
+      "2.12.11"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.10") => Seq(
+      case (_, "2.12.11") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -98,7 +98,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.10") => Seq(
+      case (false, "2.12.11") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -150,10 +150,10 @@ lazy val `metrics` = project.in(file("./metrics"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
-      "2.12.10"
+      "2.12.11"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.10") => Seq(
+      case (_, "2.12.11") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -207,7 +207,7 @@ lazy val `metrics` = project.in(file("./metrics"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.10") => Seq(
+      case (false, "2.12.11") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -270,10 +270,10 @@ lazy val `d4s` = project.in(file("./d4s"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
-      "2.12.10"
+      "2.12.11"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.10") => Seq(
+      case (_, "2.12.11") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -327,7 +327,7 @@ lazy val `d4s` = project.in(file("./d4s"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.10") => Seq(
+      case (false, "2.12.11") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -375,10 +375,10 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
-      "2.12.10"
+      "2.12.11"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.10") => Seq(
+      case (_, "2.12.11") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -432,7 +432,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.10") => Seq(
+      case (false, "2.12.11") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -484,10 +484,10 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
-      "2.12.10"
+      "2.12.11"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.10") => Seq(
+      case (_, "2.12.11") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -541,7 +541,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.10") => Seq(
+      case (false, "2.12.11") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -558,7 +558,8 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
 
 lazy val `d4s-agg` = (project in file(".agg/.-d4s-agg"))
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    crossScalaVersions := Nil
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
   .aggregate(
@@ -571,7 +572,8 @@ lazy val `d4s-agg` = (project in file(".agg/.-d4s-agg"))
 
 lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    crossScalaVersions := Nil
   )
   .aggregate(
     `aws-common`,
@@ -583,7 +585,8 @@ lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
 
 lazy val `d4s-root-jvm` = (project in file(".agg/.agg-jvm"))
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    crossScalaVersions := Nil
   )
   .aggregate(
     `d4s-agg-jvm`

@@ -50,8 +50,8 @@ jobs:
           OPENSSL_KEY: ${{ secrets.OPENSSL_KEY }}
         run: |
           env
-          sudo curl -Lo /usr/local/bin/coursier  https://git.io/coursier-cli-linux && sudo chmod +x /usr/local/bin/coursier
-          bash sbtgen.sc
+          sudo curl -Lo /usr/local/bin/coursier https://git.io/coursier-cli-linux && sudo chmod +x /usr/local/bin/coursier && \
+          ./sbtgen.sc
           COMMAND="sbt +clean +test"
           if [[ "$GITHUB_REF" == refs/heads/master || "$BRANCH_TAG" =~ ^v.*$ ]] ; then
                       openssl aes-256-cbc -K ${OPENSSL_KEY} -iv ${OPENSSL_IV} -in secrets.tar.enc -out secrets.tar -d

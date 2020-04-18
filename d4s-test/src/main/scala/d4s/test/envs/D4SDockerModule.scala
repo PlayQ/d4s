@@ -12,7 +12,7 @@ class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
   makeConfig[DynamoConfig]("aws.dynamo").named("test-config")
   make[DynamoConfig].from {
     (cfg: DynamoConfig @Id("test-config"), docker: DynamoDocker.Container) =>
-      val knownAddress = docker.availablePorts(DynamoDocker.primaryPort).head
+      val knownAddress = docker.availablePorts.availablePorts(DynamoDocker.primaryPort).head
       cfg.copy(endpointUrl = Some(s"http://${knownAddress.hostV4}:${knownAddress.port}"))
   }
 }

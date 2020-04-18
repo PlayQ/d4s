@@ -277,6 +277,9 @@ object ProjectBuilder {
       Seq(dynamo_agg)
     },
     sharedSettings = ProjectSettings.sharedSettings,
+    sharedAggSettings = Seq(
+      "crossScalaVersions" := "Nil".raw,
+    ),
     rootSettings = ProjectSettings.rootProjectSettings,
     imports = ProjectSettings.sharedImports,
     globalLibs = Seq(

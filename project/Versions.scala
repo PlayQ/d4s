@@ -1,14 +1,14 @@
 object V {
-  val scala_212     = "2.12.10"
+  val scala_212     = "2.12.11"
   val scala_213     = "2.13.1"
-  val izumi_version = "0.10.3-M2"
+  val izumi_version = "0.10.4"
 
   // compiler
   val kind_projector = "0.11.0"
 
   // java
   val aws_java_sdk   = "1.11.750"
-  val aws_java_sdk_2 = "2.7.36"
+  val aws_java_sdk_2 = "2.11.14"
 
   // scala
   val scalacheck           = "1.14.1"
@@ -21,10 +21,10 @@ object V {
   val circe_generic_extras = "0.13.0"
   val circe_derivation     = "0.13.0-M4"
 
-  val magnolia_version = "0.14.5"
+  val magnolia_version = "0.15.0"
 
   val cats             = "2.1.1"
-  val cats_effect      = "2.1.1"
+  val cats_effect      = "2.1.3"
   val zio              = "1.0.0-RC18-2"
   val zio_interop_cats = "2.0.0.0-RC12"
 
