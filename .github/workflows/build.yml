@@ -4,7 +4,8 @@ on:
   push:
     paths-ignore:
       README.md
-      docs/*
+      docs/**
+      vuepress/**
 
 jobs:
   build:

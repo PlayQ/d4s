@@ -1,5 +1,8 @@
 name: Build Microsite
-on: [push]
+on:
+  push:
+    paths:
+      - 'vuepress/**'
 
 jobs:
   build:
