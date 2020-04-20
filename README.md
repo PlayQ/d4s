@@ -1,6 +1,6 @@
 # **d4s**  - *"Dynamo DB Database Done Scala-way"*
 <p align="center">
-<img width="40%" src="./docs/resourses/D4S_logo.svg" alt="Logo"/>
+<img width="40%" src="./resources/D4S_logo.svg" alt="Logo"/>
 </p>
 
 What is it?  ![Build](https://github.com/PlayQ/d4s/workflows/Build/badge.svg)
@@ -39,5 +39,5 @@ Example project:
 - [d4s-example](https://github.com/VladPodilnyk/d4s-example)
 
 Materials and docs (microsite in work):
-- [ScalaUA presentation](docs/presentation/scalaua.pdf)
+- [ScalaUA presentation](resources/presentation/scalaua.pdf)
    

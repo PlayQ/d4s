@@ -5,6 +5,7 @@ on:
     paths-ignore:
       README.md
       docs/**
+      resources/**
       vuepress/**
 
 jobs:
