@@ -143,22 +143,28 @@ object D4SDecoder {
             }.map(_.result())
       }
   }
-  implicit def mapLikeDecoder[V, M[K, _] <: Map[K, V]](implicit V: D4SDecoder[V], factory: Factory[(String, V), M[String, V]]): D4SDecoder[M[String, V]] = {
-    attr =>
-      Either.fromTry(Try(attr.m())) match {
-        case Left(error) => Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Map", Some(error)))
-        case Right(value) =>
-          value.asScala.iterator
-            .foldLeft[Either[DynamoDecoderException, mutable.Builder[(String, V), M[String, V]]]](Right(factory.newBuilder)) {
-              case (acc, (name, attr)) =>
-                V.decodeAttribute(attr) match {
-                  case Left(error) => Left(error)
-                  case Right(value) =>
-                    acc.map(_ ++= Iterable((name -> value)))
-                }
-            }.map(_.result())
-      }
+  
+  implicit def mapLikeDecoder[K, V, M[k, v] <: Map[K, V]](implicit V: D4SDecoder[V], K: D4SKeyDecoder[K], factory: Factory[(K, V), M[K, V]]): D4SDecoder[M[K, V]] = {
+    attributeDecoder {
+      attr =>
+        Either.fromTry(Try(attr.m())) match {
+          case Left(error) => Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Map", Some(error)))
+          case Right(value) =>
+            value.asScala.iterator
+              .foldLeft[Either[DynamoDecoderException, mutable.Builder[(K, V), M[K, V]]]](Right(factory.newBuilder)) {
+                case (acc, (key, value)) =>
+                  (K.decode(key), V.decodeAttribute(value)) match {
+                    case (Right(k), Right(v))         => acc.map(_ ++= Iterable(k -> v))
+                    case (Left(error), Right(_))      => Left(error)
+                    case (Right(_), Left(error))      => Left(error)
+                    case (Left(error1), Left(error2)) => Left(error1 union error2)
+                  }
+              }.map(_.result())
+
+        }
+    }
   }
+
   implicit def optionDecoder[T](implicit T: D4SDecoder[T]): D4SDecoder[Option[T]] = {
     attr: AttributeValue =>
       if (attr.nul()) Right(None) else T.decodeAttribute(attr).map(Some(_))

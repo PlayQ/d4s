@@ -13,7 +13,7 @@ final case class AttributeNames[T](attributeNames: Set[String]) {
 object AttributeNames {
   def apply[T: AttributeNames]: AttributeNames[T] = implicitly
 
-  def derive[T]: AttributeNames[T]                                = macro AttributeNamesMacro.attributeNamesMacro[T]
+  def derived[T]: AttributeNames[T]                               = macro AttributeNamesMacro.attributeNamesMacro[T]
   implicit def autoMacroUtilsAttributeNames[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesMacro[T]
 
   object AttributeNamesMacro {

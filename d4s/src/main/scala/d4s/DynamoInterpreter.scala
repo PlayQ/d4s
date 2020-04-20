@@ -160,6 +160,8 @@ object DynamoInterpreter {
   private[this] implicit final class ThrowableDynamoOps[F[+_, +_], A](private val f: F[Throwable, A]) extends AnyVal {
     def logThrowable(operation: String, tableName: String)(implicit F: BIOError[F], log: LogBIO[F]): F[Throwable, A] = {
       f.tapError {
+        case _: ConditionalCheckFailedException =>
+          log.debug(s"Dynamo: ConditionalCheckFailedException during executing $operation for $tableName.")
         case _: ResourceNotFoundException =>
           log.debug(s"Dynamo: ResourceNotFoundException during executing $operation for $tableName.")
         case failure =>

@@ -2,8 +2,7 @@ package d4s.util
 
 import java.util.UUID
 
-import d4s.codecs.DynamoKeyAttribute
-import io.circe.{Decoder, Encoder}
+import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /**
@@ -23,8 +22,8 @@ object OrderedUUIDKey {
   }
 
   // encode as string
-  implicit val encoder: Encoder[OrderedUUIDKey] = Encoder[String].contramap(_.asString)
-  implicit val decoder: Decoder[OrderedUUIDKey] = Decoder[String].map(OrderedUUIDKey(_))
+  implicit val encoder: D4SAttributeEncoder[OrderedUUIDKey] = D4SAttributeEncoder[String].contramap(_.asString)
+  implicit val decoder: D4SDecoder[OrderedUUIDKey]          = D4SDecoder[String].map(OrderedUUIDKey(_))
 
   implicit val keyAttribute: DynamoKeyAttribute[OrderedUUIDKey] = new DynamoKeyAttribute[OrderedUUIDKey](ScalarAttributeType.S)
 
