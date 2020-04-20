@@ -1,0 +1,24 @@
+name: Build Microsite
+on:
+  push:
+    paths:
+      - 'vuepress/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Update docs
+        run: |
+          cd vuepress
+          yarn install
+          yarn docs:build
+          cd ..
+          rm -rf docs/microsite
+          cp -r vuepress/docs/.vuepress/dist docs/microsite
+          git add docs
+          git config user.name "Vlad Podilnyk"
+          git config user.email "vpodilnyk@playq.net"
+          git commit -m "CI step: update docs"
+          git push
