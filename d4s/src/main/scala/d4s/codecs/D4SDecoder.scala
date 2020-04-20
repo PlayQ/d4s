@@ -143,26 +143,7 @@ object D4SDecoder {
             }.map(_.result())
       }
   }
-
-//  implicit def mapLikeDecoder[V, M[K, _] <: Map[K, V]](implicit V: D4SDecoder[V], factory: Factory[(String, V), M[String, V]]): D4SDecoder[M[String, V]] = {
-//    attributeDecoder {
-//      attr =>
-//        Either.fromTry(Try(attr.m())) match {
-//          case Left(error) => Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Map", Some(error)))
-//          case Right(value) =>
-//            value.asScala.iterator
-//              .foldLeft[Either[DynamoDecoderException, mutable.Builder[(String, V), M[String, V]]]](Right(factory.newBuilder)) {
-//                case (acc, (name, attr)) =>
-//                  V.decodeAttribute(attr) match {
-//                    case Left(error) => Left(error)
-//                    case Right(value) =>
-//                      acc.map(_ ++= Iterable((name -> value)))
-//                  }
-//              }.map(_.result())
-//        }
-//    }
-//  }
-
+  
   implicit def mapLikeDecoder[K, V, M[k, v] <: Map[K, V]](implicit V: D4SDecoder[V], K: D4SKeyDecoder[K], factory: Factory[(K, V), M[K, V]]): D4SDecoder[M[K, V]] = {
     attributeDecoder {
       attr =>

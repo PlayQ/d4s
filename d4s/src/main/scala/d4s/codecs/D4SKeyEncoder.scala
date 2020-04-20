@@ -5,8 +5,5 @@ trait D4SKeyEncoder[T] {
 }
 
 object D4SKeyEncoder {
-//  implicit val shortKeyEncoder: D4SKeyEncoder[Short] = _.toString
-//  implicit val intKeyEncoder: D4SKeyEncoder[Int]     = _.toString
-//  implicit val uuidKeyEncoder: D4SKeyEncoder[UUID]   = _.toString
   implicit def simpleTypeEncoder[T]: D4SKeyEncoder[T] = _.toString
 }
