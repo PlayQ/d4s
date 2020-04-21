@@ -2,9 +2,7 @@ package d4s.models
 
 import cats.MonadError
 import cats.effect.concurrent.Ref
-import d4s.DynamoConnector.DynamoException
-import d4s.DynamoExecutionContext
-import d4s.models.ExecutionStrategy.{FThrowable, StreamFThrowable, UnknownF}
+import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput, StreamFThrowable, UnknownF}
 import d4s.models.query.DynamoRequest.{PageableRequest, WithLimit, WithProjectionExpression, WithSelect, WithTableReference}
 import d4s.models.query.requests._
 import d4s.models.query.{DynamoQuery, DynamoRequest}
@@ -19,40 +17,38 @@ import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.language.reflectiveCalls
+import scala.reflect.ClassTag
 
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   dynamoQuery: DynamoQuery[DR, Dec],
-  executionStrategy: ExecutionStrategy[DR, Dec, A]
+  executionStrategy: ExecutionStrategy[DR, Dec, A],
 ) extends DynamoExecution.Dependent[DR, Dec, FThrowable[?[_, `+_`], A]] {
 
   def map[B](f: A => B): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => _.F.map(io)(f))
   }
-  def flatMap[B](f: A => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
+  def flatMap[B](f: A => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => ctx => ctx.F.flatMap(io)(f(_)(ctx)))
   }
   def void: DynamoExecution[DR, Dec, Unit] = {
     map(_ => ())
   }
-  def redeem[B](err: Throwable => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, B],
-                succ: A => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
+  def redeem[B](err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B],
+                succ: A => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => ctx => ctx.F.redeem(io)(err(_)(ctx), succ(_)(ctx)))
   }
-  def catchAll[A1 >: A](err: Throwable => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, A1]): DynamoExecution[DR, Dec, A1] = {
+  def catchAll[A1 >: A](err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, A1]): DynamoExecution[DR, Dec, A1] = {
     redeem(err, a => _.F.pure(a))
   }
-
   def retryWithPrefix(ddl: TableDDL, sleep: Duration = 1.second)(implicit ev: DR <:< WithTableReference[DR]): DynamoExecution[DR, Dec, A] = {
     modifyStrategy(DynamoExecution.retryWithPrefix(ddl, sleep))
   }
-
   def optConditionFailure: DynamoExecution[DR, Dec, Option[ConditionalCheckFailedException]] = {
     redeem({
-      case err: ConditionalCheckFailedException => _.F.pure(Some(err))
-      case err: Throwable                       => _.F.fail(err)
-    }, _ => _.F.pure(None))
+      case DynamoException(_, err: ConditionalCheckFailedException) => _.F.pure(Some(err))
+      case err: Throwable                                           => _.F.fail(err)
+    }, _ => _.F.pure(None)).discardInterpreterError[ConditionalCheckFailedException]
   }
-
   def boolConditionSuccess: DynamoExecution[DR, Dec, Boolean] = {
     optConditionFailure.map(_.isEmpty)
   }
@@ -66,13 +62,27 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def modifyStrategy[Dec1 >: Dec, B](f: ExecutionStrategy[DR, Dec, A] => ExecutionStrategy[DR, Dec1, B]): DynamoExecution[DR, Dec1, B] = {
     copy(executionStrategy = f(executionStrategy))
   }
-  def modifyExecution[B](f: UnknownF[Throwable, A] => DynamoExecutionContext[UnknownF] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
+  def modifyExecution[B](f: UnknownF[Throwable, A] => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
     copy(executionStrategy = ExecutionStrategy[DR, Dec, B] {
-      query => ctx =>
-        f(executionStrategy(query)(ctx))(ctx)
+      in =>
+        f(executionStrategy(in))(in)
     })
   }
 
+  /** Methods below will mutate interpreter error handler.
+    * You can use them to log any error raised during request execution on interpreter level.
+    */
+  def discardInterpreterError[Err: ClassTag]: DynamoExecution[DR, Dec, A] = {
+    tapInterpreterError(in => { case DynamoException(_, _: Err) => in.F.unit })
+  }
+  def tapInterpreterError(
+    handler: StrategyInput[UnknownF, DR, Dec] => PartialFunction[DynamoException, UnknownF[Nothing, Unit]]
+  ): DynamoExecution[DR, Dec, A] = {
+    copy(executionStrategy = ExecutionStrategy[DR, Dec, A] {
+      in =>
+        executionStrategy(in.tapInterpreterError(handler(in)))
+    })
+  }
 }
 
 object DynamoExecution {
@@ -83,40 +93,42 @@ object DynamoExecution {
 
   def single[DR <: DynamoRequest, Dec]: ExecutionStrategy[DR, Dec, Dec] = {
     ExecutionStrategy {
-      query => ctx =>
-        import ctx._
-        ctx.interpreter
-          .run(query)
-          .flatMap(query.decoder(_))
+      in =>
+        import in._
+        in.interpreter
+          .run(in.query, in.interpreterErrorHandler)
+          .flatMap(in.query.decoder(_))
     }
   }
 
   def createTable[F[+_, +_]](table: TableReference, ddl: TableDDL, sleep: Duration = 1.second): DynamoExecution[CreateTable, CreateTableResponse, Unit] = {
-    CreateTable(table, ddl).toQuery.exec.redeem(
-      {
-        case _: ResourceInUseException => _.F.unit
-        case e                         => _.F.fail(e)
-      }, {
-        rsp => ctx =>
-          import ctx._
+    CreateTable(table, ddl).toQuery.exec
+      .discardInterpreterError[ResourceInUseException].redeem(
+        {
+          case DynamoException(_, _: ResourceInUseException) => _.F.unit
+          case e                                             => _.F.fail(e)
+        }, {
+          rsp => in =>
+            import in._
+            val resourceNotFoundHandler: PartialFunction[Throwable, UnknownF[Nothing, Unit]] = { case _: ResourceNotFoundException => F.unit }
+            val updateTTL = table.ttlField match {
+              case None    => F.unit
+              case Some(_) => interpreter.run(DynamoQuery(UpdateTTL(table)), resourceNotFoundHandler).void
+            }
+            val tagResources = F.when(table.tags.nonEmpty) {
+              interpreter.run(DynamoQuery(UpdateTableTags(table, rsp.tableDescription().tableArn())), resourceNotFoundHandler).void
+            }
+            val updateContinuousBackups = ddl.backupEnabled match {
+              case Some(true) => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)), resourceNotFoundHandler)
+              case _          => F.unit
+            }
 
-          val updateTTL = table.ttlField match {
-            case None    => F.unit
-            case Some(_) => interpreter.run(DynamoQuery(UpdateTTL(table))).void
-          }
-          val tagResources = interpreter.run(DynamoQuery(UpdateTableTags(table, rsp.tableDescription().tableArn())))
-
-          val updateContinuousBackups = ddl.backupEnabled match {
-            case Some(true) => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)))
-            case _          => F.unit
-          }
-
-          // wait until the table appears
-          retryIfTableNotFound(attempts = 120, F.sleep(sleep).widenError[Throwable])(F.unit) {
-            updateTTL *> tagResources
-          } *> updateContinuousBackups.void
-      }
-    )
+            // wait until the table appears
+            retryIfTableNotFound(attempts = 120, F.sleep(sleep).widenError[Throwable])(F.unit) {
+              updateTTL *> tagResources *> updateContinuousBackups.void
+            }
+        }
+      )
   }
 
   def listTables: DynamoExecution[ListTables, List[String], List[String]] = {
@@ -134,8 +146,8 @@ object DynamoExecution {
     ev2: DR#Rsp => { def count(): Integer },
     ev3: Dec <:< List[A]
   ): ExecutionStrategy[DR, Dec, List[A]] = ExecutionStrategy {
-    query => ctx =>
-      import ctx._
+    in =>
+      import in._
       import paging.PageMarker
 
       def firstOffsetKey(): F[Throwable, Option[PageMarker]] = {
@@ -146,19 +158,19 @@ object DynamoExecution {
             case Some(nextPage) =>
               val newRq = query.modify(paging.withPageMarker(_, nextPage).withLimit(offsetLimit.offset - fetched))
               interpreter
-                .run(newRq)
+                .run(newRq, in.interpreterErrorHandler)
                 .flatMap(newRsp => go(paging.getPageMarker(newRsp), fetched + newRsp.count()))
           }
         }
 
         for {
-          skipOffsetRsp <- interpreter.run(query.withLimit(offsetLimit.offset).countOnly)
+          skipOffsetRsp <- interpreter.run(query.withLimit(offsetLimit.offset).countOnly, in.interpreterErrorHandler)
           res           <- go(paging.getPageMarker(skipOffsetRsp), skipOffsetRsp.count())
         } yield res
       }
 
       if (offsetLimit.offset <= 0) {
-        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(query)(ctx)
+        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(query, F, interpreter, interpreterErrorHandler = interpreterErrorHandler))
       } else {
         for {
           lastKey <- firstOffsetKey()
@@ -168,7 +180,7 @@ object DynamoExecution {
                 .fold(rq)(paging.withPageMarker(rq, _))
                 .withLimit(offsetLimit.limit.toInt)
           }
-          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(newReq)(ctx)
+          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(newReq, F, interpreter, interpreterErrorHandler = interpreterErrorHandler))
         } yield res
       }
   }
@@ -178,7 +190,7 @@ object DynamoExecution {
   }
 
   def paged[DR <: DynamoRequest: PageableRequest, Dec](limit: Option[Int] = None): ExecutionStrategy[DR, Dec, List[Dec]] = {
-    pagedImpl(limit)(identity)
+    pagedImpl(limit)(identity(_))
   }
 
   private[this] def pagedImpl[DR <: DynamoRequest, Dec, A](
@@ -187,8 +199,8 @@ object DynamoExecution {
     implicit paging: PageableRequest[DR]
   ): ExecutionStrategy[DR, Dec, List[A]] =
     ExecutionStrategy {
-      req => ctx =>
-        import ctx._
+      in =>
+        import in._
 
         def go(rsp: DR#Rsp, rows: Queue[Dec]): F[Throwable, List[A]] = {
           val lastEvaluatedKey = paging.getPageMarker(rsp)
@@ -201,17 +213,17 @@ object DynamoExecution {
             case None                              => stop
             case _ if limit.exists(_ <= rows.size) => stop
             case Some(nextPage) =>
-              val newReq = req.modify(paging.withPageMarker(_, nextPage))
+              val newReq = query.modify(paging.withPageMarker(_, nextPage))
               (for {
-                newRsp  <- interpreter.run(newReq)
-                decoded <- req.decoder[F](newRsp)
+                newRsp  <- interpreter.run(newReq, interpreterErrorHandler)
+                decoded <- query.decoder[F](newRsp)
               } yield go(newRsp, rows :+ decoded)).flatMap(identity)
           }
         }
 
         for {
-          newRsp  <- interpreter.run(req)
-          decoded <- req.decoder[F](newRsp)
+          newRsp  <- interpreter.run(query, interpreterErrorHandler)
+          decoded <- query.decoder[F](newRsp)
           res     <- go(newRsp, Queue(decoded))
         } yield res
     }
@@ -220,14 +232,14 @@ object DynamoExecution {
     implicit
     ev: DR <:< WithTableReference[DR]
   ): ExecutionStrategy[DR, Dec, A] = ExecutionStrategy[DR, Dec, A] {
-    req => ctx =>
-      import ctx._
+    in =>
+      import in._
 
-      val newTableReq = DynamoExecution.createTable(req.table, ddl)
-      val mkTable     = newTableReq.executionStrategy(newTableReq.dynamoQuery)(ctx)
+      val newTableReq = DynamoExecution.createTable(query.table, ddl)
+      val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
       retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
-        nested(req)(ctx)
+        nested(in.discardInterpreterError[ResourceNotFoundException])
       }
   }
 
@@ -237,8 +249,7 @@ object DynamoExecution {
     import cats.syntax.flatMap._
 
     attemptAction.handleErrorWith {
-      case e @ (_: ResourceNotFoundException | _: ResourceInUseException | DynamoException(_, _: ResourceNotFoundException) |
-          DynamoException(_, _: ResourceInUseException)) =>
+      case e @ DynamoException(_, _: ResourceNotFoundException | _: ResourceInUseException) =>
         if (attempts > 0) {
           prepareTable >>
           sleep >>
@@ -258,14 +269,14 @@ object DynamoExecution {
 
     def map[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
       copy(executionStrategy = ExecutionStrategy.Streamed[DR, Dec, B] {
-        req => ctx =>
-          executionStrategy(req)(ctx).map(f)
+        in =>
+          executionStrategy(in).map(f)
       })
     }
     def flatMap[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
       copy(executionStrategy = ExecutionStrategy.Streamed[DR, Dec, B] {
-        req => ctx =>
-          executionStrategy(req)(ctx).map(f)
+        in =>
+          executionStrategy(in).map(f)
       })
     }
     def void: DynamoExecution.Streamed[DR, Dec, Unit] = {
@@ -289,11 +300,11 @@ object DynamoExecution {
       copy(executionStrategy = f(executionStrategy))
     }
     def modifyExecution[B](
-      f: StreamFThrowable[UnknownF, A] => DynamoExecutionContext[UnknownF] => StreamFThrowable[UnknownF, B]
+      f: StreamFThrowable[UnknownF, A] => StrategyInput[UnknownF, DR, Dec] => StreamFThrowable[UnknownF, B]
     ): DynamoExecution.Streamed[DR, Dec, B] = {
       copy(executionStrategy = ExecutionStrategy.Streamed[DR, Dec, B] {
-        query => ctx =>
-          f(executionStrategy(query)(ctx))(ctx)
+        in =>
+          f(executionStrategy(in))(in)
       })
     }
   }
@@ -302,24 +313,23 @@ object DynamoExecution {
 
     def streamed[DR <: DynamoRequest, Dec](implicit paging: PageableRequest[DR]): ExecutionStrategy.Streamed[DR, Dec, Dec] =
       ExecutionStrategy.Streamed[DR, Dec, Dec] {
-        req => ctx =>
-          import ctx._
-
+        in =>
+          import in._
           Stream
             .eval(for {
               lastEvaluatedKey <- Ref.of(Option.empty[paging.PageMarker])
               stream = Stream.repeatEval {
-                ctx.streamExecutionWrapper {
+                streamExecutionWrapper {
                   for {
                     oldKey <- lastEvaluatedKey.get
-                    newReq = req.modify(paging.withPageMarkerOption(_, oldKey))
+                    newReq = query.modify(paging.withPageMarkerOption(_, oldKey))
 
-                    newRsp <- interpreter.run(newReq)
+                    newRsp <- interpreter.run(newReq, in.interpreterErrorHandler)
                     newKey = paging.getPageMarker(newRsp)
                     _      <- lastEvaluatedKey.set(newKey)
 
                     continue = newKey.isDefined
-                    decoded  <- req.decoder[F](newRsp)
+                    decoded  <- query.decoder[F](newRsp)
                   } yield continue -> decoded
                 }
               }.takeThrough(_._1).map(_._2)
@@ -328,21 +338,21 @@ object DynamoExecution {
 
     def streamedFlatten[DR <: DynamoRequest: PageableRequest, Dec: ? <:< List[A], A]: ExecutionStrategy.Streamed[DR, Dec, A] =
       ExecutionStrategy.Streamed[DR, Dec, A] {
-        req => ctx =>
-          streamed[DR, Dec].apply(req)(ctx).flatMap(Stream.emits(_))
+        in =>
+          streamed[DR, Dec].apply(in).flatMap(Stream.emits(_))
       }
 
     def retryWithPrefix[DR <: DynamoRequest, Dec, A](ddl: TableDDL, sleep: Duration = 1.second)(nested: ExecutionStrategy.Streamed[DR, Dec, A])(
       implicit ev: DR <:< WithTableReference[DR]
     ): ExecutionStrategy.Streamed[DR, Dec, A] = ExecutionStrategy.Streamed[DR, Dec, A] {
-      req => ctx =>
-        import ctx._
+      in =>
+        import in._
 
-        val newTableReq = DynamoExecution.createTable(req.table, ddl)
-        val mkTable     = newTableReq.executionStrategy(newTableReq.dynamoQuery)(ctx)
+        val newTableReq = DynamoExecution.createTable(query.table, ddl)
+        val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
-          nested(req)(ctx)
+          nested(in.discardInterpreterError[ResourceNotFoundException])
         }
     }
 

@@ -1,10 +1,9 @@
 package d4s
 
-import d4s.DynamoConnector.DynamoException
 import d4s.DynamoConnectorLocal.WithDynamoConnector
 import d4s.metrics.{MacroMetricDynamoMeter, MacroMetricDynamoTimer}
-import d4s.models.DynamoExecution
 import d4s.models.query.DynamoRequest
+import d4s.models.{DynamoException, DynamoExecution}
 import fs2.Stream
 import izumi.functional.bio.{BIO3, BIOLocal, F}
 
@@ -13,7 +12,7 @@ import scala.language.implicitConversions
 class DynamoConnectorLocal[F[-_, +_, +_]: BIO3: BIOLocal] extends DynamoConnector[F[WithDynamoConnector[F], +?, +?]] {
   override def runUnrecorded[DR <: DynamoRequest, A](
     q: DynamoExecution[DR, _, A]
-  ): F[WithDynamoConnector[F], Throwable, A] = {
+  ): F[WithDynamoConnector[F], DynamoException, A] = {
     F.access(_.connector.runUnrecorded(q))
   }
 

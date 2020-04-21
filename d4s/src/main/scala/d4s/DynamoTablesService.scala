@@ -1,6 +1,7 @@
 package d4s
 
 import d4s.models.DynamoExecution
+import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.table.{TableDef, TablePrefix, TableReference}
 import izumi.functional.bio.{BIOApplicative, BIOTemporal, F}
 import logstage.LogBIO
@@ -66,7 +67,7 @@ object DynamoTablesService {
 
     override def listTables: F[Throwable, List[String]] = {
       val exec = DynamoExecution.listTables
-      exec.executionStrategy(exec.dynamoQuery)(DynamoExecutionContext(F, interpreter))
+      exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
     }
 
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]] = {
@@ -79,7 +80,7 @@ object DynamoTablesService {
             val newTable = tweak(ddl.table)
             val exec     = DynamoExecution.createTable[F](newTable, ddl.ddl)
             log.info(s"Going to create ${newTable.fullName}; ${ddl.ddl.provisioning -> "provisioning"}.") *>
-            exec.executionStrategy(exec.dynamoQuery)(DynamoExecutionContext(F, interpreter))
+            exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
         }.void
     }
 
@@ -88,9 +89,9 @@ object DynamoTablesService {
           ddl =>
             val newTable = tweak(ddl.table)
             (for {
-              arn <- interpreter.run(newTable.describe).map(_.table().tableArn())
+              arn <- interpreter.run(newTable.describe, PartialFunction.empty).map(_.table().tableArn())
               _   <- log.info(s"Going to mark table for deletion ${newTable.fullName}, $arn")
-              _   <- interpreter.run(newTable.markForDeletion(arn))
+              _   <- interpreter.run(newTable.markForDeletion(arn), PartialFunction.empty)
             } yield ()).catchAll(error => log.error(s"Error when mark table for deletion $error $ddl")) // ignore errors
         }.void
     }

@@ -7,6 +7,7 @@ import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, WithD4S}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
+import d4s.models.DynamoException
 import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.DynamoField
@@ -506,7 +507,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         import scala.jdk.CollectionConverters._
 
         def repeatableUpdateQuery[DR <: DynamoRequest, Dec](query: DynamoQuery[DR, Dec]) = {
-          def retryPolicy(attempts: Int): ZIO[Any, DynamoConnector.DynamoException, Unit] = {
+          def retryPolicy(attempts: Int): ZIO[Any, DynamoException, Unit] = {
             if (attempts == 0)
               ZIO.unit
             else {
