@@ -67,12 +67,19 @@ object D4SDecoder {
           }
       }
   }
-  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = objectDecoder {
+  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = attributeDecoder {
     item =>
       import cats.implicits._
-      ctx.subtypes.toList
-        .collectFirstSome(_.typeclass.decode(item).toOption)
-        .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
+      if (item.m().isEmpty) {
+        ctx.subtypes.toList
+          .find(_.typeName.short.contains(item.s()))
+          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName}.", None))
+          .flatMap(_.typeclass.decodeAttribute(item))
+      } else {
+        ctx.subtypes.toList
+          .collectFirstSome(_.typeclass.decode(item.m()).toOption)
+          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
+      }
   }
 
   implicit val attributeDecoder: D4SDecoder[AttributeValue] = Right(_)
@@ -143,7 +150,7 @@ object D4SDecoder {
             }.map(_.result())
       }
   }
-  
+
   implicit def mapLikeDecoder[K, V, M[k, v] <: Map[K, V]](implicit V: D4SDecoder[V], K: D4SKeyDecoder[K], factory: Factory[(K, V), M[K, V]]): D4SDecoder[M[K, V]] = {
     attributeDecoder {
       attr =>
