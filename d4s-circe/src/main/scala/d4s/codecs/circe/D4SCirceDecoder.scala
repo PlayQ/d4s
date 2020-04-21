@@ -1,8 +1,9 @@
 package d4s.codecs.circe
 
 import cats.implicits._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValueAsJson, CirceDecodeException, DynamoDecoderException}
+import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.D4SDecoder
+import d4s.codecs.circe.utils.{CannotDecodeAttributeValueAsJson, CirceDecodeException}
 import io.circe.{Decoder, Json}
 import software.amazon.awssdk.core.util.{DefaultSdkAutoConstructList, DefaultSdkAutoConstructMap}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue

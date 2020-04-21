@@ -2,9 +2,8 @@ package d4s.util
 
 import java.time.{LocalDateTime, ZonedDateTime}
 
-import d4s.codecs.DynamoKeyAttribute
+import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import izumi.fundamentals.platform.time.IzTime
-import io.circe.{Decoder, Encoder}
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /**
@@ -25,8 +24,8 @@ object OrderedTimestampKey {
   }
 
   // encode as string
-  implicit val encoder: Encoder[OrderedTimestampKey] = Encoder[String].contramap(_.asString)
-  implicit val decoder: Decoder[OrderedTimestampKey] = Decoder[String].map(OrderedTimestampKey(_))
+  implicit val encoder: D4SAttributeEncoder[OrderedTimestampKey] = D4SAttributeEncoder[String].contramap(_.asString)
+  implicit val decoder: D4SDecoder[OrderedTimestampKey]          = D4SDecoder[String].map(OrderedTimestampKey(_))
 
   implicit val keyAttribute: DynamoKeyAttribute[OrderedTimestampKey] = new DynamoKeyAttribute[OrderedTimestampKey](ScalarAttributeType.S)
 

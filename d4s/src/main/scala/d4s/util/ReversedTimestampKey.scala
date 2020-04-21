@@ -2,9 +2,8 @@ package d4s.util
 
 import java.time.ZonedDateTime
 
-import d4s.codecs.DynamoKeyAttribute
+import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import izumi.fundamentals.platform.language.Quirks
-import io.circe.{Decoder, Encoder}
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /** A [[OrderedTimestampKey]] rendered with inverted digits to reverse range key ordering in DynamoDB */
@@ -21,8 +20,8 @@ object ReversedTimestampKey {
   }
 
   // encode as string
-  implicit val encoder: Encoder[ReversedTimestampKey] = Encoder[String].contramap(_.asString)
-  implicit val decoder: Decoder[ReversedTimestampKey] = Decoder[String].map(ReversedTimestampKey(_))
+  implicit val encoder: D4SAttributeEncoder[ReversedTimestampKey] = D4SAttributeEncoder[String].contramap(_.asString)
+  implicit val decoder: D4SDecoder[ReversedTimestampKey]          = D4SDecoder[String].map(ReversedTimestampKey(_))
 
   implicit val keyAttribute: DynamoKeyAttribute[ReversedTimestampKey] = new DynamoKeyAttribute[ReversedTimestampKey](ScalarAttributeType.S)
 

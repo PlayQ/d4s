@@ -1,6 +1,6 @@
 package d4s.codecs.circe
 
-import d4s.codecs.{D4SAttributeCodec, D4SCodec}
+import d4s.codecs.D4SAttributeCodec
 import io.circe.{Decoder, Encoder}
 
 object D4SCirceAttributeCodec {
