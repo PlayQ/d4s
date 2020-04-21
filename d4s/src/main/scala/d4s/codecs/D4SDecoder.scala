@@ -4,7 +4,7 @@ import java.util
 import java.util.UUID
 
 import cats.syntax.either._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, CastedMagnolia, DynamoDecoderException}
+import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, DynamoDecoderException}
 import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
