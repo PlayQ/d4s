@@ -76,9 +76,18 @@ object D4SDecoder {
           .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
+        // Looks awful ?
+        val typeName = item.m().asScala.keySet.head
         ctx.subtypes.toList
-          .collectFirstSome(_.typeclass.decode(item.m()).toOption)
+          .find(_.typeName.short.contains(typeName))
           .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName.full} from map: ${item.m().asScala.toMap}", None))
+          .flatMap {
+            subtype =>
+              item.m().asScala.get(typeName) match {
+                case None => Left(new CannotDecodeAttributeValue("SOME MEANINGFUL ERROR", None))
+                case Some(value) => subtype.typeclass.decodeAttribute(value)
+              }
+          }
       }
   }
 
@@ -177,16 +186,30 @@ object D4SDecoder {
       if (attr.nul()) Right(None) else T.decodeAttribute(attr).map(Some(_))
   }
 
-  implicit def eitherDecoder[A: D4SDecoder, B: D4SDecoder](leftKey: String, rightKey: String): D4SDecoder[Either[A, B]] = {
-    attr: AttributeValue =>
-      Either.fromTry(Try(attr.m())) match {
-        case Left(_) => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
-        case Right(value) =>
-          (value.asScala.get(leftKey), value.asScala.get(rightKey)) match {
-            case (Some(v), None) => D4SDecoder[A].decodeAttribute(v).map(Left(_))
-            case (None, Some(v)) => D4SDecoder[B].decodeAttribute(v).map(Right(_))
-            case _               => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
-          }
-      }
-  }
+//  implicit def eitherDecoder[A: D4SDecoder, B: D4SDecoder](leftKey: String, rightKey: String): D4SDecoder[Either[A, B]] = {
+//    attr: AttributeValue =>
+//      Either.fromTry(Try(attr.m())) match {
+//        case Left(_) => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+//        case Right(value) =>
+//          (value.asScala.get(leftKey), value.asScala.get(rightKey)) match {
+//            case (Some(v), None) => D4SDecoder[A].decodeAttribute(v).map(Left(_))
+//            case (None, Some(v)) => D4SDecoder[B].decodeAttribute(v).map(Right(_))
+//            case _               => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+//          }
+//      }
+//  }
+//
+//  implicit def eitherDecoder2[A: D4SDecoder, B: D4SDecoder]: D4SDecoder[Either[A, B]] = {
+//    attr: AttributeValue =>
+//      Either.fromTry(Try(attr.m())) match {
+//        case Left(_) => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+//        case Right(value) =>
+//          (value.asScala.get("Left"), value.asScala.get("Right")) match {
+//            case (Some(v), None) => D4SDecoder[A].decodeAttribute(v.m().asScala("value")).map(Left(_))
+//            case (None, Some(v)) => D4SDecoder[B].decodeAttribute(v.m().asScala("value")).map(Right(_))
+//            case _               => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+//          }
+//      }
+//  }
+
 }

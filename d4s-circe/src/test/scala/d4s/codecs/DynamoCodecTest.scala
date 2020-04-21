@@ -66,6 +66,8 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
     Prop.forAllNoShrink {
       v: Either[String, Int] =>
         implicit val codec: D4SCodec[Either[String, Int]] = D4SCodec.derived
+        implicit val circe = io.circe.generic.semiauto.deriveCodec[Either[String, Int]]
+        implicit val d4sCirce = D4SCirceCodec.derived[Either[String, Int]]
 
         val result: Either[CodecsUtils.DynamoDecoderException, Either[String, Int]] = codec.decodeAttribute(codec.encodeAttribute(v))
         assert(result == Right(v))
