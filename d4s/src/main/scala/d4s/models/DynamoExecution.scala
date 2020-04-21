@@ -33,17 +33,6 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def void: DynamoExecution[DR, Dec, Unit] = {
     map(_ => ())
   }
-  def skipErrorLog[Err: ClassTag]: DynamoExecution[DR, Dec, A] = {
-    tapInterpreterError(in => { case DynamoException(_, _: Err) => in.F.unit })
-  }
-  def tapInterpreterError(
-    handler: StrategyInput[UnknownF, DR, Dec] => PartialFunction[DynamoException, UnknownF[Nothing, Unit]]
-  ): DynamoExecution[DR, Dec, A] = {
-    copy(executionStrategy = ExecutionStrategy[DR, Dec, A] {
-      in =>
-        executionStrategy(in.tapInterpreterError(handler(in) orElse in.interpreterErrorHandler))
-    })
-  }
   def redeem[B](err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B],
                 succ: A => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B]): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => ctx => ctx.F.redeem(io)(err(_)(ctx), succ(_)(ctx)))
@@ -51,18 +40,15 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def catchAll[A1 >: A](err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, A1]): DynamoExecution[DR, Dec, A1] = {
     redeem(err, a => _.F.pure(a))
   }
-
   def retryWithPrefix(ddl: TableDDL, sleep: Duration = 1.second)(implicit ev: DR <:< WithTableReference[DR]): DynamoExecution[DR, Dec, A] = {
     modifyStrategy(DynamoExecution.retryWithPrefix(ddl, sleep))
   }
-
   def optConditionFailure: DynamoExecution[DR, Dec, Option[ConditionalCheckFailedException]] = {
     redeem({
       case DynamoException(_, err: ConditionalCheckFailedException) => _.F.pure(Some(err))
       case err: Throwable                                           => _.F.fail(err)
-    }, _ => _.F.pure(None)).skipErrorLog[ConditionalCheckFailedException]
+    }, _ => _.F.pure(None)).discardInterpreterError[ConditionalCheckFailedException]
   }
-
   def boolConditionSuccess: DynamoExecution[DR, Dec, Boolean] = {
     optConditionFailure.map(_.isEmpty)
   }
@@ -83,6 +69,20 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
     })
   }
 
+  /** Methods below will mutate interpreter error handler.
+    * You can use them to log any error raised during request execution on interpreter level.
+    */
+  def discardInterpreterError[Err: ClassTag]: DynamoExecution[DR, Dec, A] = {
+    tapInterpreterError(in => { case DynamoException(_, _: Err) => in.F.unit })
+  }
+  def tapInterpreterError(
+    handler: StrategyInput[UnknownF, DR, Dec] => PartialFunction[DynamoException, UnknownF[Nothing, Unit]]
+  ): DynamoExecution[DR, Dec, A] = {
+    copy(executionStrategy = ExecutionStrategy[DR, Dec, A] {
+      in =>
+        executionStrategy(in.tapInterpreterError(handler(in)))
+    })
+  }
 }
 
 object DynamoExecution {
@@ -103,7 +103,7 @@ object DynamoExecution {
 
   def createTable[F[+_, +_]](table: TableReference, ddl: TableDDL, sleep: Duration = 1.second): DynamoExecution[CreateTable, CreateTableResponse, Unit] = {
     CreateTable(table, ddl).toQuery.exec
-      .skipErrorLog[ResourceInUseException].redeem(
+      .discardInterpreterError[ResourceInUseException].redeem(
         {
           case DynamoException(_, _: ResourceInUseException) => _.F.unit
           case e                                             => _.F.fail(e)
@@ -239,7 +239,7 @@ object DynamoExecution {
       val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
       retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
-        nested(in.skipErrorLog[ResourceNotFoundException])
+        nested(in.discardInterpreterError[ResourceNotFoundException])
       }
   }
 
@@ -352,7 +352,7 @@ object DynamoExecution {
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
-          nested(in.skipErrorLog[ResourceNotFoundException])
+          nested(in.discardInterpreterError[ResourceNotFoundException])
         }
     }
 

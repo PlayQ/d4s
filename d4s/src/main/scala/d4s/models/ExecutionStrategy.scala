@@ -25,7 +25,7 @@ object ExecutionStrategy {
     def tapInterpreterError(f: PartialFunction[DynamoException, F[Nothing, Unit]]): StrategyInput[F, DR, Dec] = {
       copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)
     }
-    def skipErrorLog[Err: ClassTag]: StrategyInput[F, DR, Dec] = {
+    def discardInterpreterError[Err: ClassTag]: StrategyInput[F, DR, Dec] = {
       tapInterpreterError { case DynamoException(_, _: Err) => F.unit }
     }
   }
