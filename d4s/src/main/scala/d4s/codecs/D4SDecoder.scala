@@ -34,7 +34,7 @@ trait D4SDecoder[T] {
 
 object D4SDecoder {
   def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
-  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[T]]
+  def derived[T]: D4SDecoder[T] = macro Magnolia.gen[T]
 
   def decode[A: D4SDecoder](item: Map[String, AttributeValue]): Either[DynamoDecoderException, A]           = D4SDecoder[A].decode(item)
   def decode[A: D4SDecoder](item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, A] = D4SDecoder[A].decode(item)
