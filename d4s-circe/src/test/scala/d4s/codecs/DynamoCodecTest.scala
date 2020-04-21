@@ -1,7 +1,8 @@
 package d4s.codecs
 
 import d4s.codecs.Fixtures._
-import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
+import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceAttributeEncoder, D4SCirceCodec, D4SCirceEncoder}
+import io.circe.{Codec, Decoder, Encoder, derivation}
 import io.circe.generic.extras.semiauto
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
@@ -60,6 +61,23 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
     val encoded = codec0.encodeAttribute(Red)
     assert(encoded == testCodec.encodeAttribute(Red))
     assert(codec0.decodeAttribute(encoded) == testCodec.decodeAttribute(encoded))
+  }
+
+  "sealed trait test" in {
+    case class SomeValue(v: Either[String, Int])
+    implicit val circeEnc  = Encoder.encodeEither[String, Int]("l", "r")
+    implicit val circeMain = derivation.deriveEncoder[SomeValue]
+    val circeEncS          = D4SCirceEncoder.derived[SomeValue]
+    val d4sCirceEnc        = D4SCirceEncoder.derived[Either[String, Int]]
+    implicit val d4sEnc    = D4SAttributeEncoder.eitherEncoder[String, Int]("l", "r")
+    implicit val d4sDec    = D4SDecoder.eitherDecoder[String, Int]("l", "r")
+    val codec              = D4SCodec.derived[SomeValue]
+
+    val test0 = Right(0)
+    val test1 = SomeValue(Left("smth went wrong :("))
+//
+    assert(d4sCirceEnc.encodeAttribute(test0) == d4sEnc.encodeAttribute(test0))
+    assert(circeEncS.encodeAttribute(test1) == codec.encodeAttribute(test1))
   }
 
 }

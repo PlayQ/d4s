@@ -80,5 +80,14 @@ object D4SAttributeEncoder {
       item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
   }
 
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder](keyLeft: String, keyRight: String): D4SAttributeEncoder[Either[A, B]] = {
+    item =>
+      val map = item match {
+        case Left(value)  => Map(keyLeft  -> D4SAttributeEncoder.encodeAttribute(value))
+        case Right(value) => Map(keyRight -> D4SAttributeEncoder.encodeAttribute(value))
+      }
+      AttributeValue.builder().m(map.asJava).build()
+  }
+
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }
