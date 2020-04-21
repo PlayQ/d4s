@@ -2,8 +2,11 @@ package d4s.codecs
 
 import java.util.UUID
 
+import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+
+import scala.language.experimental.macros
 
 import scala.jdk.CollectionConverters._
 
@@ -19,6 +22,30 @@ object D4SAttributeEncoder {
 
   def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue                        = D4SAttributeEncoder[T].encodeAttribute(item)
   def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
+
+  /** Magnolia instances. EXPERIMENTING: trying to handle case objects derivation */
+  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+  type Typeclass[T] = D4SAttributeEncoder[T]
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+    item =>
+      if (ctx.isObject) {
+        AttributeValue.builder().s(ctx.typeName.short).build()
+      } else {
+        val map = ctx.parameters.map {
+          p =>
+            p.label -> p.typeclass.encodeAttribute(p.dereference(item))
+        }.toMap
+        AttributeValue.builder().m(map.asJava).build()
+      }
+  }
+
+  def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+    item =>
+      ctx.dispatch(item) {
+        subtype =>
+          subtype.typeclass.encodeAttribute(subtype.cast(item))
+      }
+  }
 
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a
   implicit val stringEncoder: D4SAttributeEncoder[String]            = AttributeValue.builder().s(_).build()

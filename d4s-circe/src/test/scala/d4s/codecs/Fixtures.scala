@@ -5,6 +5,12 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.derive.MkArbitrary
 
 object Fixtures {
+
+  sealed trait Color
+  case object Red extends Color
+  case object Green extends Color
+  case object Blue extends Color
+
   case class TestCaseClass(
     a: Int,
     b: Long,

@@ -1,7 +1,8 @@
 package d4s.codecs
 
 import d4s.codecs.Fixtures._
-import d4s.codecs.circe.D4SCirceCodec
+import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
+import io.circe.generic.extras.semiauto
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
@@ -48,6 +49,17 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
         val decoded = D4SDecoder[TestByteArray].decode(encoded).toOption.get
         testData.a.sameElements(decoded.a)
     }
+  }
+
+  "case object derivation" in {
+    val testCodec    = D4SAttributeCodec.derived[Color]
+    implicit val enc = semiauto.deriveEnumerationEncoder[Color]
+    implicit val dec = semiauto.deriveEnumerationDecoder[Color]
+    val codec0       = D4SCirceAttributeCodec.derived[Color]
+
+    val encoded = codec0.encodeAttribute(Red)
+    assert(encoded == testCodec.encodeAttribute(Red))
+    assert(codec0.decodeAttribute(encoded) == testCodec.decodeAttribute(encoded))
   }
 
 }
