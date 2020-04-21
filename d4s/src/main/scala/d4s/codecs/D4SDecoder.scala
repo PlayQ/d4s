@@ -73,12 +73,12 @@ object D4SDecoder {
       if (item.m().isEmpty) {
         ctx.subtypes.toList
           .find(_.typeName.short.contains(item.s()))
-          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName}.", None))
+          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
         ctx.subtypes.toList
           .collectFirstSome(_.typeclass.decode(item.m()).toOption)
-          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
+          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName.full} from map: ${item.m().asScala.toMap}", None))
       }
   }
 
@@ -185,7 +185,7 @@ object D4SDecoder {
           (value.asScala.get(leftKey), value.asScala.get(rightKey)) match {
             case (Some(v), None) => D4SDecoder[A].decodeAttribute(v).map(Left(_))
             case (None, Some(v)) => D4SDecoder[B].decodeAttribute(v).map(Right(_))
-            case _ => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+            case _               => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
           }
       }
   }
