@@ -1,5 +1,6 @@
 package d4s.codecs
 
+import d4s.codecs.CodecsUtils.CastedMagnolia
 import magnolia._
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
@@ -23,7 +24,7 @@ trait D4SEncoder[T] extends D4SAttributeEncoder[T] {
 
 object D4SEncoder {
   def apply[T: D4SEncoder]: D4SEncoder[T] = implicitly
-  def derived[T]: D4SEncoder[T] = macro Magnolia.gen[T]
+  def derived[T]: D4SEncoder[T] = macro CastedMagnolia.genWithCast[T, D4SEncoder[T]]
 
   def encode[T: D4SEncoder](item: T): Map[String, AttributeValue]               = D4SEncoder[T].encode(item)
   def encodeJava[T: D4SEncoder](item: T): java.util.Map[String, AttributeValue] = D4SEncoder[T].encodeJava(item)

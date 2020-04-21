@@ -4,7 +4,7 @@ import java.util
 import java.util.UUID
 
 import cats.syntax.either._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, DynamoDecoderException}
+import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, CastedMagnolia, DynamoDecoderException}
 import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -34,7 +34,7 @@ trait D4SDecoder[T] {
 
 object D4SDecoder {
   def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
-  def derived[T]: D4SDecoder[T] = macro Magnolia.gen[T]
+  def derived[T]: D4SDecoder[T] = macro CastedMagnolia.genWithCast[T, D4SDecoder[T]]
 
   def decode[A: D4SDecoder](item: Map[String, AttributeValue]): Either[DynamoDecoderException, A]           = D4SDecoder[A].decode(item)
   def decode[A: D4SDecoder](item: java.util.Map[String, AttributeValue]): Either[DynamoDecoderException, A] = D4SDecoder[A].decode(item)
@@ -73,12 +73,12 @@ object D4SDecoder {
       if (item.m().isEmpty) {
         ctx.subtypes.toList
           .find(_.typeName.short.contains(item.s()))
-          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName}.", None))
+          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
         ctx.subtypes.toList
           .collectFirstSome(_.typeclass.decode(item.m()).toOption)
-          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
+          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName.full} from map: ${item.m().asScala.toMap}", None))
       }
   }
 
@@ -185,7 +185,7 @@ object D4SDecoder {
           (value.asScala.get(leftKey), value.asScala.get(rightKey)) match {
             case (Some(v), None) => D4SDecoder[A].decodeAttribute(v).map(Left(_))
             case (None, Some(v)) => D4SDecoder[B].decodeAttribute(v).map(Right(_))
-            case _ => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
+            case _               => Left(new CannotDecodeAttributeValue(s"smth here!!!!", None))
           }
       }
   }
