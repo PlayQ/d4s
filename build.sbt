@@ -236,8 +236,8 @@ lazy val `d4s` = project.in(file("./d4s"))
       "io.7mind.izumi" %% "fundamentals-bio" % V.izumi_version,
       "io.7mind.izumi" %% "distage-framework" % V.izumi_version,
       "io.7mind.izumi" %% "logstage-adapter-slf4j" % V.izumi_version,
-      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude("log4j", "log4j"),
-      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude("log4j", "log4j"),
+      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
+      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
       "com.propensive" %% "magnolia" % V.magnolia_version,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
