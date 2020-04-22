@@ -71,11 +71,11 @@ object D4SDecoder {
     item =>
       if (item.m().isEmpty) {
         ctx.subtypes
-          .find(_.typeName.short.contains(item.s()))
+          .find(_.typeName.short == item.s())
           .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
-        if (item.m().size > 1) {
+        if (item.m().size != 1) {
           Left(new CannotDecodeAttributeValue("Invalid format of the encoded value", None))
         } else {
           val (typeName, attrValue) = item.m().asScala.head
