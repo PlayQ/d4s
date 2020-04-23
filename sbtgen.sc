@@ -193,12 +193,12 @@ object ProjectBuilder {
   object Projects {
     final val aws_common = ArtifactId("aws-common")
     final val metrics = ArtifactId("metrics")
-    final val dynamo = ArtifactId("d4s")
-    final val dynamo_test = ArtifactId("d4s-test")
-    final val dynamo_circe = ArtifactId("d4s-circe")
+    final val d4s = ArtifactId("d4s")
+    final val d4s_test = ArtifactId("d4s-test")
+    final val d4s_circe = ArtifactId("d4s-circe")
   }
 
-  final val dynamo_agg = Aggregate(
+  final val d4s_agg = Aggregate(
     name = ArtifactId("d4s-agg"),
     artifacts = Seq(
       Artifact(
@@ -222,7 +222,7 @@ object ProjectBuilder {
         depends = Seq.empty,
       ),
       Artifact(
-        name = Projects.dynamo,
+        name = Projects.d4s,
         libs = Seq(
           zio_interop,
           fundamentals_bio,
@@ -240,7 +240,7 @@ object ProjectBuilder {
         ),
       ),
       Artifact(
-        name = Projects.dynamo_test,
+        name = Projects.d4s_test,
         libs = Seq(
           distage_docker,
           distage_testkit,
@@ -249,16 +249,16 @@ object ProjectBuilder {
           scalatestplus_scalacheck,
           scalacheck_shapeless
         ).map(_ in Scope.Test.all),
-        depends = Seq(Projects.dynamo),
+        depends = Seq(Projects.d4s),
       ),
       Artifact(
-        name = Projects.dynamo_circe,
+        name = Projects.d4s_circe,
         libs = circe.map(_ in Scope.Compile.all) ++ Seq(
           scalatest,
           scalatestplus_scalacheck,
           scalacheck_shapeless
         ).map(_ in Scope.Test.all),
-        depends = Seq(Projects.dynamo),
+        depends = Seq(Projects.d4s),
       )
     ),
     pathPrefix       = Seq("."),
@@ -272,7 +272,7 @@ object ProjectBuilder {
   final val root = Project(
     name = ArtifactId("d4s-root"),
     aggregates = {
-      Seq(dynamo_agg)
+      Seq(d4s_agg)
     },
     sharedSettings = ProjectSettings.sharedSettings,
     sharedAggSettings = Seq(
