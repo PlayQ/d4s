@@ -11,20 +11,18 @@ import izumi.distage.model.definition.Module
 import izumi.distage.model.providers.ProviderMagnet
 import izumi.distage.plugins.PluginConfig
 import izumi.distage.testkit.TestConfig
-import izumi.distage.testkit.scalatest.{AssertIO, DistageBIOSpecScalatest}
+import izumi.distage.testkit.scalatest.AssertIO
 import net.playq.aws.tagging.AwsNameSpace
 import software.amazon.awssdk.services.dynamodb.model.BillingMode
 import zio.IO
 
-abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DistageBIOSpecScalatest[IO] with DynamoTestEnv with AssertIO {
+abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DynamoTestEnv with AssertIO {
   protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map(f(_).unit)
 
-  override def config: TestConfig = TestConfig(
-    pluginConfig     = PluginConfig.const(D4STestPlugin),
-    memoizationRoots = memoizationRoots,
-    forcedRoots      = additionalRoots,
-    moduleOverrides  = moduleOverrides,
-    configBaseName   = "test",
+  override def config: TestConfig = super.config.copy(
+    pluginConfig    = PluginConfig.const(D4STestPlugin),
+    moduleOverrides = moduleOverrides,
+    configBaseName  = "test",
   )
 
   override def moduleOverrides: Module = super.moduleOverrides overridenBy new ConfigModuleDef {
