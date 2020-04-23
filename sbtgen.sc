@@ -5,7 +5,6 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt::sbtgen:0.0.55`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -59,7 +58,9 @@ object Targets {
 object ProjectBuilder {
 
   object ProjectDeps {
-    final val distage_framework      = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    private val circe_exclude = LibSetting.Raw("""excludeAll (ExclusionRule(organization = "io.circe"))""")
+
+    final val distage_framework      = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
     final val distage_plugins        = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val distage_config         = Library("io.7mind.izumi", "distage-extension-config", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val distage_testkit        = Library("io.7mind.izumi", "distage-testkit-scalatest", Version.VExpr("V.izumi_version"), LibraryType.Auto)
@@ -223,11 +224,8 @@ object ProjectBuilder {
       Artifact(
         name = Projects.dynamo,
         libs = Seq(
-          zio_core,
           zio_interop,
-          fs2,
           fundamentals_bio,
-          distage_framework,
           logstage_adapter_slf4j,
           aws_dynamo,
           aws_impl_apache,

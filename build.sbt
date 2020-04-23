@@ -117,7 +117,7 @@ lazy val `metrics` = project.in(file("./metrics"))
   .settings(
     libraryDependencies ++= Seq(
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "io.7mind.izumi" %% "distage-framework" % V.izumi_version,
+      "io.7mind.izumi" %% "distage-framework" % V.izumi_version  excludeAll (ExclusionRule(organization = "io.circe")),
       "dev.zio" %% "zio" % V.zio,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
@@ -230,11 +230,8 @@ lazy val `d4s` = project.in(file("./d4s"))
   .settings(
     libraryDependencies ++= Seq(
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "dev.zio" %% "zio" % V.zio,
       "dev.zio" %% "zio-interop-cats" % V.zio_interop_cats,
-      "co.fs2" %% "fs2-io" % V.fs2,
       "io.7mind.izumi" %% "fundamentals-bio" % V.izumi_version,
-      "io.7mind.izumi" %% "distage-framework" % V.izumi_version,
       "io.7mind.izumi" %% "logstage-adapter-slf4j" % V.izumi_version,
       "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
       "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
