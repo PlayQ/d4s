@@ -1,9 +1,8 @@
 package d4s.codecs.circe
 
 import cats.implicits._
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.D4SDecoder
-import d4s.codecs.circe.utils.{CannotDecodeAttributeValueAsJson, CirceDecodeException}
+import d4s.models.DynamoException.{DecodeAttributeValueException, DynamoDecoderException}
 import io.circe.{Decoder, Json}
 import software.amazon.awssdk.core.util.{DefaultSdkAutoConstructList, DefaultSdkAutoConstructMap}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -17,8 +16,10 @@ object D4SCirceDecoder {
     override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T]     = decodeImpl(v, attributeToJson(v))
     @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DynamoDecoderException, T] = {
       maybeJson
-        .toRight(new CannotDecodeAttributeValueAsJson(v.toString))
-        .flatMap(json => json.as[T].left.map(new CirceDecodeException(v.toString, json, _)))
+        .toRight(DecodeAttributeValueException(s"Couldn't decode dynamo item=${v.toString} as Json. A case wasn't handled in DynamoDecoder.attributeToJson", None))
+        .flatMap(
+          json => json.as[T].left.map(cause => DecodeAttributeValueException(s"Circe error when decoding item=${v.toString} json=$json: ${cause.getMessage}", Some(cause)))
+        )
     }
   }
 

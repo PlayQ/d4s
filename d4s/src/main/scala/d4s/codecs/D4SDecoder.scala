@@ -4,7 +4,7 @@ import java.util
 import java.util.UUID
 
 import cats.syntax.either._
-import d4s.codecs.CodecsUtils.{CannotDecodeAttributeValue, DynamoDecoderException}
+import d4s.models.DynamoException.{DecodeAttributeValueException, DynamoDecoderException}
 import magnolia._
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -47,7 +47,7 @@ object D4SDecoder {
     override def decode(item: util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decode(item.asScala.toMap)
     override def decodeAttribute(attr: AttributeValue): Either[DynamoDecoderException, T] = {
       Option(attr.m())
-        .toRight(new CannotDecodeAttributeValue(s"Couldn't decode dynamo item=$attr as object. Does not have an `M` attribute (not a JSON object)", None))
+        .toRight(new DecodeAttributeValueException(s"Couldn't decode dynamo item=$attr as object. Does not have an `M` attribute (not a JSON object)", None))
         .flatMap(decode)
     }
     override def contramapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SDecoder[T] = {
@@ -63,7 +63,7 @@ object D4SDecoder {
         p =>
           item.get(p.label) match {
             case Some(value) => p.typeclass.decodeAttribute(value)
-            case None        => Left(new CannotDecodeAttributeValue(s"Cannot find parameter with name ${p.label}", None))
+            case None        => Left(new DecodeAttributeValueException(s"Cannot find parameter with name ${p.label}", None))
           }
       }
   }
@@ -72,16 +72,16 @@ object D4SDecoder {
       if (item.m().isEmpty) {
         ctx.subtypes
           .find(_.typeName.short == item.s())
-          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
+          .toRight(new DecodeAttributeValueException(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
         if (item.m().size != 1) {
-          Left(new CannotDecodeAttributeValue("Invalid format of the encoded value", None))
+          Left(new DecodeAttributeValueException("Invalid format of the encoded value", None))
         } else {
           val (typeName, attrValue) = item.m().asScala.head
           ctx.subtypes
             .find(_.typeName.short == typeName)
-            .toRight(new CannotDecodeAttributeValue(s"Cannot find a subtype $typeName for a sealed trait ${ctx.typeName.full}", None))
+            .toRight(new DecodeAttributeValueException(s"Cannot find a subtype $typeName for a sealed trait ${ctx.typeName.full}", None))
             .flatMap(_.typeclass.decodeAttribute(attrValue))
         }
       }
@@ -90,60 +90,60 @@ object D4SDecoder {
   implicit val attributeDecoder: D4SDecoder[AttributeValue] = Right(_)
   implicit val stringDecoder: D4SDecoder[String] = {
     attr =>
-      Either.fromOption(Option(attr.s()), new CannotDecodeAttributeValue(s"Cannot decode $attr as String.", None))
+      Either.fromOption(Option(attr.s()), new DecodeAttributeValueException(s"Cannot decode $attr as String.", None))
   }
   implicit val byteDecoder: D4SDecoder[Byte] = {
     attr =>
-      Either.fromTry(Try(attr.n().toByte)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Byte.", Some(err)))
+      Either.fromTry(Try(attr.n().toByte)).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Byte.", Some(err)))
   }
   implicit val shortDecoder: D4SDecoder[Short] = {
     attr =>
-      Either.fromTry(Try(attr.n().toShort)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Short.", Some(err)))
+      Either.fromTry(Try(attr.n().toShort)).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Short.", Some(err)))
   }
   implicit val intDecoder: D4SDecoder[Int] = {
     attr =>
-      Either.fromTry(Try(attr.n().toInt)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Int.", Some(err)))
+      Either.fromTry(Try(attr.n().toInt)).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Int.", Some(err)))
   }
   implicit val longDecoder: D4SDecoder[Long] = {
     attr =>
-      Either.fromTry(Try(attr.n().toLong)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Long.", Some(err)))
+      Either.fromTry(Try(attr.n().toLong)).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Long.", Some(err)))
   }
   implicit val doubleDecoder: D4SDecoder[Double] = {
     attr =>
-      Either.fromTry(Try(attr.n().toDouble)).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Double.", Some(err)))
+      Either.fromTry(Try(attr.n().toDouble)).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Double.", Some(err)))
   }
   implicit val boolDecoder: D4SDecoder[Boolean] = {
     attr =>
-      Either.fromTry(Try(attr.bool().booleanValue())).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Boolean.", Some(err)))
+      Either.fromTry(Try(attr.bool().booleanValue())).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Boolean.", Some(err)))
   }
   implicit val unitDecoder: D4SDecoder[Unit] = {
     attr =>
-      if (attr.m().isEmpty) Right(()) else Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Unit.", None))
+      if (attr.m().isEmpty) Right(()) else Left(new DecodeAttributeValueException(s"Cannot decode $attr as Unit.", None))
   }
   implicit val uuidDecoder: D4SDecoder[UUID] = {
     attr =>
-      Either.fromTry(Try(UUID.fromString(attr.s()))).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as UUID", Some(err)))
+      Either.fromTry(Try(UUID.fromString(attr.s()))).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as UUID", Some(err)))
   }
   implicit val sdkBytesDecoder: D4SDecoder[SdkBytes] = {
     attr =>
-      Either.fromOption(Option(attr.b()), new CannotDecodeAttributeValue(s"Cannot decode $attr as SdkBytes", None))
+      Either.fromOption(Option(attr.b()), new DecodeAttributeValueException(s"Cannot decode $attr as SdkBytes", None))
   }
   implicit val arrayBytesDecoder: D4SDecoder[Array[Byte]] = {
     attr =>
-      Either.fromTry(Try(attr.b().asByteArray())).leftMap(err => new CannotDecodeAttributeValue(s"Cannot decode $attr as Array[Byte]", Some(err)))
+      Either.fromTry(Try(attr.b().asByteArray())).leftMap(err => new DecodeAttributeValueException(s"Cannot decode $attr as Array[Byte]", Some(err)))
   }
   implicit val binarySetDecoded: D4SDecoder[Set[Array[Byte]]] = {
     attr =>
       Either
         .fromOption(
           Option(attr.bs()),
-          new CannotDecodeAttributeValue(s"Cannot decode $attr as Set[Array[Byte]]", None)
+          new DecodeAttributeValueException(s"Cannot decode $attr as Set[Array[Byte]]", None)
         ).map(_.asScala.map(_.asByteArray()).toSet)
   }
   implicit def iterableDecoder[T, C[_] <: Iterable[T]](implicit T: D4SDecoder[T], factory: Factory[T, C[T]]): D4SDecoder[C[T]] = {
     attr =>
       Either.fromTry(Try(attr.l())) match {
-        case Left(error) => Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as List", Some(error)))
+        case Left(error) => Left(new DecodeAttributeValueException(s"Cannot decode $attr as List", Some(error)))
         case Right(value) =>
           value.asScala.iterator
             .foldLeft[Either[DynamoDecoderException, mutable.Builder[T, C[T]]]](Right(factory.newBuilder)) {
@@ -160,7 +160,7 @@ object D4SDecoder {
     attributeDecoder {
       attr =>
         Either.fromTry(Try(attr.m())) match {
-          case Left(error) => Left(new CannotDecodeAttributeValue(s"Cannot decode $attr as Map", Some(error)))
+          case Left(error) => Left(new DecodeAttributeValueException(s"Cannot decode $attr as Map", Some(error)))
           case Right(value) =>
             value.asScala.iterator
               .foldLeft[Either[DynamoDecoderException, mutable.Builder[(K, V), M[K, V]]]](Right(factory.newBuilder)) {
@@ -172,7 +172,6 @@ object D4SDecoder {
                     case (Left(error1), Left(error2)) => Left(error1 union error2)
                   }
               }.map(_.result())
-
         }
     }
   }

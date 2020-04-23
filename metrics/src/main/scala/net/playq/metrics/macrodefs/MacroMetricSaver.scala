@@ -2,7 +2,6 @@ package net.playq.metrics.macrodefs
 
 import java.io.{BufferedWriter, File, FileWriter}
 
-import io.circe.syntax._
 import izumi.fundamentals.platform.language.Quirks._
 import net.playq.metrics.base.MetricDef
 
@@ -58,7 +57,7 @@ object MacroMetricSaver {
     }
     val bw = new BufferedWriter(new FileWriter(file, true))
     try {
-      val strings = payload.map(_.asJson.noSpaces).mkString("\n")
+      val strings = MetricDef.encodeAll(payload)
       bw.append(strings + "\n").discard()
     } finally {
       bw.close()

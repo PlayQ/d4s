@@ -1,6 +1,6 @@
 package d4s.models
 
-class DynamoException private (val message: String, val cause: Throwable) extends RuntimeException(message, cause)
+abstract class DynamoException(val message: String, val cause: Throwable) extends RuntimeException(message, cause)
 
 object DynamoException {
 
@@ -21,4 +21,14 @@ object DynamoException {
       }
     }
   }
+
+  abstract class DynamoDecoderException(message: String, cause: Option[Throwable]) extends DynamoException(message, cause.orNull) {
+    def union(that: DynamoDecoderException): DynamoDecoderException = {
+      val errorLog = message + "\n" + that.getMessage
+      new DynamoDecoderException(errorLog, None) {}
+    }
+  }
+
+  final case class DecodeAttributeValueException(override val message: String, maybeCause: Option[Throwable]) extends DynamoDecoderException(message, maybeCause)
+  final case class DecodeKeyValueException(override val message: String, maybeCause: Option[Throwable]) extends DynamoDecoderException(message, maybeCause)
 }

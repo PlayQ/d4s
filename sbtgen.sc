@@ -5,6 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
+import $ivy.`io.7mind.izumi.sbt::sbtgen:0.0.55`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -83,6 +84,8 @@ object ProjectBuilder {
     final val logstage_adapter_slf4j   = Library("io.7mind.izumi", "logstage-adapter-slf4j", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val logstage_core            = Library("io.7mind.izumi", "logstage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
 
+    final val cats_core   = Library("org.typelevel", "cats-core", Version.VExpr("V.cats"), LibraryType.Auto)
+    final val cats_effect = Library("org.typelevel", "cats-effect", Version.VExpr("V.cats_effect"), LibraryType.Auto)
     final val zio_core    = Library("dev.zio", "zio", Version.VExpr("V.zio"), LibraryType.Auto)
     final val zio_interop = Library("dev.zio", "zio-interop-cats", Version.VExpr("V.zio_interop_cats"), LibraryType.Auto)
     final val fs2         = Library("co.fs2", "fs2-io", Version.VExpr("V.fs2"), LibraryType.Auto)
@@ -213,6 +216,7 @@ object ProjectBuilder {
       Artifact(
         name = Projects.metrics,
         libs = Seq(
+          cats_core,
           distage_framework,
           zio_core,
         ).map(_ in Scope.Compile.all) ++ Seq(
@@ -224,7 +228,9 @@ object ProjectBuilder {
       Artifact(
         name = Projects.d4s,
         libs = Seq(
+          cats_effect,
           zio_interop,
+          fs2,
           fundamentals_bio,
           logstage_adapter_slf4j,
           aws_dynamo,

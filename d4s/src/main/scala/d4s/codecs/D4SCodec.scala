@@ -2,8 +2,8 @@ package d4s.codecs
 
 import java.util
 
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.D4SCodec.fromPair
+import d4s.models.DynamoException.DynamoDecoderException
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 trait D4SCodec[A] extends D4SAttributeCodec[A] with D4SEncoder[A] {

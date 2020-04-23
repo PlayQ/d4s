@@ -22,7 +22,6 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
   def collectMetrics(tweakRole: String => String): Set[MetricDef] = {
     val scan         = new ClassGraph().scan()
     val resourceList = scan.getResourcesMatchingPattern(s"$metricsDir/.*".r.pattern)
-
     try {
       val (errors, rawFetched) = resourceList.asScala.toList.flatMap {
         case res if !res.getPath.endsWith("metrics.json") =>
@@ -30,10 +29,9 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
           logger.crit(s"Found a junk file with $filename in $metricsDir - filename does not end with `metrics.json`, Skipping.")
           Nil
         case res =>
-          val bytes = res.load()
-          new String(bytes, UTF_8).linesIterator
-            .filter(_.nonEmpty)
-            .map(io.circe.parser.decode[MetricDef])
+          val bytes   = res.load()
+          val content = new String(bytes, UTF_8)
+          content.linesIterator.filter(_.nonEmpty).map(MetricDef.decode)
       }.partitionEither(identity)
 
       reportErrors(errors)
@@ -44,7 +42,7 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
     }
   }
 
-  private def reportErrors(errors: List[io.circe.Error]): Unit = {
+  private def reportErrors(errors: List[Throwable]): Unit = {
     if (errors.nonEmpty) {
       logger.crit(s"Couldn't read some of the metrics - $errors")
     }

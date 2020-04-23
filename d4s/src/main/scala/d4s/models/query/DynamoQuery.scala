@@ -2,10 +2,10 @@ package d4s.models.query
 
 import java.time.ZonedDateTime
 
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.{AttributeNames, D4SDecoder, D4SEncoder}
 import d4s.config.ProvisionedThroughputConfig
 import d4s.implicits._
+import d4s.models.DynamoException.DynamoDecoderException
 import d4s.models.conditions.Condition
 import d4s.models.conditions.Condition.{attribute_exists, attribute_not_exists}
 import d4s.models.query.DynamoRequest._
