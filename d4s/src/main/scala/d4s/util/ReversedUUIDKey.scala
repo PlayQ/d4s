@@ -2,9 +2,8 @@ package d4s.util
 
 import java.util.UUID
 
-import d4s.codecs.DynamoKeyAttribute
+import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import izumi.fundamentals.platform.language.Quirks
-import io.circe.{Decoder, Encoder}
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /** An [[OrderedUUIDKey]] rendered with inverted digits and minus sign to reverse range key ordering in DynamoDB */
@@ -21,8 +20,8 @@ object ReversedUUIDKey {
   }
 
   // encode as string
-  implicit val encoder: Encoder[ReversedUUIDKey] = Encoder[String].contramap(_.asString)
-  implicit val decoder: Decoder[ReversedUUIDKey] = Decoder[String].map(ReversedUUIDKey(_))
+  implicit val encoder: D4SAttributeEncoder[ReversedUUIDKey] = D4SAttributeEncoder[String].contramap(_.asString)
+  implicit val decoder: D4SDecoder[ReversedUUIDKey]          = D4SDecoder[String].map(ReversedUUIDKey(_))
 
   implicit val keyAttribute: DynamoKeyAttribute[ReversedUUIDKey] = new DynamoKeyAttribute[ReversedUUIDKey](ScalarAttributeType.S)
 

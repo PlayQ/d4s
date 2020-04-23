@@ -69,16 +69,21 @@ object D4SDecoder {
   }
   def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = attributeDecoder {
     item =>
-      import cats.implicits._
       if (item.m().isEmpty) {
-        ctx.subtypes.toList
-          .find(_.typeName.short.contains(item.s()))
-          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName}.", None))
+        ctx.subtypes
+          .find(_.typeName.short == item.s())
+          .toRight(new CannotDecodeAttributeValue(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
-        ctx.subtypes.toList
-          .collectFirstSome(_.typeclass.decode(item.m()).toOption)
-          .toRight(new CannotDecodeAttributeValue(s"Cannot decode item of type ${ctx.typeName}.", None))
+        if (item.m().size != 1) {
+          Left(new CannotDecodeAttributeValue("Invalid format of the encoded value", None))
+        } else {
+          val (typeName, attrValue) = item.m().asScala.head
+          ctx.subtypes
+            .find(_.typeName.short == typeName)
+            .toRight(new CannotDecodeAttributeValue(s"Cannot find a subtype $typeName for a sealed trait ${ctx.typeName.full}", None))
+            .flatMap(_.typeclass.decodeAttribute(attrValue))
+        }
       }
   }
 
@@ -176,4 +181,6 @@ object D4SDecoder {
     attr: AttributeValue =>
       if (attr.nul()) Right(None) else T.decodeAttribute(attr).map(Some(_))
   }
+
+  implicit def eitherDecoder[A: D4SDecoder, B: D4SDecoder]: D4SDecoder[Either[A, B]] = D4SDecoder.derived
 }

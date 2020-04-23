@@ -11,6 +11,11 @@ object Fixtures {
   case object Green extends Color
   case object Blue extends Color
 
+  case class AmbiguousResult(v: Either[String, Int])
+  object AmbiguousResult {
+    implicit lazy val arbitrary: Arbitrary[AmbiguousResult] = MkArbitrary[AmbiguousResult].arbitrary
+  }
+
   case class TestCaseClass(
     a: Int,
     b: Long,

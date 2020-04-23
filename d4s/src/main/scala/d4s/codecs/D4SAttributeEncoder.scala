@@ -23,7 +23,7 @@ object D4SAttributeEncoder {
   def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue                        = D4SAttributeEncoder[T].encodeAttribute(item)
   def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
 
-  /** Magnolia instances. EXPERIMENTING: trying to handle case objects derivation */
+  /** Magnolia instances */
   def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
   type Typeclass[T] = D4SAttributeEncoder[T]
   def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
@@ -79,6 +79,8 @@ object D4SAttributeEncoder {
     item: Option[T] =>
       item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
   }
+
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SAttributeEncoder[Either[A, B]] = D4SEncoder.nonСastedGen[Either[A, B]]
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }

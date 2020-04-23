@@ -1,6 +1,8 @@
 package d4s.health
 
-import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
+import cats.syntax.either._
+import d4s.codecs.CodecsUtils.CannotDecodeKeyValue
+import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, D4SKeyDecoder, D4SKeyEncoder}
 
 import scala.util._
 
@@ -18,8 +20,9 @@ object HealthState {
   case object DEFUNCT extends HealthState { override def toString: String = "DEFUNCT" }
   case object UNKNOWN extends HealthState { override def toString: String = "UNKNOWN" }
 
-  implicit val encodeHealthState: Encoder[HealthState]       = Encoder.encodeString.contramap(_.toString)
-  implicit val decodeHealthState: Decoder[HealthState]       = Decoder.decodeString.emapTry(v => Try(HealthState.parse(v)))
-  implicit val encodeKeyHealthState: KeyEncoder[HealthState] = KeyEncoder.encodeKeyString.contramap(_.toString)
-  implicit val decodeKeyHealthState: KeyDecoder[HealthState] = (key: String) => Try(HealthState.parse(key)).toOption
+  implicit val healthStateEncoder: D4SAttributeEncoder[HealthState] = D4SAttributeEncoder.derived[HealthState]
+  implicit val healthStateDecoder: D4SDecoder[HealthState]          = D4SDecoder.derived[HealthState]
+  implicit val encodeKeyHealthState: D4SKeyEncoder[HealthState]     = _.toString
+  implicit val decodeKeyHealthState: D4SKeyDecoder[HealthState] = (key: String) =>
+    Either.fromTry(Try(HealthState.parse(key))).leftMap(err => new CannotDecodeKeyValue(s"Cannot decode key $key as HealthState", Some(err)))
 }
