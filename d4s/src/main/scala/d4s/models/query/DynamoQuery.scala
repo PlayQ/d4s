@@ -2,10 +2,10 @@ package d4s.models.query
 
 import java.time.ZonedDateTime
 
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.{AttributeNames, D4SDecoder, D4SEncoder}
 import d4s.config.ProvisionedThroughputConfig
 import d4s.implicits._
+import d4s.models.DynamoException.DecoderException
 import d4s.models.conditions.Condition
 import d4s.models.conditions.Condition.{attribute_exists, attribute_not_exists}
 import d4s.models.query.DynamoRequest._
@@ -402,7 +402,7 @@ object DynamoQuery {
 
   @inline private[this] def decodeItemImpl[F[+_, +_]: BIOError, Item: D4SDecoder](
     itemJavaMap: java.util.Map[String, AttributeValue]
-  ): F[DynamoDecoderException, Option[Item]] = {
+  ): F[DecoderException, Option[Item]] = {
     if (!itemJavaMap.isEmpty) {
       F.fromEither(D4SDecoder[Item].decode(itemJavaMap).map(Some(_)))
     } else {
@@ -412,7 +412,7 @@ object DynamoQuery {
 
   @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: D4SDecoder](ttlName: String)(
     itemJavaMap: java.util.Map[String, AttributeValue]
-  ): F[DynamoDecoderException, Option[(Item, Option[Long])]] = {
+  ): F[DecoderException, Option[(Item, Option[Long])]] = {
     if (!itemJavaMap.isEmpty) {
       F.fromEither {
         for {

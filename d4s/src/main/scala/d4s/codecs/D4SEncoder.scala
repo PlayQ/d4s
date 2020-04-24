@@ -26,7 +26,7 @@ object D4SEncoder {
   def apply[T: D4SEncoder]: D4SEncoder[T] = implicitly
   def derived[T]: D4SEncoder[T] = macro CastedMagnolia.genWithCast[T, D4SEncoder[T]]
 
-  private[d4s] def nonСastedGen[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+  private[d4s] def nonCastedGen[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
 
   def encode[T: D4SEncoder](item: T): Map[String, AttributeValue]               = D4SEncoder[T].encode(item)
   def encodeJava[T: D4SEncoder](item: T): java.util.Map[String, AttributeValue] = D4SEncoder[T].encodeJava(item)

@@ -3,7 +3,7 @@ package d4s
 import cats.~>
 import d4s.health.DynamoDBHealthChecker
 import d4s.metrics.{MacroMetricDynamoMeter, MacroMetricDynamoTimer}
-import d4s.models.DynamoException.DynamoQueryException
+import d4s.models.DynamoException.QueryException
 import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest
 import d4s.models.{DynamoException, DynamoExecution}
@@ -38,7 +38,7 @@ object DynamoConnector {
   ) extends DynamoConnector[F] {
 
     override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A] =
-      runUnrecordedImpl(q).leftMap(DynamoQueryException(_))
+      runUnrecordedImpl(q).leftMap(QueryException(_))
 
     override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[Throwable, ?], A] =
       runUnrecordedImpl(q)
@@ -54,7 +54,7 @@ object DynamoConnector {
     ): F[DynamoException, A] = {
       recordMetrics(label) {
         runUnrecorded(q)
-      }.leftMap(DynamoQueryException(label, _))
+      }.leftMap(QueryException(label, _))
     }
 
     override def runStreamed[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution.Streamed[DR, Dec, A])(
@@ -68,7 +68,7 @@ object DynamoConnector {
 
       q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter, recordStreamPage))
         .translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]] {
-          _.leftMap(DynamoQueryException(label, _))
+          _.leftMap(QueryException(label, _))
         })
     }
 

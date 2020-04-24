@@ -2,8 +2,8 @@ package d4s.codecs
 
 import java.util
 
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.D4SCodec.fromPair
+import d4s.models.DynamoException.DecoderException
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 trait D4SCodec[A] extends D4SAttributeCodec[A] with D4SEncoder[A] {
@@ -26,9 +26,9 @@ object D4SCodec {
     override def encode(item: T): Map[String, AttributeValue]          = encoder.encode(item)
     override def encodeJava(item: T): util.Map[String, AttributeValue] = encoder.encodeJava(item)
 
-    override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]      = decoder.decode(item)
-    override def decode(item: util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decoder.decode(item)
-    override def decodeAttribute(attr: AttributeValue): Either[DynamoDecoderException, T]          = decoder.decodeAttribute(attr)
+    override def decode(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decode(item)
+    override def decode(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decode(item)
+    override def decodeAttribute(attr: AttributeValue): Either[DecoderException, T]          = decoder.decodeAttribute(attr)
   }
 
   @deprecated("Use derived", "1.0.3")

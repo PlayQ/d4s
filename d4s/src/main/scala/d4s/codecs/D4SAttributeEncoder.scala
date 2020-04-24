@@ -80,7 +80,7 @@ object D4SAttributeEncoder {
       item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
   }
 
-  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SAttributeEncoder[Either[A, B]] = D4SEncoder.nonСastedGen[Either[A, B]]
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SAttributeEncoder[Either[A, B]] = D4SEncoder.nonCastedGen[Either[A, B]]
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }

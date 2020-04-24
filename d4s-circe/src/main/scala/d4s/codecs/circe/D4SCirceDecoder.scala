@@ -1,9 +1,8 @@
 package d4s.codecs.circe
 
 import cats.implicits._
-import d4s.codecs.CodecsUtils.DynamoDecoderException
 import d4s.codecs.D4SDecoder
-import d4s.codecs.circe.utils.{CannotDecodeAttributeValueAsJson, CirceDecodeException}
+import d4s.models.DynamoException.DecoderException
 import io.circe.{Decoder, Json}
 import software.amazon.awssdk.core.util.{DefaultSdkAutoConstructList, DefaultSdkAutoConstructMap}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -13,12 +12,14 @@ import scala.jdk.CollectionConverters._
 object D4SCirceDecoder {
 
   def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
-    override def decode(v: Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decodeImpl(v, attributeMapToJson(v))
-    override def decodeAttribute(v: AttributeValue): Either[DynamoDecoderException, T]     = decodeImpl(v, attributeToJson(v))
-    @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DynamoDecoderException, T] = {
+    override def decode(v: Map[String, AttributeValue]): Either[DecoderException, T] = decodeImpl(v, attributeMapToJson(v))
+    override def decodeAttribute(v: AttributeValue): Either[DecoderException, T]     = decodeImpl(v, attributeToJson(v))
+    @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DecoderException, T] = {
       maybeJson
-        .toRight(new CannotDecodeAttributeValueAsJson(v.toString))
-        .flatMap(json => json.as[T].left.map(new CirceDecodeException(v.toString, json, _)))
+        .toRight(DecoderException(s"Couldn't decode dynamo item=${v.toString} as Json. A case wasn't handled in DynamoDecoder.attributeToJson", None))
+        .flatMap(
+          json => json.as[T].left.map(cause => DecoderException(s"Circe error when decoding item=${v.toString} json=$json: ${cause.getMessage}", Some(cause)))
+        )
     }
   }
 

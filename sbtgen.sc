@@ -59,7 +59,9 @@ object Targets {
 object ProjectBuilder {
 
   object ProjectDeps {
-    final val distage_framework      = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    private val circe_exclude = LibSetting.Raw("""excludeAll (ExclusionRule(organization = "io.circe"))""")
+
+    final val distage_framework      = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
     final val distage_plugins        = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val distage_config         = Library("io.7mind.izumi", "distage-extension-config", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val distage_testkit        = Library("io.7mind.izumi", "distage-testkit-scalatest", Version.VExpr("V.izumi_version"), LibraryType.Auto)
@@ -82,6 +84,8 @@ object ProjectBuilder {
     final val logstage_adapter_slf4j   = Library("io.7mind.izumi", "logstage-adapter-slf4j", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val logstage_core            = Library("io.7mind.izumi", "logstage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
 
+    final val cats_core   = Library("org.typelevel", "cats-core", Version.VExpr("V.cats"), LibraryType.Auto)
+    final val cats_effect = Library("org.typelevel", "cats-effect", Version.VExpr("V.cats_effect"), LibraryType.Auto)
     final val zio_core    = Library("dev.zio", "zio", Version.VExpr("V.zio"), LibraryType.Auto)
     final val zio_interop = Library("dev.zio", "zio-interop-cats", Version.VExpr("V.zio_interop_cats"), LibraryType.Auto)
     final val fs2         = Library("co.fs2", "fs2-io", Version.VExpr("V.fs2"), LibraryType.Auto)
@@ -192,12 +196,12 @@ object ProjectBuilder {
   object Projects {
     final val aws_common = ArtifactId("aws-common")
     final val metrics = ArtifactId("metrics")
-    final val dynamo = ArtifactId("d4s")
-    final val dynamo_test = ArtifactId("d4s-test")
-    final val dynamo_circe = ArtifactId("d4s-circe")
+    final val d4s = ArtifactId("d4s")
+    final val d4s_test = ArtifactId("d4s-test")
+    final val d4s_circe = ArtifactId("d4s-circe")
   }
 
-  final val dynamo_agg = Aggregate(
+  final val d4s_agg = Aggregate(
     name = ArtifactId("d4s-agg"),
     artifacts = Seq(
       Artifact(
@@ -212,22 +216,26 @@ object ProjectBuilder {
       Artifact(
         name = Projects.metrics,
         libs = Seq(
+          cats_core,
           distage_framework,
           zio_core,
         ).map(_ in Scope.Compile.all) ++ Seq(
+          scalatest,
+          scalatestplus_scalacheck,
+          scalacheck_shapeless
+        ).map(_ in Scope.Test.all) ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
         settings = ProjectSettings.crossScalaSources,
         depends = Seq.empty,
       ),
       Artifact(
-        name = Projects.dynamo,
+        name = Projects.d4s,
         libs = Seq(
-          zio_core,
+          cats_effect,
           zio_interop,
           fs2,
           fundamentals_bio,
-          distage_framework,
           logstage_adapter_slf4j,
           aws_dynamo,
           aws_impl_apache,
@@ -242,7 +250,7 @@ object ProjectBuilder {
         ),
       ),
       Artifact(
-        name = Projects.dynamo_test,
+        name = Projects.d4s_test,
         libs = Seq(
           distage_docker,
           distage_testkit,
@@ -251,16 +259,16 @@ object ProjectBuilder {
           scalatestplus_scalacheck,
           scalacheck_shapeless
         ).map(_ in Scope.Test.all),
-        depends = Seq(Projects.dynamo),
+        depends = Seq(Projects.d4s),
       ),
       Artifact(
-        name = Projects.dynamo_circe,
+        name = Projects.d4s_circe,
         libs = circe.map(_ in Scope.Compile.all) ++ Seq(
           scalatest,
           scalatestplus_scalacheck,
           scalacheck_shapeless
         ).map(_ in Scope.Test.all),
-        depends = Seq(Projects.dynamo),
+        depends = Seq(Projects.d4s),
       )
     ),
     pathPrefix       = Seq("."),
@@ -274,7 +282,7 @@ object ProjectBuilder {
   final val root = Project(
     name = ArtifactId("d4s-root"),
     aggregates = {
-      Seq(dynamo_agg)
+      Seq(d4s_agg)
     },
     sharedSettings = ProjectSettings.sharedSettings,
     sharedAggSettings = Seq(
