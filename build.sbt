@@ -120,6 +120,9 @@ lazy val `metrics` = project.in(file("./metrics"))
       "org.typelevel" %% "cats-core" % V.cats,
       "io.7mind.izumi" %% "distage-framework" % V.izumi_version excludeAll (ExclusionRule(organization = "io.circe")),
       "dev.zio" %% "zio" % V.zio,
+      "org.scalatest" %% "scalatest" % V.scalatest % Test,
+      "org.scalatestplus" %% "scalacheck-1-14" % V.scalatestplus_scalacheck % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )
   )

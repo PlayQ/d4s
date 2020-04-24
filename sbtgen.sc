@@ -220,6 +220,10 @@ object ProjectBuilder {
           distage_framework,
           zio_core,
         ).map(_ in Scope.Compile.all) ++ Seq(
+          scalatest,
+          scalatestplus_scalacheck,
+          scalacheck_shapeless
+        ).map(_ in Scope.Test.all) ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
         settings = ProjectSettings.crossScalaSources,
