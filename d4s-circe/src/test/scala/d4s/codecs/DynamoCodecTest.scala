@@ -2,6 +2,7 @@ package d4s.codecs
 
 import d4s.codecs.Fixtures._
 import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
+import d4s.models.DynamoException.DecoderException
 import io.circe.generic.extras.semiauto
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
@@ -65,8 +66,8 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
   "sealed trait test" in check {
     Prop.forAllNoShrink {
       v: Either[String, Int] =>
-        val codec: D4SCodec[Either[String, Int]]                                    = D4SCodec.derived
-        val result: Either[CodecsUtils.DynamoDecoderException, Either[String, Int]] = codec.decodeAttribute(codec.encodeAttribute(v))
+        val codec: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
+        val result: Either[DecoderException, Either[String, Int]] = codec.decodeAttribute(codec.encodeAttribute(v))
         assert(result == Right(v))
         result == Right(v)
     }

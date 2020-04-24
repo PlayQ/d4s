@@ -3,7 +3,7 @@ package d4s.codecs
 import java.util
 
 import d4s.codecs.D4SAttributeCodec.fromPair
-import d4s.models.DynamoException.DynamoDecoderException
+import d4s.models.DynamoException.DecoderException
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 trait D4SAttributeCodec[A] extends D4SAttributeEncoder[A] with D4SDecoder[A] {
@@ -18,8 +18,8 @@ object D4SAttributeCodec {
   def fromPair[T](encoder: D4SAttributeEncoder[T], decoder: D4SDecoder[T]): D4SAttributeCodec[T] = new D4SAttributeCodec[T] {
     override def encodeAttribute(item: T): AttributeValue = encoder.encodeAttribute(item)
 
-    override def decode(item: Map[String, AttributeValue]): Either[DynamoDecoderException, T]      = decoder.decode(item)
-    override def decode(item: util.Map[String, AttributeValue]): Either[DynamoDecoderException, T] = decoder.decode(item)
-    override def decodeAttribute(attr: AttributeValue): Either[DynamoDecoderException, T]          = decoder.decodeAttribute(attr)
+    override def decode(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decode(item)
+    override def decode(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decode(item)
+    override def decodeAttribute(attr: AttributeValue): Either[DecoderException, T]          = decoder.decodeAttribute(attr)
   }
 }

@@ -2,7 +2,7 @@ package d4s
 
 import d4s.config.{DynamoBatchConfig, DynamoConfig}
 import d4s.models.DynamoException
-import d4s.models.DynamoException.DynamoInterpreterException
+import d4s.models.DynamoException.InterpreterException
 import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, WithBatch}
 import d4s.models.query._
@@ -174,7 +174,7 @@ object DynamoInterpreter {
       tableName: String,
       errorHandler: PartialFunction[DynamoException, F[Nothing, Unit]]
     )(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
-      f.leftMap(DynamoInterpreterException(operation, Some(tableName), _)).tapError {
+      f.leftMap(InterpreterException(operation, Some(tableName), _)).tapError {
         errorHandler orElse {
           case failure => log.error(s"Dynamo: Got error during executing $operation for $tableName. ${failure.cause -> "Failure"}.")
         }
@@ -182,7 +182,7 @@ object DynamoInterpreter {
     }
 
     def logWrapError(operation: String)(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
-      f.leftMap(DynamoInterpreterException(operation, None, _)) tapError (
+      f.leftMap(InterpreterException(operation, None, _)) tapError (
         failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}")
       )
     }
