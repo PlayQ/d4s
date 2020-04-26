@@ -1,6 +1,8 @@
 name: Build Microsite
 on:
   push:
+    branches:
+      - master
     paths:
       - 'vuepress/**'
 

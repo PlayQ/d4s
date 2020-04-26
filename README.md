@@ -18,20 +18,20 @@ include the following components:
 
 Quickstart
 ===========
-The latest version is `1.0.2`. To use it just add the following line to your `build.sbt` file:
+The latest version is `1.0.4`. To use it just add the following line to your `build.sbt` file:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "d4s" %% "1.0.2"
+libraryDependencies += "net.playq" %% "d4s" %% "1.0.4"
 ```
 In case you want to have Circe codecs you should also add this:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.2"
+libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.4"
 ```
 If you want to use only the metrics package from `d4s` you can add it like this:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "metrics" %% "1.0.2"
+libraryDependencies += "net.playq" %% "metrics" %% "1.0.4"
 ```
 
 Example project:
