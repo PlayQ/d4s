@@ -10,7 +10,6 @@ import d4s.implicits._
 import d4s.models.DynamoException
 import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
-import d4s.models.table.DynamoField
 import d4s.util.OffsetLimit
 import zio.interop.catz._
 import zio.{IO, Ref, ZIO}
@@ -30,7 +29,9 @@ object DynamoInterpreterTest {
 
 @SuppressWarnings(Array("DoubleNegation"))
 final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
+
   "dynamo interpreter" should {
+
     "perform put" in scopeIO {
       ctx =>
         import ctx._
@@ -317,7 +318,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload))
           get1 = testTable.table.query
             .withKey(testTable.mainKey.bind("query_conditions_test"))
-            .withCondition(DynamoField[Int]("field2") > 332)
+            .withCondition("field2".of[Int] > 332)
             .decodeItems[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get1)
           _     <- assertIO(read1.size == 1)
@@ -325,7 +326,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
 
           get2 = testTable.table.query
             .withKey(testTable.mainKey.bind("query_conditions_test"))
-            .withCondition(DynamoField[Int]("field2") < 332)
+            .withCondition("field2".of[Int] < 332)
             .decodeItems[InterpreterTestPayload]
           read2 <- connector.runUnrecorded(get2)
           _     <- assertIO(read2.isEmpty)
@@ -583,17 +584,44 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         } yield ()
     }
 
-    "DynamoConnectorLocal (d4z) should perform actions" in scopeIO {
+    "filter by number set" in scopeIO {
+      ctx =>
+        import ctx._
+        val payload = InterpreterTestPayload("number_test", 333, "f4", RandomPayload("f2"))
+        for {
+          _ <- connector.runUnrecorded(testTable.table.putItem(payload))
+          read1 <- connector.runUnrecorded {
+            testTable.table
+              .query(testTable.globalIndex, "number_test", "f4")
+              .withFilterExpression(List("p", "randomArray").of[Int] contains payload.p.randomArray.head)
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+          }
+          _ <- assertIO(read1.size == 1)
+          _ <- assertIO(read1.head == payload)
+          read2 <- connector.runUnrecorded {
+            testTable.table
+              .query(testTable.globalIndex, "number_test", "f4")
+              .withFilterExpression(!(List("p", "randomArray").of[Int] contains payload.p.randomArray.head))
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+          }
+          _ <- assertIO(read2.isEmpty)
+        } yield ()
+    }
+
+    "DynamoConnectorLocal (d4z) should perform actions" in scopeZIO {
       ctx =>
         import ctx._
         val payload = InterpreterTestPayload("perform put2", 321, "f3", RandomPayload("f2"))
-        (for {
+        for {
           _     <- d4z.runUnrecorded(testTable.table.putItem(payload))
           get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           read1 <- d4z.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload))
-        } yield ()).provide(connector)
+        } yield ()
     }
 
   }
+
 }

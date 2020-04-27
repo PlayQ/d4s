@@ -7,18 +7,22 @@ import d4s.models.DynamoException.DecoderException
 
 import scala.util.Try
 
-trait D4SKeyDecoder[T] {
-  def decode(item: String): Either[DecoderException, T]
+trait D4SKeyDecoder[A] {
+  def decode(item: String): Either[DecoderException, A]
 }
 
 object D4SKeyDecoder {
-  implicit val shortKeyDecoder: D4SKeyDecoder[Short] = item =>
-    Either.fromTry(Try(item.toShort)).leftMap(err => DecoderException(s"Cannot decode key $item as Short.", Some(err)))
-  implicit val intKeyDecoder: D4SKeyDecoder[Int] = item =>
-    Either.fromTry(Try(item.toInt)).leftMap(err => DecoderException(s"Cannot decode key $item as Int.", Some(err)))
-  implicit val uuidKeyDecoder: D4SKeyDecoder[UUID] = item =>
-    Either.fromTry(Try(UUID.fromString(item))).leftMap(err => DecoderException(s"Cannot decode key $item as UUID.", Some(err)))
+  @inline def apply[A: D4SKeyDecoder]: D4SKeyDecoder[A] = implicitly
 
-  // special case
+  def decode[A: D4SKeyDecoder](item: String): Either[DecoderException, A] = D4SKeyDecoder[A].decode(item)
+
   implicit val stringKeyDecoder: D4SKeyDecoder[String] = Right(_)
+  implicit val byteKeyDecoder: D4SKeyDecoder[Byte]     = tryKeyDecoder("Byte")(_.toByte)
+  implicit val shortKeyDecoder: D4SKeyDecoder[Short]   = tryKeyDecoder("Short")(_.toShort)
+  implicit val intKeyDecoder: D4SKeyDecoder[Int]       = tryKeyDecoder("Int")(_.toInt)
+  implicit val longKeyDecoder: D4SKeyDecoder[Long]     = tryKeyDecoder("Long")(_.toLong)
+  implicit val uuidKeyDecoder: D4SKeyDecoder[UUID]     = tryKeyDecoder("UUID")(UUID.fromString)
+
+  def tryKeyDecoder[A](name: String)(f: String => A): D4SKeyDecoder[A] =
+    item => Either.fromTry(Try(f(item))).leftMap(err => DecoderException(s"Cannot decode key $item as $name", Some(err)))
 }

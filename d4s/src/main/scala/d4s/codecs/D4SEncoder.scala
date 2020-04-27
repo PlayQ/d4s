@@ -1,29 +1,33 @@
 package d4s.codecs
 
 import d4s.codecs.CodecsUtils.CastedMagnolia
-import magnolia._
+import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
-trait D4SEncoder[T] extends D4SAttributeEncoder[T] {
-  self =>
-  def encode(item: T): Map[String, AttributeValue]
-  def encodeJava(item: T): java.util.Map[String, AttributeValue] = encode(item).asJava
-  override final def encodeAttribute(item: T): AttributeValue    = AttributeValue.builder().m(encodeJava(item)).build()
+trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
+  def encode(item: A): Map[String, AttributeValue]
+  def encodeJava(item: A): java.util.Map[String, AttributeValue] = encode(item).asJava
+  override final def encodeAttribute(item: A): AttributeValue    = AttributeValue.builder().m(encodeJava(item)).build()
 
-  override final def contramap[T1](f: T1 => T): D4SEncoder[T1]                                      = item => encode(f(item))
-  final def mapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SEncoder[T] = item => f(encode(item))
-  final def contramap2[T1, A](another: D4SEncoder[T1])(f: A => (T, T1)): D4SEncoder[A] = {
+  override final def contramap[B](f: B => A): D4SEncoder[B]                                         = item => encode(f(item))
+  final def mapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SEncoder[A] = item => f(encode(item))
+  final def contramap2[B, C](another: D4SEncoder[B])(f: C => (A, B)): D4SEncoder[C] = {
     item =>
-      val (t, t1) = f(item)
-      encode(t) ++ another.encode(t1)
+      val (a, b) = f(item)
+      encode(a) ++ another.encode(b)
+  }
+  def appendFields[Item: D4SEncoder](f: (A, Map[String, AttributeValue]) => Item): D4SEncoder[A] = {
+    item =>
+      val encoded = encode(item)
+      encoded ++ D4SEncoder.encode(f(item, encoded))
   }
 }
 
 object D4SEncoder {
-  def apply[T: D4SEncoder]: D4SEncoder[T] = implicitly
+  @inline def apply[T: D4SEncoder]: D4SEncoder[T] = implicitly
   def derived[T]: D4SEncoder[T] = macro CastedMagnolia.genWithCast[T, D4SEncoder[T]]
 
   private[d4s] def nonCastedGen[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]

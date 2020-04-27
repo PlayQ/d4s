@@ -1,6 +1,5 @@
 package d4s.models.conditions
 
-import d4s.codecs
 import d4s.codecs.D4SAttributeEncoder
 import d4s.models.conditions.Condition.{FinalCondition, and, not, or}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
@@ -22,7 +21,7 @@ trait Condition {
 }
 
 object Condition {
-  private[this] def createAlias(path: List[String]): (String, Map[String, String]) = {
+  def createAlias(path: List[String]): (String, Map[String, String]) = {
     val aliasToPart = path.map(s => s"#${s.replaceAll("\\.", "")}" -> s).toMap
     val fullPath    = aliasToPart.keys.mkString(".")
     fullPath -> aliasToPart
@@ -79,7 +78,7 @@ object Condition {
     }
   }
 
-  final case class in[T: codecs.D4SAttributeEncoder](path: List[String], items: Set[T]) extends Condition.Direct {
+  final case class in[T: D4SAttributeEncoder](path: List[String], items: Set[T]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val attrValues: Map[String, AttributeValue] = items.zipWithIndex.foldLeft(Map.empty[String, AttributeValue]) {
         case (acc, (item, id)) =>
@@ -111,7 +110,7 @@ object Condition {
     }
   }
 
-  final case class attribute_exists(path: List[String], pathBased: Boolean = false) extends Condition.Direct {
+  final case class attribute_exists(path: List[String]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val condExpr     = s"attribute_exists($alias)"
@@ -119,10 +118,38 @@ object Condition {
     }
   }
 
-  final case class attribute_not_exists(path: List[String], pathBased: Boolean = false) extends Condition.Direct {
+  final case class attribute_not_exists(path: List[String]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val condExpr     = s"attribute_not_exists($alias)"
+      FinalCondition(Map.empty, map, Some(condExpr))
+    }
+  }
+
+  final case class attribute_type(path: List[String], tpe: String) extends Condition.Direct {
+    override protected def eval(nesting: Int): FinalCondition = {
+      val (alias, map) = createAlias(path)
+      val valName      = s":vt_$nesting"
+      val attrValues   = D4SAttributeEncoder.encodePlain(valName, tpe)
+      val condExpr     = s"attribute_type($alias, $valName)"
+      FinalCondition(attrValues, map, Some(condExpr))
+    }
+  }
+
+  final case class contains[T: D4SAttributeEncoder](path: List[String], value: T) extends Condition.Direct {
+    override protected def eval(nesting: Int): FinalCondition = {
+      val (alias, map) = createAlias(path)
+      val valName      = s":vc_$nesting"
+      val attrValues   = D4SAttributeEncoder.encodePlain(valName, value)
+      val condExpr     = s"contains($alias, $valName)"
+      FinalCondition(attrValues, map, Some(condExpr))
+    }
+  }
+
+  final case class size(path: List[String]) extends Condition.Direct {
+    override protected def eval(nesting: Int): FinalCondition = {
+      val (alias, map) = createAlias(path)
+      val condExpr     = s"size($alias)"
       FinalCondition(Map.empty, map, Some(condExpr))
     }
   }

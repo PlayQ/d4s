@@ -49,4 +49,14 @@ object Fixtures {
     implicit lazy val arbitrary: Arbitrary[TestDouble]  = MkArbitrary[TestDouble].arbitrary
   }
 
+  case class TestBinarySet(a: Set[Array[Byte]])
+  object TestBinarySet extends WithD4S[TestBinarySet] {
+    implicit lazy val arbitrary: Arbitrary[TestBinarySet] = MkArbitrary[TestBinarySet].arbitrary
+  }
+
+  case class TestStringSet(a: Set[String])
+  object TestStringSet extends WithD4S[TestStringSet] {
+    implicit lazy val arbitrary: Arbitrary[TestStringSet] = MkArbitrary[TestStringSet].arbitrary
+  }
+
 }

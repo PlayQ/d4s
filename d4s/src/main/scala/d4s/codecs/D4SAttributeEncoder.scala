@@ -18,7 +18,7 @@ trait D4SAttributeEncoder[T] {
 }
 
 object D4SAttributeEncoder {
-  def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
+  @inline def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
 
   def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue                        = D4SAttributeEncoder[T].encodeAttribute(item)
   def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
@@ -58,29 +58,42 @@ object D4SAttributeEncoder {
   implicit val doubleEncoder: D4SAttributeEncoder[Double]            = numericAttributeEncoder[Double]
   implicit val unitEncoder: D4SAttributeEncoder[Unit]                = _ => AttributeValue.builder().m(Map.empty[String, AttributeValue].asJava).build()
   implicit val uuidEncoder: D4SAttributeEncoder[UUID]                = n => AttributeValue.builder().s(n.toString).build()
+  implicit val bytesEncoder: D4SAttributeEncoder[Array[Byte]]        = n => AttributeValue.builder().b(SdkBytes.fromByteArray(n)).build()
+  implicit val sdkBytesEncoder: D4SAttributeEncoder[SdkBytes]        = n => AttributeValue.builder().b(n).build()
 
-  implicit val bytesEncoder: D4SAttributeEncoder[Array[Byte]] = n => AttributeValue.builder().b(SdkBytes.fromByteArray(n)).build()
-  implicit val sdkBytesEncoder: D4SAttributeEncoder[SdkBytes] = n => AttributeValue.builder().b(n).build()
+  implicit val binarySetSdkBytesEncoder: D4SAttributeEncoder[Set[SdkBytes]] =
+    item => AttributeValue.builder().bs(item.asJavaCollection).build()
 
-  implicit def binarySetEncoder: D4SAttributeEncoder[Set[Array[Byte]]] =
+  implicit val binarySetEncoder: D4SAttributeEncoder[Set[Array[Byte]]] =
     item => AttributeValue.builder().bs(item.map(SdkBytes.fromByteArray).asJavaCollection).build()
 
-  implicit def iterableEncoder[L[_], T](implicit T: D4SAttributeEncoder[T], ev0: L[T] <:< Iterable[T]): D4SAttributeEncoder[L[T]] = {
+  implicit val stringSetEncoder: D4SAttributeEncoder[Set[String]] =
+    item => AttributeValue.builder().ss(item.asJavaCollection).build()
+
+  implicit val byteSetEncoder: D4SAttributeEncoder[Set[Byte]]     = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+  implicit val shortSetEncoder: D4SAttributeEncoder[Set[Short]]   = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+  implicit val intSetEncoder: D4SAttributeEncoder[Set[Int]]       = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+  implicit val longSetEncoder: D4SAttributeEncoder[Set[Long]]     = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+  implicit val floatSetEncoder: D4SAttributeEncoder[Set[Float]]   = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+  implicit val doubleSetEncoder: D4SAttributeEncoder[Set[Double]] = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
+
+  implicit def iterableEncoder[L[_], T: D4SAttributeEncoder](implicit ev: L[T] <:< Iterable[T]): D4SAttributeEncoder[L[T]] = {
     item: L[T] =>
-      val ls = item.map(T.encodeAttribute)
+      val ls = item.map(encodeAttribute[T])
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
-  implicit def mapLikeEncoder[M[k, v] <: scala.collection.Map[k, v], K, V](implicit V: D4SAttributeEncoder[V], K: D4SKeyEncoder[K]): D4SEncoder[M[K, V]] = {
-    _.map { case (k, v) => K.encode(k) -> V.encodeAttribute(v) }.toMap
+  implicit def mapLikeEncoder[M[k, v] <: scala.collection.Map[k, v], K: D4SKeyEncoder, V: D4SAttributeEncoder]: D4SEncoder[M[K, V]] = {
+    _.map { case (k, v) => D4SKeyEncoder.encode(k) -> encodeAttribute(v) }.toMap
   }
 
-  implicit def optionEncoder[T](implicit T: D4SAttributeEncoder[T]): D4SAttributeEncoder[Option[T]] = {
+  implicit def optionEncoder[T: D4SAttributeEncoder]: D4SAttributeEncoder[Option[T]] = {
     item: Option[T] =>
-      item.map(T.encodeAttribute).getOrElse(AttributeValue.builder().nul(true).build())
+      item.map(encodeAttribute[T]).getOrElse(AttributeValue.builder().nul(true).build())
   }
 
-  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SAttributeEncoder[Either[A, B]] = D4SEncoder.nonCastedGen[Either[A, B]]
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] =
+    D4SEncoder.nonCastedGen[Either[A, B]].asInstanceOf[D4SEncoder[Either[A, B]]]
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }
