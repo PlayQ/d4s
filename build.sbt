@@ -19,15 +19,6 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
     unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
     unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    unmanagedSourceDirectories in Compile := (unmanagedSourceDirectories in Compile).value.flatMap {
-      dir =>
-       Seq(dir, file(dir.getPath + (CrossVersion.partialVersion(scalaVersion.value) match {
-         case Some((2, 11)) => "_2.11"
-         case Some((2, 12)) => "_2.12"
-         case Some((2, 13)) => "_2.13"
-         case _             => "_3.0"
-       })))
-    },
     scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
     scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
     scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
@@ -38,6 +29,26 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     testOptions in Test += Tests.Argument("-oDF"),
     logBuffered in Test := true,
     resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
@@ -132,15 +143,6 @@ lazy val `metrics` = project.in(file("./metrics"))
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
     unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
     unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    unmanagedSourceDirectories in Compile := (unmanagedSourceDirectories in Compile).value.flatMap {
-      dir =>
-       Seq(dir, file(dir.getPath + (CrossVersion.partialVersion(scalaVersion.value) match {
-         case Some((2, 11)) => "_2.11"
-         case Some((2, 12)) => "_2.12"
-         case Some((2, 13)) => "_2.13"
-         case _             => "_3.0"
-       })))
-    },
     scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
     scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
     scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
@@ -151,6 +153,26 @@ lazy val `metrics` = project.in(file("./metrics"))
     testOptions in Test += Tests.Argument("-oDF"),
     logBuffered in Test := true,
     resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
@@ -251,15 +273,6 @@ lazy val `d4s` = project.in(file("./d4s"))
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
     unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
     unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    unmanagedSourceDirectories in Compile := (unmanagedSourceDirectories in Compile).value.flatMap {
-      dir =>
-       Seq(dir, file(dir.getPath + (CrossVersion.partialVersion(scalaVersion.value) match {
-         case Some((2, 11)) => "_2.11"
-         case Some((2, 12)) => "_2.12"
-         case Some((2, 13)) => "_2.13"
-         case _             => "_3.0"
-       })))
-    },
     scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
     scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
     scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
@@ -270,6 +283,26 @@ lazy val `d4s` = project.in(file("./d4s"))
     testOptions in Test += Tests.Argument("-oDF"),
     logBuffered in Test := true,
     resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
@@ -375,6 +408,26 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
     testOptions in Test += Tests.Argument("-oDF"),
     logBuffered in Test := true,
     resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",
@@ -484,6 +537,26 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
     testOptions in Test += Tests.Argument("-oDF"),
     logBuffered in Test := true,
     resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.1",

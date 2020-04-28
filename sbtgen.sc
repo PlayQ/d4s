@@ -5,7 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt::sbtgen:0.0.55`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
+import $ivy.`io.7mind.izumi.sbt::sbtgen:0.0.56`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -179,18 +179,7 @@ object ProjectBuilder {
       "resolvers" += "DefaultMavenRepository".raw,
     )
 
-    final val crossScalaSources = Seq(
-      "unmanagedSourceDirectories" in SettingScope.Compile :=
-        """(unmanagedSourceDirectories in Compile).value.flatMap {
-          |  dir =>
-          |   Seq(dir, file(dir.getPath + (CrossVersion.partialVersion(scalaVersion.value) match {
-          |     case Some((2, 11)) => "_2.11"
-          |     case Some((2, 12)) => "_2.12"
-          |     case Some((2, 13)) => "_2.13"
-          |     case _             => "_3.0"
-          |   })))
-          |}""".stripMargin.raw,
-    )
+    final val crossScalaSources = Defaults.CrossScalaSources
   }
 
   object Projects {
@@ -210,7 +199,6 @@ object ProjectBuilder {
           distage_plugins,
           distage_config,
         ).map(_ in Scope.Compile.all),
-        settings = ProjectSettings.crossScalaSources,
         depends = Seq.empty,
       ),
       Artifact(
@@ -226,7 +214,6 @@ object ProjectBuilder {
         ).map(_ in Scope.Test.all) ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
-        settings = ProjectSettings.crossScalaSources,
         depends = Seq.empty,
       ),
       Artifact(
@@ -243,7 +230,6 @@ object ProjectBuilder {
         ).map(_ in Scope.Compile.all)  ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
-        settings = ProjectSettings.crossScalaSources,
         depends = Seq(
           Projects.aws_common,
           Projects.metrics,
@@ -284,7 +270,7 @@ object ProjectBuilder {
     aggregates = {
       Seq(d4s_agg)
     },
-    sharedSettings = ProjectSettings.sharedSettings,
+    sharedSettings = ProjectSettings.sharedSettings ++ ProjectSettings.crossScalaSources,
     sharedAggSettings = Seq(
       "crossScalaVersions" := "Nil".raw,
     ),

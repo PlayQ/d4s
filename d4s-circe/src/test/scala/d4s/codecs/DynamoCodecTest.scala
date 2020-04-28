@@ -12,7 +12,6 @@ import software.amazon.awssdk.core.SdkBytes
 
 import scala.jdk.CollectionConverters._
 
-@SuppressWarnings(Array("EitherGet", "FinalModifierOnCaseClass"))
 final class DynamoCodecTest extends AnyWordSpec with Checkers {
   "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
