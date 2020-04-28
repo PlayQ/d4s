@@ -100,7 +100,7 @@ object Condition {
     }
   }
 
-  final case class begins_with(path: List[String], prefix: String) extends Condition.Direct {
+  final case class begins_with(path: List[String], prefix: String)(implicit enc: D4SAttributeEncoder[String]) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val valName      = s":vb_$nesting"
