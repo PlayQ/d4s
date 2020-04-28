@@ -3,13 +3,17 @@ package d4s.codecs
 import d4s.codecs.Fixtures._
 import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
 import d4s.models.DynamoException.DecoderException
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.extras.semiauto
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
+import software.amazon.awssdk.core.SdkBytes
+
+import scala.jdk.CollectionConverters._
 
 @SuppressWarnings(Array("EitherGet", "FinalModifierOnCaseClass"))
-class DynamoCodecTest extends AnyWordSpec with Checkers {
+final class DynamoCodecTest extends AnyWordSpec with Checkers {
   "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
       testData: TestCaseClass =>
@@ -46,21 +50,25 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
 
     Prop.forAllNoShrink {
       testData: TestByteArray =>
-        val encoded = D4SEncoder[TestByteArray].encode(testData)
-        val decoded = D4SDecoder[TestByteArray].decode(encoded).toOption.get
+        val encoded = D4SEncoder.encode(testData)
+        val decoded = D4SDecoder.decode[TestByteArray](encoded).toOption.get
+
+        assert(encoded.values.exists(_.b().asByteArray() sameElements testData.a))
         testData.a.sameElements(decoded.a)
     }
   }
 
   "case object derivation" in {
-    val testCodec    = D4SAttributeCodec.derived[Color]
-    implicit val enc = semiauto.deriveEnumerationEncoder[Color]
-    implicit val dec = semiauto.deriveEnumerationDecoder[Color]
-    val codec0       = D4SCirceAttributeCodec.derived[Color]
+    val testCodec = D4SAttributeCodec.derived[Color]
+    val codec = {
+      implicit val enc: Encoder[Color] = semiauto.deriveEnumerationEncoder[Color]
+      implicit val dec: Decoder[Color] = semiauto.deriveEnumerationDecoder[Color]
+      D4SCirceAttributeCodec.derived[Color]
+    }
 
-    val encoded = codec0.encodeAttribute(Red)
+    val encoded = codec.encodeAttribute(Red)
     assert(encoded == testCodec.encodeAttribute(Red))
-    assert(codec0.decodeAttribute(encoded) == testCodec.decodeAttribute(encoded))
+    assert(codec.decodeAttribute(encoded) == testCodec.decodeAttribute(encoded))
   }
 
   "sealed trait test" in check {
@@ -68,6 +76,7 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
       v: Either[String, Int] =>
         val codec: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
         val result: Either[DecoderException, Either[String, Int]] = codec.decodeAttribute(codec.encodeAttribute(v))
+
         assert(result == Right(v))
         result == Right(v)
     }
@@ -80,6 +89,30 @@ class DynamoCodecTest extends AnyWordSpec with Checkers {
         val result                           = codec.decode(codec.encode(v))
         assert(result == Right(v))
         result == Right(v)
+    }
+  }
+
+  "binary set test" in check {
+    Prop.forAllNoShrink {
+      testData: TestBinarySet =>
+        val encoded = D4SEncoder.encode(testData)
+        val decoded = D4SDecoder.decode[TestBinarySet](encoded).toOption.get
+
+        val sdkBytesSet = testData.a.map(SdkBytes.fromByteArray)
+
+        encoded.values.head.bs().asScala.toSet == sdkBytesSet &&
+        decoded.a.map(SdkBytes.fromByteArray) == sdkBytesSet
+    }
+  }
+
+  "string set test" in check {
+    Prop.forAllNoShrink {
+      testData: TestStringSet =>
+        val encoded = D4SEncoder.encode(testData)
+        val decoded = D4SDecoder.decode[TestStringSet](encoded).toOption.get
+
+        encoded.values.head.ss().asScala.toSet == testData.a &&
+        decoded.a == testData.a
     }
   }
 

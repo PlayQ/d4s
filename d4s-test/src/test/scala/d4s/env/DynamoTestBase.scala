@@ -6,17 +6,19 @@ import d4s.models.table.TableDef
 import d4s.test.envs.DynamoTestEnv
 import distage.Tag
 import izumi.distage.config.ConfigModuleDef
-import izumi.distage.constructors.AnyConstructor
+import izumi.distage.constructors.{AnyConstructor, HasConstructor}
 import izumi.distage.model.providers.ProviderMagnet
 import izumi.distage.plugins.PluginConfig
 import izumi.distage.testkit.TestConfig
 import izumi.distage.testkit.scalatest.AssertIO
 import net.playq.aws.tagging.AwsNameSpace
 import software.amazon.awssdk.services.dynamodb.model.BillingMode
-import zio.IO
+import zio.{IO, ZIO}
 
 abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DynamoTestEnv[IO] with AssertIO {
   protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map(f(_).unit)
+
+  protected[d4s] final def scopeZIO[R: HasConstructor](f: Ctx => ZIO[R, _, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map2(HasConstructor[R])(f(_).unit.provide(_))
 
   override def config: TestConfig = super.config.copy(
     pluginConfig = PluginConfig.const(D4STestPlugin),
