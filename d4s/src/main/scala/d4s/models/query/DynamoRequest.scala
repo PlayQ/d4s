@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.dynamodb.model._
 import scala.jdk.CollectionConverters._
 
 trait DynamoRequest {
-  type Rq
+  type Rq <: DynamoDbRequest
   type Rsp
   def toAmz: Rq
 }

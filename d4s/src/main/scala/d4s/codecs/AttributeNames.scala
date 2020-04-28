@@ -32,7 +32,7 @@ object AttributeNames {
 
       members.find(reservedWords contains _.toUpperCase).fold(()) {
         bannedWord =>
-          c.warning(
+          c.error(
             c.enclosingPosition,
             s"""Field name `$bannedWord` is reserved in Dynamo! Please rename.
                |When checking attributes for Item type ${weakTypeOf[T]}""".stripMargin

@@ -17,7 +17,7 @@ trait D4SAttributeEncoder[T] {
   def mapAttribute(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encodeAttribute(item))
 }
 
-object D4SAttributeEncoder {
+object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
   @inline def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
 
   def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue                        = D4SAttributeEncoder[T].encodeAttribute(item)
