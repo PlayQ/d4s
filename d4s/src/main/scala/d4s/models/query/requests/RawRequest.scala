@@ -1,10 +1,11 @@
 package d4s.models.query.requests
 
 import d4s.DynamoClient
-import izumi.functional.bio.BIOTemporal
 import d4s.models.query.DynamoRequest
+import izumi.functional.bio.BIOTemporal
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest
 
-trait RawRequest[Rq0, Rsp0] extends DynamoRequest {
+trait RawRequest[Rq0 <: DynamoDbRequest, Rsp0] extends DynamoRequest {
   override type Rq  = Rq0
   override type Rsp = Rsp0
 
@@ -14,7 +15,7 @@ trait RawRequest[Rq0, Rsp0] extends DynamoRequest {
 object RawRequest {
   private[RawRequest] type UnknownF[+_, +_]
 
-  def apply[Rq, Rsp](rq: Rq)(run: (DynamoClient[UnknownF], Rq) => UnknownF[Throwable, Rsp]): RawRequest[Rq, Rsp] = {
+  def apply[Rq <: DynamoDbRequest, Rsp](rq: Rq)(run: (DynamoClient[UnknownF], Rq) => UnknownF[Throwable, Rsp]): RawRequest[Rq, Rsp] = {
     new RawRequest[Rq, Rsp] {
       override def interpret[F[+_, +_]](request: Rq)(implicit F: BIOTemporal[F], client: DynamoClient[F]): F[Throwable, Rsp] = {
         // user doesn't have access to UnknownF, `run` must be completely polymorphic in F
@@ -27,7 +28,7 @@ object RawRequest {
     }
   }
 
-  def raw[Rsp](run: DynamoClient[UnknownF] => UnknownF[Throwable, Rsp]): RawRequest[Unit, Rsp] = {
-    apply(())((client, _) => run(client))
+  def raw[Rsp](run: DynamoClient[UnknownF] => UnknownF[Throwable, Rsp]): RawRequest[DynamoDbRequest, Rsp] = {
+    apply(null: DynamoDbRequest)((client, _) => run(client))
   }
 }

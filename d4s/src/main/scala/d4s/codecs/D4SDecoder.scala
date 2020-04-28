@@ -33,13 +33,23 @@ trait D4SDecoder[T] {
   }
 }
 
-object D4SDecoder {
+object D4SDecoder extends D4SDecoderScala213 {
   @inline def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
   def derived[T]: D4SDecoder[T] = macro Magnolia.gen[T]
 
   def decode[A: D4SDecoder](item: Map[String, AttributeValue]): Either[DecoderException, A]           = D4SDecoder[A].decode(item)
   def decode[A: D4SDecoder](item: java.util.Map[String, AttributeValue]): Either[DecoderException, A] = D4SDecoder[A].decode(item)
   def decodeAttribute[A: D4SDecoder](v: AttributeValue): Either[DecoderException, A]                  = D4SDecoder[A].decodeAttribute(v)
+  def decodePlain[A: D4SDecoder](name: String, m: Map[String, AttributeValue]): Either[DecoderException, A] = {
+    if (m.size != 1) {
+      Left(DecoderException(s"Invalid format when decoding a single element map with key `$name` - attribute map size is not 1, attribute map: $m", None))
+    } else {
+      val (typeName, attrValue) = m.head
+      if (typeName != name) {
+        Left(DecoderException(s"Invalid format when decoding a single element map with key `$name` - key is different `$typeName`", None))
+      } else decodeAttribute[A](attrValue)
+    }
+  }
 
   def attributeDecoder[T](attributeDecoder: AttributeValue => Either[DecoderException, T]): D4SDecoder[T] = attributeDecoder(_)
 
@@ -77,7 +87,7 @@ object D4SDecoder {
           .flatMap(_.typeclass.decodeAttribute(item))
       } else {
         if (item.m().size != 1) {
-          Left(DecoderException("Invalid format of the encoded value", None))
+          Left(DecoderException(s"Invalid format when decoding a sealed trait - attribute map size is not 1, attribute map: ${item.m().asScala}", None))
         } else {
           val (typeName, attrValue) = item.m().asScala.head
           ctx.subtypes
