@@ -51,17 +51,76 @@ object MetricDef extends LowPriorityInstances {
 }
 
 private[metrics] sealed trait LowPriorityInstances {
-  implicit def encoderFromCirce[R[_]](implicit @unused enc: _Encoder[R], F0: R[String]) = {
-    val F = F0.asInstanceOf[io.circe.Encoder[String]]
-    F.contramap[MetricDef](MetricDef.encode)
+  implicit def encoderFromCirce[R[_]](implicit @unused enc: _Encoder[R]): R[MetricDef] = {
+    def encodeMetricDef[A](role: String, label: String, initial: A) = {
+      io.circe.Json.obj(
+        "role"  -> io.circe.Json.fromString(role),
+        "label" -> io.circe.Json.fromString(label),
+        initial match {
+          case i: Int    => "initial" -> io.circe.Json.fromInt(i)
+          case d: Double => "initial" -> io.circe.Json.fromDoubleOrNull(d)
+          case _         => "initial" -> io.circe.Json.Null
+        }
+      )
+    }
+
+    io.circe.Encoder.AsObject
+      .instance[MetricDef]({
+        case MetricDef.MetricCounter(role, label, initial)   => io.circe.JsonObject.fromMap(Map("counter"   -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricHistogram(role, label, initial) => io.circe.JsonObject.fromMap(Map("histogram" -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricTimer(role, label, initial)     => io.circe.JsonObject.fromMap(Map("timer"     -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricMeter(role, label, initial)     => io.circe.JsonObject.fromMap(Map("meter"     -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricGauge(role, label, initial)     => io.circe.JsonObject.fromMap(Map("gauge"     -> encodeMetricDef(role, label, initial)))
+      }).asInstanceOf[R[MetricDef]]
   }
 
-  implicit def decoderFromCirce[R[_]](implicit @unused enc: _Decoder[R], F0: R[String]) = {
-    val F = F0.asInstanceOf[io.circe.Decoder[String]]
-    F.emap(MetricDef.decode(_).left.map(_.getMessage))
+  implicit def decoderFromCirce[R[_]](implicit @unused enc: _Decoder[R]): R[MetricDef] = {
+    def parserC(c: io.circe.ACursor) = {
+      for {
+        role    <- c.downField("role").as[String]
+        label   <- c.downField("label").as[String]
+        initial <- c.downField("initial").as[Int]
+      } yield (role, label, initial)
+    }
+
+    def parserD(c: io.circe.ACursor) = {
+      for {
+        role    <- c.downField("role").as[String]
+        label   <- c.downField("label").as[String]
+        initial <- c.downField("initial").as[Double]
+      } yield (role, label, initial)
+    }
+
+    io.circe.Decoder
+      .instance(cursor => {
+        val maybeContent =
+          cursor.keys
+            .flatMap(_.headOption)
+            .toRight(io.circe.DecodingFailure("No type name found in JSON, expected JSON of form { \"type_name\": { ...fields } }", cursor.history))
+        for (fname <- maybeContent; value = cursor.downField(fname);
+          result <- fname match {
+            case "counter" =>
+              parserC(value).map { case (r, l, i) => MetricDef.MetricCounter(r, l, i) }
+            case "timer" =>
+              parserD(value).map { case (r, l, i) => MetricDef.MetricTimer(r, l, i) }
+            case "meter" =>
+              parserD(value).map { case (r, l, i) => MetricDef.MetricMeter(r, l, i) }
+            case "histogram" =>
+              parserD(value).map { case (r, l, i) => MetricDef.MetricHistogram(r, l, i) }
+            case "gauge" =>
+              parserD(value).map { case (r, l, i) => MetricDef.MetricGauge(r, l, i) }
+            case _ =>
+              val cname = "net.playq.metrics.MetricDef"
+              val alts  = List("counter", "timer", "meter", "histogram", "gauge").mkString(",")
+              Left(io.circe.DecodingFailure(s"Can't decode type $fname as $cname, expected one of [$alts]", value.history))
+          }) yield {
+          result
+        }
+      }).asInstanceOf[R[MetricDef]]
   }
 }
 
+// Probably redundant now?
 object LowPriorityInstances {
   sealed abstract class _Encoder[R[_]]
   object _Encoder {
