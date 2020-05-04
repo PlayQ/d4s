@@ -134,7 +134,13 @@ lazy val `metrics` = project.in(file("./metrics"))
       "org.scalatest" %% "scalatest" % V.scalatest % Test,
       "org.scalatestplus" %% "scalacheck-1-14" % V.scalatestplus_scalacheck % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+      "io.circe" %% "circe-core" % V.circe % Optional,
+      "io.circe" %% "circe-generic" % V.circe % Optional,
+      "io.circe" %% "circe-generic-extras" % V.circe_generic_extras % Optional,
+      "io.circe" %% "circe-parser" % V.circe % Optional,
+      "io.circe" %% "circe-literal" % V.circe % Optional,
+      "io.circe" %% "circe-derivation" % V.circe_derivation % Optional
     )
   )
   .settings(

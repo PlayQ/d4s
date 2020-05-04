@@ -1,4 +1,7 @@
 package net.playq.metrics.base
+import izumi.fundamentals.platform.language.unused
+import net.playq.metrics.base.LowPriorityInstances.{_Decoder, _Encoder}
+
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -7,7 +10,7 @@ sealed trait MetricDef extends Product with Serializable {
   def label: String
 }
 
-object MetricDef {
+object MetricDef extends LowPriorityInstances {
   final case class MetricCounter(role: String, label: String, initial: Int) extends MetricDef
   final case class MetricHistogram(role: String, label: String, initial: Double) extends MetricDef
   final case class MetricTimer(role: String, label: String, initial: Double) extends MetricDef
@@ -45,4 +48,28 @@ object MetricDef {
   }
 
   def encodeAll(metrics: List[MetricDef]): String = metrics.map(encode).mkString("\n")
+}
+
+private[metrics] sealed trait LowPriorityInstances {
+  implicit def encoderFromCirce[R[_]](implicit @unused enc: _Encoder[R], F0: R[String]) = {
+    val F = F0.asInstanceOf[io.circe.Encoder[String]]
+    F.contramap[MetricDef](MetricDef.encode)
+  }
+
+  implicit def decoderFromCirce[R[_]](implicit @unused enc: _Decoder[R], F0: R[String]) = {
+    val F = F0.asInstanceOf[io.circe.Decoder[String]]
+    F.emap(MetricDef.decode(_).left.map(_.getMessage))
+  }
+}
+
+object LowPriorityInstances {
+  sealed abstract class _Encoder[R[_]]
+  object _Encoder {
+    @inline implicit final def fromCirce: _Encoder[io.circe.Encoder] = null
+  }
+
+  sealed abstract class _Decoder[R[_]]
+  object _Decoder {
+    @inline implicit final def fromCirce: _Encoder[io.circe.Decoder] = null
+  }
 }
