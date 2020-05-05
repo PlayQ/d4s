@@ -51,6 +51,12 @@ object MetricDef extends LowPriorityInstances {
 }
 
 private[metrics] sealed trait LowPriorityInstances {
+  /**
+    * This instance uses 'no more orphans' trick to provide an Optional instance
+    * only IFF you have circe-core as a dependency without REQUIRING a circe-core dependency.
+    *
+    * Optional instance via https://blog.7mind.io/no-more-orphans.html
+    */
   implicit def encoderFromCirce[R[_]](implicit @unused enc: _Encoder[R]): R[MetricDef] = {
     def encodeMetricDef[A](role: String, label: String, initial: A) = {
       io.circe.Json.obj(
@@ -74,6 +80,12 @@ private[metrics] sealed trait LowPriorityInstances {
       }).asInstanceOf[R[MetricDef]]
   }
 
+  /**
+    * This instance uses 'no more orphans' trick to provide an Optional instance
+    * only IFF you have circe-core as a dependency without REQUIRING a circe-core dependency.
+    *
+    * Optional instance via https://blog.7mind.io/no-more-orphans.html
+    */
   implicit def decoderFromCirce[R[_]](implicit @unused enc: _Decoder[R]): R[MetricDef] = {
     def parserC(c: io.circe.ACursor) = {
       for {
