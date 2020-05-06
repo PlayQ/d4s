@@ -213,7 +213,7 @@ object ProjectBuilder {
           scalacheck_shapeless
         ).map(_ in Scope.Test.all) ++ Seq(
           scala_reflect in Scope.Provided.all,
-        ),
+        ) ++ circe.map(_ in Scope.Optional.all),
         depends = Seq.empty,
       ),
       Artifact(
@@ -227,6 +227,7 @@ object ProjectBuilder {
           aws_dynamo,
           aws_impl_apache,
           magnolia,
+          scalatest,
         ).map(_ in Scope.Compile.all)  ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
