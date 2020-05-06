@@ -132,7 +132,11 @@ private[metrics] sealed trait LowPriorityInstances {
   }
 }
 
-// Probably redundant now?
+/**
+ * This is done to disambiguate between `encoder` and `decoder` functions in
+ * LowPriorityInstances sealed trait. Basically, these values are required to
+ * give the compiler a hint about what function to use.
+ */
 object LowPriorityInstances {
   sealed abstract class _Encoder[R[_]]
   object _Encoder {
