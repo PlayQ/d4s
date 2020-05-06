@@ -227,6 +227,7 @@ object ProjectBuilder {
           aws_dynamo,
           aws_impl_apache,
           magnolia,
+          scalatest,
         ).map(_ in Scope.Compile.all)  ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
