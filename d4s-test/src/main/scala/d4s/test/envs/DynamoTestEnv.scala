@@ -8,12 +8,12 @@ import izumi.distage.docker.Docker
 import izumi.distage.docker.modules.DockerContainerModule
 import izumi.distage.model.definition.DIResource
 import izumi.distage.testkit.TestConfig
-import izumi.distage.testkit.scalatest.DistageBIOSpecScalatest
-import izumi.functional.bio.BIO
+import izumi.distage.testkit.services.scalatest.dstest.DistageAbstractScalatestSpec
+import izumi.functional.bio.{BIOApplicative, F}
 import logstage.LogBIO
 import net.playq.aws.tagging.AwsNameSpace
 
-trait DynamoTestEnv[F[+_, +_]] extends DistageBIOSpecScalatest[F] {
+trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
   override protected def config: TestConfig = super.config.copy(
     moduleOverrides = new ModuleDef {
       make[DDLDown[F]]
@@ -46,16 +46,14 @@ trait DynamoTestEnv[F[+_, +_]] extends DistageBIOSpecScalatest[F] {
 }
 
 object DynamoTestEnv {
-  final case class DDLDown[F[+_, +_]: BIO](
+  final case class DDLDown[F[+_, +_]: BIOApplicative](
     dynamoDDLService: DynamoDDLService[F],
-    logger: LogBIO[F]
+    logger: LogBIO[F],
   ) extends DIResource.Self[F[Throwable, ?], DDLDown[F]] {
-    override def acquire: F[Throwable, Unit] = BIO[F].unit
+    override def acquire: F[Throwable, Unit] = F.unit
     override def release: F[Throwable, Unit] = {
-      for {
-        _ <- logger.info("Deleting all tables")
-        _ <- dynamoDDLService.down()
-      } yield ()
+      logger.info("Deleting all tables") *>
+      dynamoDDLService.down()
     }
   }
 }
