@@ -10,12 +10,12 @@ import izumi.distage.constructors.{AnyConstructor, HasConstructor}
 import izumi.distage.model.providers.ProviderMagnet
 import izumi.distage.plugins.PluginConfig
 import izumi.distage.testkit.TestConfig
-import izumi.distage.testkit.scalatest.AssertIO
+import izumi.distage.testkit.scalatest.{AssertIO, DistageBIOSpecScalatest}
 import net.playq.aws.tagging.AwsNameSpace
 import software.amazon.awssdk.services.dynamodb.model.BillingMode
 import zio.{IO, ZIO}
 
-abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DynamoTestEnv[IO] with AssertIO {
+abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) extends DistageBIOSpecScalatest[IO] with DynamoTestEnv[IO] with AssertIO {
   protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map(f(_).unit)
 
   protected[d4s] final def scopeZIO[R: HasConstructor](f: Ctx => ZIO[R, _, _]): ProviderMagnet[IO[_, Unit]] = ctor.provider.map2(HasConstructor[R])(f(_).unit.provide(_))

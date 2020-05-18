@@ -1,6 +1,6 @@
 package d4s
 
-import java.net.URI
+import java.net.{URI, URL}
 
 import d4s.compat.chaining._
 import d4s.config.DynamoConfig
@@ -21,14 +21,14 @@ object DynamoComponent {
 
   final class Impl[F[+_, +_]: BIO](
     conf: DynamoConfig,
-    portCheck: PortCheck @Id("dynamo-port")
+    portCheck: PortCheck @Id("dynamo-port"),
   ) extends DIResource[F[Throwable, ?], DynamoComponent]
     with IntegrationCheck {
 
     override def resourcesAvailable(): ResourceCheck = {
       conf.maybeLocalUrl.fold(ResourceCheck.Success(): ResourceCheck) {
         url =>
-          portCheck.checkUri(URI.create(url), 8042, "DynamoClient")
+          portCheck.checkUrl(new URL(url), "DynamoClient")
       }
     }
 
