@@ -3,17 +3,18 @@ package d4s.test.envs
 import d4s.DynamoDDLService
 import d4s.config.DynamoConfig
 import d4s.test.envs.DynamoTestEnv.DDLDown
-import distage.{DIKey, ModuleDef}
+import distage.{DIKey, ModuleDef, TagKK}
 import izumi.distage.docker.Docker
 import izumi.distage.docker.modules.DockerContainerModule
 import izumi.distage.model.definition.DIResource
 import izumi.distage.testkit.TestConfig
-import izumi.distage.testkit.scalatest.DistageBIOSpecScalatest
+import izumi.distage.testkit.services.scalatest.dstest.DistageAbstractScalatestSpec
 import izumi.functional.bio.{BIOApplicative, F}
 import logstage.LogBIO
 import net.playq.aws.tagging.AwsNameSpace
 
-trait DynamoTestEnv[F[+_, +_]] extends DistageBIOSpecScalatest[F] {
+trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
+  implicit def tagBIO: TagKK[F]
   override protected def config: TestConfig = super.config.copy(
     moduleOverrides = new ModuleDef {
       make[DDLDown[F]]
