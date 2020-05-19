@@ -12,7 +12,6 @@ import software.amazon.awssdk.services.dynamodb.model.{Projection, ProjectionTyp
 import scala.util.Random
 
 object Models {
-
   private def tableName() = s"t1${UUID.randomUUID()}"
 
   final case class Table1Key(key1: String, key2: String)
