@@ -13,8 +13,8 @@ import scala.jdk.CollectionConverters._
 trait D4SAttributeEncoder[T] {
   def encodeAttribute(item: T): AttributeValue
 
-  def contramap[T1](f: T1 => T): D4SAttributeEncoder[T1]                        = item => encodeAttribute(f(item))
-  def mapAttribute(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encodeAttribute(item))
+  def contramap[T1](f: T1 => T): D4SAttributeEncoder[T1]                                       = item => encodeAttribute(f(item))
+  def postprocessAttributeEncoder(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encodeAttribute(item))
 }
 
 object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {

@@ -20,10 +20,10 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
         val magnoliaCodec = D4SCodec.derived[TestCaseClass]
 
         val encoded = circeCodec.encode(testData)
-        val decoded = circeCodec.decode(encoded).toOption.get
+        val decoded = circeCodec.decodeObject(encoded).toOption.get
 
         val magnoliaEncoded = magnoliaCodec.encode(testData)
-        val magnoliaDecoded = magnoliaCodec.decode(magnoliaEncoded).toOption.get
+        val magnoliaDecoded = magnoliaCodec.decodeObject(magnoliaEncoded).toOption.get
         testData == decoded && decoded == magnoliaDecoded && encoded == magnoliaEncoded
     }
   }
@@ -35,10 +35,10 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
         val magnoliaCodec = D4SCodec.derived[TestDouble]
 
         val encoded = circeCodec.encode(testData)
-        val decoded = circeCodec.decode(encoded).toOption.get
+        val decoded = circeCodec.decodeObject(encoded).toOption.get
 
         val magnoliaEncoded = magnoliaCodec.encode(testData)
-        val magnoliaDecoded = magnoliaCodec.decode(magnoliaEncoded).toOption.get
+        val magnoliaDecoded = magnoliaCodec.decodeObject(magnoliaEncoded).toOption.get
         testData == decoded && decoded == magnoliaDecoded && encoded == magnoliaEncoded
     }
   }
@@ -67,14 +67,14 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
 
     val encoded = codec.encodeAttribute(Red)
     assert(encoded == testCodec.encodeAttribute(Red))
-    assert(codec.decodeAttribute(encoded) == testCodec.decodeAttribute(encoded))
+    assert(codec.decode(encoded) == testCodec.decode(encoded))
   }
 
   "sealed trait test" in check {
     Prop.forAllNoShrink {
       v: Either[String, Int] =>
         val codec: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
-        val result: Either[DecoderException, Either[String, Int]] = codec.decodeAttribute(codec.encodeAttribute(v))
+        val result: Either[DecoderException, Either[String, Int]] = codec.decode(codec.encodeAttribute(v))
 
         assert(result == Right(v))
         result == Right(v)
@@ -85,7 +85,7 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
     Prop.forAllNoShrink {
       v: AmbiguousResult =>
         val codec: D4SCodec[AmbiguousResult] = D4SCodec.derived[AmbiguousResult]
-        val result                           = codec.decode(codec.encode(v))
+        val result                           = codec.decodeObject(codec.encode(v))
         assert(result == Right(v))
         result == Right(v)
     }

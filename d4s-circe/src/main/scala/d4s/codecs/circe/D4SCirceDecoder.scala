@@ -12,8 +12,8 @@ import scala.jdk.CollectionConverters._
 object D4SCirceDecoder {
 
   def derived[T: Decoder]: D4SDecoder[T] = new D4SDecoder[T] {
-    override def decode(v: Map[String, AttributeValue]): Either[DecoderException, T] = decodeImpl(v, attributeMapToJson(v))
-    override def decodeAttribute(v: AttributeValue): Either[DecoderException, T]     = decodeImpl(v, attributeToJson(v))
+    override def decodeObject(v: Map[String, AttributeValue]): Either[DecoderException, T] = decodeImpl(v, attributeMapToJson(v))
+    override def decode(v: AttributeValue): Either[DecoderException, T]     = decodeImpl(v, attributeToJson(v))
     @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DecoderException, T] = {
       maybeJson
         .toRight(DecoderException(s"Couldn't decode dynamo item=${v.toString} as Json. A case wasn't handled in DynamoDecoder.attributeToJson", None))

@@ -19,8 +19,9 @@ trait D4SCodec[A] extends D4SAttributeCodec[A] with D4SEncoder[A] {
   final def imap2[B]: Imap2PartiallyApplied[A, B] = new Imap2PartiallyApplied[A, B](this)
   final def imapObject(
     decode: Map[String, AttributeValue] => Map[String, AttributeValue]
-  )(encode: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SCodec[A] = {
-    D4SCodec.fromPair(mapObject(decode), contramapObject(encode))
+  )(encode: Map[String, AttributeValue] => Map[String, AttributeValue]
+  ): D4SCodec[A] = {
+    D4SCodec.fromPair(postprocessObjectEncoder(decode), preprocessObjectDecoder(encode))
   }
   override final def appendFields[Item: D4SEncoder](f: (A, Map[String, AttributeValue]) => Item): D4SCodec[A] = {
     D4SCodec.fromPair(super.appendFields(f), this)
@@ -36,9 +37,9 @@ object D4SCodec {
     override def encode(item: T): Map[String, AttributeValue]          = encoder.encode(item)
     override def encodeJava(item: T): util.Map[String, AttributeValue] = encoder.encodeJava(item)
 
-    override def decode(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decode(item)
-    override def decode(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decode(item)
-    override def decodeAttribute(attr: AttributeValue): Either[DecoderException, T]          = decoder.decodeAttribute(attr)
+    override def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decodeObject(item)
+    override def decodeObject(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decodeObject(item)
+    override def decode(attr: AttributeValue): Either[DecoderException, T]                         = decoder.decode(attr)
   }
 
   @deprecated("Use derived", "1.0.3")

@@ -18,8 +18,8 @@ object D4SAttributeCodec {
   def fromPair[T](encoder: D4SAttributeEncoder[T], decoder: D4SDecoder[T]): D4SAttributeCodec[T] = new D4SAttributeCodec[T] {
     override def encodeAttribute(item: T): AttributeValue = encoder.encodeAttribute(item)
 
-    override def decode(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decode(item)
-    override def decode(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decode(item)
-    override def decodeAttribute(attr: AttributeValue): Either[DecoderException, T]          = decoder.decodeAttribute(attr)
+    override def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, T]      = decoder.decodeObject(item)
+    override def decodeObject(item: util.Map[String, AttributeValue]): Either[DecoderException, T] = decoder.decodeObject(item)
+    override def decode(attr: AttributeValue): Either[DecoderException, T]                         = decoder.decode(attr)
   }
 }

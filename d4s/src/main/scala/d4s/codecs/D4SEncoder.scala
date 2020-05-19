@@ -12,13 +12,13 @@ trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
   def encodeJava(item: A): java.util.Map[String, AttributeValue] = encode(item).asJava
   override final def encodeAttribute(item: A): AttributeValue    = AttributeValue.builder().m(encodeJava(item)).build()
 
-  override final def contramap[B](f: B => A): D4SEncoder[B]                                         = item => encode(f(item))
-  final def mapObject(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SEncoder[A] = item => f(encode(item))
+  override final def contramap[B](f: B => A): D4SEncoder[B] = item => encode(f(item))
   final def contramap2[B, C](another: D4SEncoder[B])(f: C => (A, B)): D4SEncoder[C] = {
     item =>
       val (a, b) = f(item)
       encode(a) ++ another.encode(b)
   }
+  final def postprocessObjectEncoder(f: Map[String, AttributeValue] => Map[String, AttributeValue]): D4SEncoder[A] = item => f(encode(item))
   def appendFields[Item: D4SEncoder](f: (A, Map[String, AttributeValue]) => Item): D4SEncoder[A] = {
     item =>
       val encoded = encode(item)
