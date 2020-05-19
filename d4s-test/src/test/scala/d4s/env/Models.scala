@@ -52,7 +52,7 @@ object Models {
       Projection
         .builder()
         .projectionType(ProjectionType.ALL)
-        .build(),
+        .build()
     )
 
     override val ddl: TableDDL = TableDDL(table).withGlobalIndexes(globalIndex)
