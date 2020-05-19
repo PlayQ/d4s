@@ -15,6 +15,7 @@ import net.playq.aws.tagging.AwsNameSpace
 
 trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
   implicit def tagBIO: TagKK[F]
+
   override protected def config: TestConfig = super.config.copy(
     moduleOverrides = new ModuleDef {
       make[DDLDown[F]]

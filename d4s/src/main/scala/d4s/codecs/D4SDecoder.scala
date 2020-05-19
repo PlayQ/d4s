@@ -3,6 +3,8 @@ package d4s.codecs
 import java.util
 import java.util.UUID
 
+import cats.instances.either._
+import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.foldable._
 import d4s.models.DynamoException.DecoderException
@@ -126,7 +128,7 @@ object D4SDecoder extends D4SDecoderScala213 {
       Either
         .fromOption(
           Option(attr.bs()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]]),
-          DecoderException(s"Cannot decode $attr as Set[SdkBytes]", None)
+          DecoderException(s"Cannot decode $attr as Set[SdkBytes]", None),
         ).map(_.asScala.toSet)
   }
   implicit val binarySetDecoder: D4SDecoder[Set[Array[Byte]]] = binarySetSdkBytesDecoder.map(_.map(_.asByteArray()))
@@ -136,7 +138,7 @@ object D4SDecoder extends D4SDecoderScala213 {
       Either
         .fromOption(
           Option(attr.ss()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]]),
-          DecoderException(s"Cannot decode $attr as Set[String]", None)
+          DecoderException(s"Cannot decode $attr as Set[String]", None),
         ).map(_.asScala.toSet)
   }
 

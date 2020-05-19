@@ -1,6 +1,6 @@
 package d4s
 
-import izumi.reflect.Tags.Tag
+import izumi.reflect.Tag
 import zio.Has
 
 import scala.language.implicitConversions
