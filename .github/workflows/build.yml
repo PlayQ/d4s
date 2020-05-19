@@ -1,7 +1,7 @@
 name: Build
 
 on:
-  pr:
+  pull-request:
   push:
     paths-ignore:
       README.md
