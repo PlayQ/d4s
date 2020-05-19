@@ -37,8 +37,8 @@ trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable,
   )
 
   def dockerConf: Docker.ClientConfig = Docker.ClientConfig(
-    readTimeoutMs    = 8000,
-    connectTimeoutMs = 3000,
+    readTimeoutMs    = 30000,
+    connectTimeoutMs = 30000,
     allowReuse       = true,
     useRemote        = false,
     useRegistry      = false,
