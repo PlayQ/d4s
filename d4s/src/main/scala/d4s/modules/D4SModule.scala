@@ -29,7 +29,9 @@ object D4SModule {
 
     many[TableDef]
 
-    make[PortCheck].named("dynamo-port").from(new PortCheck(3))
+    make[PortCheck].named("dynamo-port").from {
+      new PortCheck(3000)
+    }
   }
 
   val configs: ConfigModuleDef = new ConfigModuleDef {
