@@ -24,7 +24,7 @@ final case class DynamoField[-T](name: String, attrType: ScalarAttributeType, en
 
 object DynamoField {
   def apply[T](name: String)(implicit fieldAttribute: DynamoKeyAttribute[T], encoder: D4SAttributeEncoder[T]): DynamoField[T] = {
-    DynamoField(name, fieldAttribute.attrType, encoder.encodeAttribute)
+    DynamoField(name, fieldAttribute.attrType, encoder.encode)
   }
 
   @inline implicit final def fieldToTypedFieldOps[T](field: DynamoField[T]): TypedFieldOps[T] = new TypedFieldOps[T](List(field.name))

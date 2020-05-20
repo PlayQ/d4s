@@ -22,7 +22,7 @@ import scala.language.{implicitConversions, reflectiveCalls}
 
 final case class DynamoQuery[DR <: DynamoRequest, +Dec](
   request: DR,
-  decoder: FnBIO[DR#Rsp, Dec]
+  decoder: FnBIO[DR#Rsp, Dec],
 ) {
   def toAmz: DR#Rq = request.toAmz
 
@@ -75,12 +75,13 @@ object DynamoQuery {
     }
   }
 
-  implicit final class ExecOffset[DR <: DynamoRequest, Dec, A](dynamoQuery: DynamoQuery[DR, Dec])(
-    implicit
+  implicit final class ExecOffset[DR <: DynamoRequest, Dec, A](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  )(implicit
     paging: PageableRequest[DR],
     ev1: DR <:< WithSelect[DR] with WithLimit[DR] with WithProjectionExpression[DR],
     ev2: DR#Rsp => { def count(): Integer },
-    ev4: Dec <:< List[A]
+    ev4: Dec <:< List[A],
   ) {
     def execOffset(offsetLimit: OffsetLimit): DynamoExecution[DR, Dec, List[A]] = {
       new DynamoExecution[DR, Dec, List[A]](dynamoQuery, DynamoExecution.offset[DR, Dec, A](offsetLimit))
@@ -201,8 +202,9 @@ object DynamoQuery {
     }
   }
 
-  implicit final class TweakWithTtl[DR <: DynamoRequest, Dec](dynamoQuery: DynamoQuery[DR, Dec])(
-    implicit ev: DR <:< WithAttributeValues[DR] with WithTableReference[DR] with WithFilterExpression[DR]
+  implicit final class TweakWithTtl[DR <: DynamoRequest, Dec](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  )(implicit ev: DR <:< WithAttributeValues[DR] with WithTableReference[DR] with WithFilterExpression[DR]
   ) {
     def filterTtl(now: ZonedDateTime): DynamoQuery[DR, Dec] = {
       filterTtl(now.toEpochSecond)
@@ -223,8 +225,11 @@ object DynamoQuery {
     def withTtlFieldOption(expiration: Option[ZonedDateTime])(implicit ev: DR <:< WithItem[DR] with WithTableReference[DR]): DynamoQuery[DR, Dec] =
       expiration.fold(dynamoQuery)(withTtlField(_))
 
-    def withTtlFieldOption(expirationEpochSeconds: Option[Long])(implicit ev: DR <:< WithItem[DR] with WithTableReference[DR],
-                                                                 @unused dummy: DummyImplicit): DynamoQuery[DR, Dec] = {
+    def withTtlFieldOption(
+      expirationEpochSeconds: Option[Long]
+    )(implicit ev: DR <:< WithItem[DR] with WithTableReference[DR],
+      @unused dummy: DummyImplicit,
+    ): DynamoQuery[DR, Dec] = {
       expirationEpochSeconds.fold(dynamoQuery)(withTtlField(_))
     }
 
@@ -296,10 +301,11 @@ object DynamoQuery {
       dynamoQuery.decodeWith((a, c) => (c, a.consumedCapacity()))
   }
 
-  implicit final class DecodeItems[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(
-    implicit
+  implicit final class DecodeItems[DR <: DynamoRequest, Rb, Dec](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  )(implicit
     ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
-    ev3: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] }
+    ev3: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] },
   ) {
     def decodeItems[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery
@@ -336,7 +342,8 @@ object DynamoQuery {
     dynamoQuery: DynamoQuery[DR, Dec]
   )(implicit
     ev1: DR#Rsp <:< List[A],
-    ev2: A => { def responses(): java.util.Map[String, java.util.List[java.util.Map[String, AttributeValue]]] }) {
+    ev2: A => { def responses(): java.util.Map[String, java.util.List[java.util.Map[String, AttributeValue]]] },
+  ) {
 
     def decodeItems[Item: D4SDecoder]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery.decodeF(FnBIO {
@@ -349,9 +356,12 @@ object DynamoQuery {
     }
   }
 
-  implicit final class DecodeItem[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(implicit
-                                                                                                   ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
-                                                                                                   ev2: DR#Rsp => { def item(): java.util.Map[String, AttributeValue] }) {
+  implicit final class DecodeItem[DR <: DynamoRequest, Rb, Dec](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  )(implicit
+    ev1: DR <:< WithProjectionExpression[DR] with WithTableReference[DR],
+    ev2: DR#Rsp => { def item(): java.util.Map[String, AttributeValue] },
+  ) {
     def decodeItem[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery
         .modify(
@@ -388,10 +398,13 @@ object DynamoQuery {
     }
   }
 
-  implicit final class DecodeItemAttributes[DR <: DynamoRequest, Rb, Dec](dynamoQuery: DynamoQuery[DR, Dec])(implicit
-                                                                                                             ev: DR#Rsp => {
-                                                                                                               def attributes(): java.util.Map[String, AttributeValue]
-                                                                                                             }) {
+  implicit final class DecodeItemAttributes[DR <: DynamoRequest, Rb, Dec](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  )(implicit
+    ev: DR#Rsp => {
+      def attributes(): java.util.Map[String, AttributeValue]
+    }
+  ) {
     def decodeItem[Item: D4SDecoder]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery.decodeF(FnBIO {
         response => implicit F =>
@@ -404,20 +417,21 @@ object DynamoQuery {
     itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DecoderException, Option[Item]] = {
     if (!itemJavaMap.isEmpty) {
-      F.fromEither(D4SDecoder[Item].decode(itemJavaMap).map(Some(_)))
+      F.fromEither(D4SDecoder[Item].decodeObject(itemJavaMap).map(Some(_)))
     } else {
       F.pure(None)
     }
   }
 
-  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: D4SDecoder](ttlName: String)(
-    itemJavaMap: java.util.Map[String, AttributeValue]
+  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: D4SDecoder](
+    ttlName: String
+  )(itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DecoderException, Option[(Item, Option[Long])]] = {
     if (!itemJavaMap.isEmpty) {
       F.fromEither {
         for {
-          item <- D4SDecoder[Item].decode(itemJavaMap)
-          ttl  = Option(itemJavaMap.get(ttlName)).flatMap(i => Option(i.n()).map(_.toLong))
+          item <- D4SDecoder[Item].decodeObject(itemJavaMap)
+          ttl   = Option(itemJavaMap.get(ttlName)).flatMap(i => Option(i.n()).map(_.toLong))
         } yield Some((item, ttl))
       }
     } else {
