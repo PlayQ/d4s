@@ -29,23 +29,27 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
   private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
 
   def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
-    item =>
-      if (ctx.isObject) {
-        AttributeValue.builder().s(ctx.typeName.short).build()
-      } else {
+    if (ctx.isObject) {
+      new CaseObjectEncoder[T](ctx.typeName.short)
+    } else {
+      item =>
         val map = ctx.parameters.map {
           p =>
             p.label -> p.typeclass.encode(p.dereference(item))
         }.toMap
         AttributeValue.builder().m(map.asJava).build()
-      }
+    }
   }
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     item =>
       ctx.dispatch(item) {
         subtype =>
-          subtype.typeclass.encode(subtype.cast(item))
+          if (subtype.typeclass.isInstanceOf[CaseObjectEncoder[_]]) {
+            subtype.typeclass.encode(subtype.cast(item))
+          } else {
+            AttributeValue.builder().m(Map(subtype.typeName.short -> subtype.typeclass.encode(subtype.cast(item))).asJava).build()
+          }
       }
   }
 
@@ -97,4 +101,8 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
   implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = D4SEncoder.derived
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
+
+  private[this] final class CaseObjectEncoder[T](name: String) extends D4SAttributeEncoder[T] {
+    override def encode(item: T): AttributeValue = AttributeValue.builder().s(name).build()
+  }
 }

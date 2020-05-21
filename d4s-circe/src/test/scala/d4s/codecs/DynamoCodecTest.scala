@@ -73,11 +73,14 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
   "sealed trait test" in check {
     Prop.forAllNoShrink {
       v: Either[String, Int] =>
-        val codec: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
-        val result: Either[DecoderException, Either[String, Int]] = codec.decode(codec.encode(v))
+        val codec1: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
+        val codec2: D4SAttributeCodec[Either[String, Int]]         = D4SAttributeCodec.derived
+        val result1: Either[DecoderException, Either[String, Int]] = codec1.decode(codec1.encode(v))
+        val result2: Either[DecoderException, Either[String, Int]] = codec2.decode(codec2.encode(v))
 
-        assert(result == Right(v))
-        result == Right(v)
+        assert(result1 == result2)
+        assert(result1 == Right(v))
+        true
     }
   }
 
