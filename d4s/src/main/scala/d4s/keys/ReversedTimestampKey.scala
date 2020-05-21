@@ -1,8 +1,9 @@
-package d4s.util
+package d4s.keys
 
 import java.time.ZonedDateTime
 
 import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
+import d4s.util.negateDigits
 import izumi.fundamentals.platform.language.Quirks
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 

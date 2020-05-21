@@ -1,4 +1,4 @@
-package d4s.util
+package d4s.keys
 
 import java.util.UUID
 
@@ -7,32 +7,32 @@ import org.scalacheck.Prop.AnyOperators
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 
-final class OrderedUUIDKeyTest extends AnyWordSpec with Checkers {
+final class ReversedUUIDKeyTest extends AnyWordSpec with Checkers {
 
   // test 10k times
   implicit val propertyConf: PropertyCheckConfiguration = {
     generatorDrivenConfig.copy(minSuccessful = 10000)
   }
 
-  "OrderedUUIDKey has the same lexicographic ordering as the UUID's usual ordering" in check {
+  "ReservedUUIDKey has the opposite lexicographic ordering as the UUID's usual ordering" in check {
     uuids: List[UUID] =>
       val sortedUUIDs = uuids.sorted
 
-      val strings       = sortedUUIDs.map(OrderedUUIDKey(_).asString)
+      val strings       = sortedUUIDs.map(ReversedUUIDKey(_).asString)
       val sortedStrings = strings.sorted
 
-      sortedStrings ?= strings
+      sortedStrings ?= strings.reverse
   }
 
   "TimeUUID ordering" in check {
     _: Unit =>
       val uuids = List.fill(20)(UUIDGen.getTimeUUID()).sorted
-      val strs  = uuids.map(OrderedUUIDKey(_).asString)
+      val strs  = uuids.map(ReversedUUIDKey(_).asString)
 
-      val sortedUUID = uuids.map(OrderedUUIDKey(_).asString)
+      val sortedUUID = uuids.map(ReversedUUIDKey(_).asString)
       val sortedSTR  = strs.sorted
 
-      sortedUUID ?= sortedSTR
+      sortedUUID ?= sortedSTR.reverse
   }
 
 }

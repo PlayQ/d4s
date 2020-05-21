@@ -17,5 +17,6 @@ object DynamoKeyAttribute {
   implicit val longAttribute: DynamoKeyAttribute[Long]     = new DynamoKeyAttribute[Long](ScalarAttributeType.N)
   implicit val uuidAttribute: DynamoKeyAttribute[UUID]     = new DynamoKeyAttribute[UUID](ScalarAttributeType.S)
 
-  implicit val SdkBytesAttribute: DynamoKeyAttribute[SdkBytes] = new DynamoKeyAttribute[SdkBytes](ScalarAttributeType.B)
+  implicit val sdkBytesAttribute: DynamoKeyAttribute[SdkBytes]     = new DynamoKeyAttribute[SdkBytes](ScalarAttributeType.B)
+  implicit val arrayByteAttribute: DynamoKeyAttribute[Array[Byte]] = new DynamoKeyAttribute[Array[Byte]](ScalarAttributeType.B)
 }

@@ -7,7 +7,6 @@ import d4s.models.query.DynamoRequest.{PageableRequest, WithLimit, WithProjectio
 import d4s.models.query.requests._
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.{TableDDL, TableReference}
-import d4s.util.OffsetLimit
 import fs2.Stream
 import izumi.functional.bio.BIOMonadError
 import izumi.functional.bio.catz._

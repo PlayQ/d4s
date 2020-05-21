@@ -7,7 +7,7 @@ package object util {
     if (long < 0) negateDigits(str) else str
   }
 
-  private[util] def negateDigits(str: String): String = {
+  def negateDigits(str: String): String = {
     str.map {
       case '0' => '9'
       case '1' => '8'
@@ -23,11 +23,11 @@ package object util {
     }
   }
 
-  private[util] def negateMinus(str: String): String = {
+  def negateMinus(str: String): String = {
     str.replace('-', 'Z')
   }
 
-  private[util] def leftpadLong(long: Long): String = {
+  def leftpadLong(long: Long): String = {
     long.formatted("%021d") // num padding in Long.MinValue
   }
 
