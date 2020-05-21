@@ -8,8 +8,8 @@ import izumi.distage.model.definition.Id
 
 class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
   include(new DynamoDockerModule[F[Throwable, ?]])
+  include(D4SDockerModule.config)
 
-  makeConfig[DynamoConfig]("aws.dynamo").named("test-config")
   make[DynamoConfig].from {
     (cfg: DynamoConfig @Id("test-config"), docker: DynamoDocker.Container) =>
       val knownAddress = docker.availablePorts.availablePorts(DynamoDocker.primaryPort).head
@@ -19,4 +19,8 @@ class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
 
 object D4SDockerModule {
   def apply[F[+_, +_]: TagKK] = new D4SDockerModule[F]
+
+  val config: ConfigModuleDef = new ConfigModuleDef {
+    makeConfig[DynamoConfig]("aws.dynamo").named("test-config")
+  }
 }
