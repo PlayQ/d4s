@@ -9,6 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 final class MetricsCodecTest extends AnyWordSpec with ScalaCheckPropertyChecks {
+  implicit val DoubleArb: Arbitrary[Double]                   = Arbitrary(Arbitrary.arbInt.arbitrary.map(_.toDouble))
   implicit val MetricCounterArb: Arbitrary[MetricCounter]     = MkArbitrary[MetricCounter].arbitrary
   implicit val MetricHistogramArb: Arbitrary[MetricHistogram] = MkArbitrary[MetricHistogram].arbitrary
   implicit val MetricTimerArb: Arbitrary[MetricTimer]         = MkArbitrary[MetricTimer].arbitrary

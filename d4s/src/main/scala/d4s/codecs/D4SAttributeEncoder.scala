@@ -11,21 +11,23 @@ import scala.language.experimental.macros
 import scala.jdk.CollectionConverters._
 
 trait D4SAttributeEncoder[T] {
-  def encodeAttribute(item: T): AttributeValue
+  def encode(item: T): AttributeValue
 
-  def contramap[T1](f: T1 => T): D4SAttributeEncoder[T1]                        = item => encodeAttribute(f(item))
-  def mapAttribute(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encodeAttribute(item))
+  def contramap[T1](f: T1 => T): D4SAttributeEncoder[T1]                                       = item => encode(f(item))
+  def postprocessAttributeEncoder(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encode(item))
 }
 
 object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
   @inline def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
 
-  def encodeAttribute[T: D4SAttributeEncoder](item: T): AttributeValue                        = D4SAttributeEncoder[T].encodeAttribute(item)
-  def encodePlain[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encodeAttribute(item))
+  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+
+  def encode[T: D4SAttributeEncoder](item: T): AttributeValue                                 = D4SAttributeEncoder[T].encode(item)
+  def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
 
   /** Magnolia instances */
-  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
-  type Typeclass[T] = D4SAttributeEncoder[T]
+  private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
   def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     item =>
       if (ctx.isObject) {
@@ -33,7 +35,7 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
       } else {
         val map = ctx.parameters.map {
           p =>
-            p.label -> p.typeclass.encodeAttribute(p.dereference(item))
+            p.label -> p.typeclass.encode(p.dereference(item))
         }.toMap
         AttributeValue.builder().m(map.asJava).build()
       }
@@ -43,7 +45,7 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
     item =>
       ctx.dispatch(item) {
         subtype =>
-          subtype.typeclass.encodeAttribute(subtype.cast(item))
+          subtype.typeclass.encode(subtype.cast(item))
       }
   }
 
@@ -79,21 +81,20 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
 
   implicit def iterableEncoder[L[_], T: D4SAttributeEncoder](implicit ev: L[T] <:< Iterable[T]): D4SAttributeEncoder[L[T]] = {
     item: L[T] =>
-      val ls = item.map(encodeAttribute[T])
+      val ls = item.map(encode[T])
       AttributeValue.builder().l(ls.asJavaCollection).build()
   }
 
   implicit def mapLikeEncoder[M[k, v] <: scala.collection.Map[k, v], K: D4SKeyEncoder, V: D4SAttributeEncoder]: D4SEncoder[M[K, V]] = {
-    _.map { case (k, v) => D4SKeyEncoder.encode(k) -> encodeAttribute(v) }.toMap
+    _.map { case (k, v) => D4SKeyEncoder.encode(k) -> encode(v) }.toMap
   }
 
   implicit def optionEncoder[T: D4SAttributeEncoder]: D4SAttributeEncoder[Option[T]] = {
     item: Option[T] =>
-      item.map(encodeAttribute[T]).getOrElse(AttributeValue.builder().nul(true).build())
+      item.map(encode[T]).getOrElse(AttributeValue.builder().nul(true).build())
   }
 
-  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] =
-    D4SEncoder.nonCastedGen[Either[A, B]].asInstanceOf[D4SEncoder[Either[A, B]]]
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = D4SEncoder.derived
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 }

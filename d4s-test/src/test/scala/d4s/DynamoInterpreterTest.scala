@@ -22,7 +22,7 @@ object DynamoInterpreterTest {
     countersTable: TestTable1,
     currentTable: UpdatedTestTable,
     newTable1: UpdatedTestTable1,
-    newTable2: UpdatedTestTable2
+    newTable2: UpdatedTestTable2,
   )
 
 }
@@ -39,7 +39,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
 
         for {
           _     <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload))
         } yield ()
@@ -51,7 +51,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload = InterpreterTestPayload("perform delete", 22, "f3", RandomPayload("f2"))
         for {
           _     <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload))
 
@@ -68,7 +68,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload2 = InterpreterTestPayload("perform update", 3, "f33", RandomPayload("f5"))
         for {
           _     <- connector.runUnrecorded(testTable.table.putItem(payload1))
-          get   = testTable.table.getItem(payload1.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload1.key).decodeItem[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload1))
 
@@ -89,7 +89,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           res <- connector.runUnrecorded(testTable.table.putItem.withItem(payload2).ifNotExists().optConditionFailure)
           _   <- assertIO(res.isDefined)
 
-          get   = testTable.table.getItem(payload1.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload1.key).decodeItem[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload1))
 
@@ -105,14 +105,14 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload = InterpreterTestPayload("perform delete if exists", 5, "f3", RandomPayload("f2"))
         for {
           _     <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload))
 
           delete = testTable.table.deleteItem(payload.key)
-          _      <- connector.runUnrecorded(delete.ifExists())
-          res    <- connector.runUnrecorded(delete.ifExists().optConditionFailure)
-          _      <- assertIO(res.isDefined)
+          _     <- connector.runUnrecorded(delete.ifExists())
+          res   <- connector.runUnrecorded(delete.ifExists().optConditionFailure)
+          _     <- assertIO(res.isDefined)
 
           read2 <- connector.runUnrecorded(get)
           _     <- assertIO(read2.isEmpty)
@@ -127,12 +127,12 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
 
         for {
           _        <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get      = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          get       = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           testRead <- connector.runUnrecorded(get)
           _        <- assertIO(testRead.get == payload)
 
           delete = testTable.table.deleteItem(payload.key)
-          _      <- connector.runUnrecorded(delete.withCondition("field1".of[String] beginsWith "p"))
+          _     <- connector.runUnrecorded(delete.withCondition("field1".of[String] beginsWith "p"))
 
           testRead2 <- connector.runUnrecorded(get)
           _         <- assertIO(testRead2.isEmpty)
@@ -155,7 +155,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           putStressBatch <- putBatch
           getStressBatch <- getOrDeleteBatch
           _              <- connector.runUnrecorded(testTable.table.putItemBatch(putStressBatch))
-          scan           = testTable.table.scan.decodeItems[InterpreterTestPayload]
+          scan            = testTable.table.scan.decodeItems[InterpreterTestPayload]
           read1          <- connector.runUnrecorded(scan)
           _              <- assertIO(newAll.forall(el => read1.contains(el)))
 
@@ -180,7 +180,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           _   <- assertIO(res.isDefined)
 
           _    <- connector.runUnrecorded(testTable.table.updateItem(modifiedPayload1).withCondition("field3".of[String] === "f3"))
-          scan = testTable.table.scan.decodeItems[InterpreterTestPayload]
+          scan  = testTable.table.scan.decodeItems[InterpreterTestPayload]
           read <- connector.runUnrecorded(scan.execPagedFlatten())
           _    <- assertIO(read.contains(modifiedPayload1))
         } yield ()
@@ -203,7 +203,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           _   <- assertIO(res.isDefined)
 
           _    <- connector.runUnrecorded(testTable.table.updateItem(modifiedPayload1).withCondition(complexCondition2))
-          scan = testTable.table.scan.decodeItems[InterpreterTestPayload]
+          scan  = testTable.table.scan.decodeItems[InterpreterTestPayload]
           read <- connector.runUnrecorded(scan.execPagedFlatten())
           _    <- assertIO(read.contains(modifiedPayload1))
         } yield ()
@@ -220,7 +220,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         object ExtendedPayload {
           implicit val codec: D4SCodec[ExtendedPayload] =
             InterpreterTestPayload.codec.imap2(AdditionalFields.codec)(ExtendedPayload(_, _))(ext => ext.payload -> ext.additionalFields)
-          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] combine AttributeNames[AdditionalFields]
+          implicit val attrNames: AttributeNames[ExtendedPayload] = AttributeNames[InterpreterTestPayload] ++ AttributeNames[AdditionalFields]
         }
 
         val key              = InterpreterTestKey("perform update with updateExpression", 3)
@@ -239,8 +239,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .updateItem(modifiedPayload1)
               .withCondition(complexCondition)
               .withUpdateExpression("SET field4 = :field4, field5 = :field5 REMOVE field9")
-              .withAttributeValues(":field4" -> D4SAttributeEncoder.encodeAttribute("FIELD4"))
-              .withAttributeValues(":field5" -> D4SAttributeEncoder.encodeAttribute(8))
+              .withAttributeValues(":field4" -> D4SAttributeEncoder.encode("FIELD4"))
+              .withAttributeValues(":field5" -> D4SAttributeEncoder.encode(8))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(assert(failure.isEmpty)))
 
@@ -255,7 +255,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table
               .updateItem(key)
               .withUpdateExpression("SET field4 = :field4")
-              .withAttributeValues(":field4" -> D4SAttributeEncoder.encodeAttribute("X"))
+              .withAttributeValues(":field4" -> D4SAttributeEncoder.encode("X"))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isEmpty))
 
@@ -276,10 +276,10 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         for {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload1))
 
-          query = testTable.table.query.withKey(Map("field1" -> D4SAttributeEncoder.encodeAttribute(hash))).decodeItems[InterpreterTestPayload]
-          res1  <- connector.runUnrecorded(query)
-          _     <- assertIO(res1.size == 1)
-          _     <- connector.runUnrecorded(testTable.table.putItem(payload2))
+          query = testTable.table.query.withKey(Map("field1" -> D4SAttributeEncoder.encode(hash))).decodeItems[InterpreterTestPayload]
+          res1 <- connector.runUnrecorded(query)
+          _    <- assertIO(res1.size == 1)
+          _    <- connector.runUnrecorded(testTable.table.putItem(payload2))
 
           res2 <- connector.runUnrecorded(query)
           _    <- assertIO(res2.size == 2)
@@ -300,10 +300,11 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload = InterpreterTestPayload("index_test", 333, "f3", RandomPayload("f2"))
         for {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get = testTable.table.query
-            .withIndex(testTable.globalIndex)
-            .withKey(testTable.globalIndex.key.bind("index_test", "f3"))
-            .decodeItems[InterpreterTestPayload]
+          get =
+            testTable.table.query
+              .withIndex(testTable.globalIndex)
+              .withKey(testTable.globalIndex.key.bind("index_test", "f3"))
+              .decodeItems[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.size == 1)
           _     <- assertIO(read1.head == payload)
@@ -316,18 +317,20 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload = InterpreterTestPayload("query_conditions_test", 333, "f3", RandomPayload("f2"))
         for {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload))
-          get1 = testTable.table.query
-            .withKey(testTable.mainKey.bind("query_conditions_test"))
-            .withCondition("field2".of[Int] > 332)
-            .decodeItems[InterpreterTestPayload]
+          get1 =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("query_conditions_test"))
+              .withCondition("field2".of[Int] > 332)
+              .decodeItems[InterpreterTestPayload]
           read1 <- connector.runUnrecorded(get1)
           _     <- assertIO(read1.size == 1)
           _     <- assertIO(read1.head == payload)
 
-          get2 = testTable.table.query
-            .withKey(testTable.mainKey.bind("query_conditions_test"))
-            .withCondition("field2".of[Int] < 332)
-            .decodeItems[InterpreterTestPayload]
+          get2 =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("query_conditions_test"))
+              .withCondition("field2".of[Int] < 332)
+              .decodeItems[InterpreterTestPayload]
           read2 <- connector.runUnrecorded(get2)
           _     <- assertIO(read2.isEmpty)
         } yield ()
@@ -342,13 +345,14 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val expectedSize = 100
         for {
           _ <- IO.foreachParN(3)(1 to expectedSize)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
-          get = testTable.table.query
-            .withKey(testTable.mainKey.bind("paging_test"))
-            .withLimit(10)
-            .withPrefix(prefix)
-            .decodeItems[InterpreterTestPayload]
-            .execPagedFlatten()
-            .retryWithPrefix(testTable.ddl)
+          get =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("paging_test"))
+              .withLimit(10)
+              .withPrefix(prefix)
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+              .retryWithPrefix(testTable.ddl)
 
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.size == expectedSize)
@@ -365,25 +369,28 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         for {
           _   <- IO.foreachParN(3)(1 to expectedSize)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
           ref <- Ref.make(Set.empty[InterpreterTestPayload])
-          get = testTable.table.query
-            .withKey(testTable.mainKey.bind("streaming_test"))
-            .withLimit(10)
-            .withPrefix(prefix)
-            .decodeItems[InterpreterTestPayload]
-            .execStreamed
-            .retryWithPrefix(testTable.ddl)
-          _ <- connector
-            .runUnrecorded(get)
-            .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
+          get =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("streaming_test"))
+              .withLimit(10)
+              .withPrefix(prefix)
+              .decodeItems[InterpreterTestPayload]
+              .execStreamed
+              .retryWithPrefix(testTable.ddl)
+          _ <-
+            connector
+              .runUnrecorded(get)
+              .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
           all <- ref.get
           _   <- assertIO(all.size == expectedSize)
 
-          get2OnUncreatedTable = testTable.table.query
-            .withKey(testTable.mainKey.bind("streaming_test"))
-            .withPrefix(UUID.randomUUID())
-            .decodeItems[InterpreterTestPayload]
-            .execStreamed
-            .retryWithPrefix(testTable.ddl)
+          get2OnUncreatedTable =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("streaming_test"))
+              .withPrefix(UUID.randomUUID())
+              .decodeItems[InterpreterTestPayload]
+              .execStreamed
+              .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(get2OnUncreatedTable).compile.drain
         } yield ()
     }
@@ -400,14 +407,15 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             i =>
               connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl))
           }
-          get = testTable.table.query
-            .withKey(testTable.mainKey.bind("offset_test"))
-            .withPrefix(prefix)
-            .decodeItems[InterpreterTestPayload]
-            .execOffset(OffsetLimit(13, 5))
-            .retryWithPrefix(testTable.ddl)
+          get =
+            testTable.table.query
+              .withKey(testTable.mainKey.bind("offset_test"))
+              .withPrefix(prefix)
+              .decodeItems[InterpreterTestPayload]
+              .execOffset(OffsetLimit(13, 5))
+              .retryWithPrefix(testTable.ddl)
           all <- connector.runUnrecorded(get)
-          _   = all.foreach(println)
+          _    = all.foreach(println)
           _   <- assertIO(all.size == 5)
         } yield ()
     }
@@ -420,27 +428,30 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val expectedSize = 100
         for {
           items <- IO.foreachParN(3)(1 to expectedSize)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
-          put = testTable.table
-            .putItemBatch(items)
-            .withPrefix(prefix)
-            .retryWithPrefix(testTable.ddl)
+          put =
+            testTable.table
+              .putItemBatch(items)
+              .withPrefix(prefix)
+              .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(put)
 
-          get = testTable.table.query
-            .withPrefix(prefix)
-            .withKey(testTable.mainKey.bind("batch_test"))
-            .decodeItems[InterpreterTestPayload]
-            .execPagedFlatten()
-            .retryWithPrefix(testTable.ddl)
+          get =
+            testTable.table.query
+              .withPrefix(prefix)
+              .withKey(testTable.mainKey.bind("batch_test"))
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+              .retryWithPrefix(testTable.ddl)
 
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.size == expectedSize)
           _     <- assertIO(read1.toSet == items.map(_.item).toSet)
 
-          delete = testTable.table
-            .deleteItemBatch(items.map(_.item.key))
-            .withPrefix(prefix)
-            .retryWithPrefix(testTable.ddl)
+          delete =
+            testTable.table
+              .deleteItemBatch(items.map(_.item.key))
+              .withPrefix(prefix)
+              .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
           read2 <- connector.runUnrecorded(get)
@@ -470,7 +481,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> D4SAttributeEncoder.encodeAttribute(0L))
+              .withAttributeValues(":value" -> D4SAttributeEncoder.encode(0L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }
@@ -479,19 +490,20 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> D4SAttributeEncoder.encodeAttribute(1L))
+              .withAttributeValues(":value" -> D4SAttributeEncoder.encode(1L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }
 
-          res <- connector
-            .run("get value") {
-              countersTable.table
-                .getItem(Table1Key(v1, v2))
-                .decodeItem[Table1ItemWithCounter]
-                .withPrefix(prefix)
-                .retryWithPrefix(countersTable.ddl)
-            }.map(_.map(_.counterField).getOrElse(-1L))
+          res <-
+            connector
+              .run("get value") {
+                countersTable.table
+                  .getItem(Table1Key(v1, v2))
+                  .decodeItem[Table1ItemWithCounter]
+                  .withPrefix(prefix)
+                  .retryWithPrefix(countersTable.ddl)
+              }.map(_.map(_.counterField).getOrElse(-1L))
 
           _ <- assertIO(res == 1L)
         } yield ()
@@ -517,7 +529,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
                   _ =>
                     ZIO.sleep(fromScala(3.second)).provideLayer(zio.clock.Clock.live) *>
                     retryPolicy(attempts - 1),
-                  _ => ZIO.unit
+                  _ => ZIO.unit,
                 )
             }
           }
@@ -529,17 +541,17 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table.update.withIndexToCreate(newTable1.globalIndex.toProvisionedIndex(newTable1.ddl.provisioning))
           }
           res <- connector.run("describe")(table.describe)
-          set = Set("key1", "key2", "key3")
+          set  = Set("key1", "key2", "key3")
           _   <- assertIO(res.table().globalSecondaryIndexes().asScala.nonEmpty)
           _   <- assertIO(res.table().globalSecondaryIndexes().asScala.size == 1)
           _   <- assertIO(res.table().attributeDefinitions().asScala.map(_.attributeName()).forall(set.contains))
 
           queryToRepeat = table.update.withIndexToCreate(newTable2.globalIndex2.toProvisionedIndex(newTable2.ddl.provisioning))
           policy        = repeatableUpdateQuery(queryToRepeat)
-          _             <- policy(10)
+          _            <- policy(10)
 
           res2 <- connector.run("describe-2")(table.describe)
-          set2 = Set("key1", "key2", "key3", "key4")
+          set2  = Set("key1", "key2", "key3", "key4")
           _    <- assertIO(res2.table().globalSecondaryIndexes().asScala.nonEmpty)
           _    <- assertIO(res2.table().globalSecondaryIndexes().asScala.size == 2)
           _    <- assertIO(res2.table().attributeDefinitions().asScala.map(_.attributeName()).forall(set2.contains))
@@ -554,29 +566,32 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val expectedSize = 100
         for {
           items <- IO.foreachParN(3)(1 to expectedSize)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
-          put = testTable.table
-            .putItemBatch(items)
-            .withPrefix(prefix)
-            .exec
-            .retryWithPrefix(testTable.ddl)
+          put =
+            testTable.table
+              .putItemBatch(items)
+              .withPrefix(prefix)
+              .exec
+              .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(put)
 
-          get = testTable.table.query
-            .withPrefix(prefix)
-            .withKey(testTable.mainKey.bind("batch_test"))
-            .decodeItems[InterpreterTestPayload]
-            .execPagedFlatten()
-            .retryWithPrefix(testTable.ddl)
+          get =
+            testTable.table.query
+              .withPrefix(prefix)
+              .withKey(testTable.mainKey.bind("batch_test"))
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+              .retryWithPrefix(testTable.ddl)
 
           read1 <- connector.runUnrecorded(get)
           _     <- assertIO(read1.size == expectedSize)
           _     <- assertIO(read1.toSet == items.map(_.item).toSet)
 
-          delete = testTable.table
-            .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
-            .withPrefix(prefix)
-            .exec
-            .retryWithPrefix(testTable.ddl)
+          delete =
+            testTable.table
+              .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
+              .withPrefix(prefix)
+              .exec
+              .retryWithPrefix(testTable.ddl)
           _ <- connector.runUnrecorded(delete)
 
           read2 <- connector.runUnrecorded(get)
@@ -616,7 +631,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val payload = InterpreterTestPayload("perform put2", 321, "f3", RandomPayload("f2"))
         for {
           _     <- d4z.runUnrecorded(testTable.table.putItem(payload))
-          get   = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
+          get    = testTable.table.getItem(payload.key).decodeItem[InterpreterTestPayload]
           read1 <- d4z.runUnrecorded(get)
           _     <- assertIO(read1.contains(payload))
         } yield ()

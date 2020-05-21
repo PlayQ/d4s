@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters._
 
 final case class GetItemBatch(
   table: TableReference,
-  batchItems: List[Map[String, AttributeValue]] = Nil
+  batchItems: List[Map[String, AttributeValue]] = Nil,
 ) extends DynamoRequest
   with WithTableReference[GetItemBatch]
   with WithBatch[GetItemBatch, Identity] {
@@ -20,7 +20,7 @@ final case class GetItemBatch(
   override type Rsp = List[BatchGetItemResponse]
 
   override def withBatch[I: D4SEncoder](batchItems: List[I]): GetItemBatch = {
-    withBatch(batchItems.map(D4SEncoder[I].encode))
+    withBatch(batchItems.map(D4SEncoder[I].encodeObject))
   }
 
   override def withBatch(batchItems: List[Map[String, AttributeValue]]): GetItemBatch = copy(batchItems = batchItems)

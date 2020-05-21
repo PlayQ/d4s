@@ -70,8 +70,8 @@ object Condition {
       val rightId      = s":r_$nesting"
       val (alias, map) = createAlias(path)
       val attrValues: Map[String, AttributeValue] = {
-        D4SAttributeEncoder.encodePlain(leftId, left) ++
-        D4SAttributeEncoder.encodePlain(rightId, right)
+        D4SAttributeEncoder.encodeField(leftId, left) ++
+        D4SAttributeEncoder.encodeField(rightId, right)
       }
       val condExpr = s"$alias between $leftId and $rightId"
       FinalCondition(attrValues, map, Option(condExpr))
@@ -82,7 +82,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val attrValues: Map[String, AttributeValue] = items.zipWithIndex.foldLeft(Map.empty[String, AttributeValue]) {
         case (acc, (item, id)) =>
-          acc ++ D4SAttributeEncoder.encodePlain(s":item${nesting}_$id", item)
+          acc ++ D4SAttributeEncoder.encodeField(s":item${nesting}_$id", item)
       }
       val (alias, map) = createAlias(path)
       val condExpr     = s"$alias in (${attrValues.keySet.mkString(",")})"
@@ -93,7 +93,7 @@ object Condition {
   final case class logical[T: D4SAttributeEncoder](path: List[String], operator: LogicalOperator, value: T) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val valName      = s":v_$nesting"
-      val attrValues   = D4SAttributeEncoder.encodePlain(valName, value)
+      val attrValues   = D4SAttributeEncoder.encodeField(valName, value)
       val (alias, map) = createAlias(path)
       val condExpr     = s"$alias ${operator.asString} $valName"
       FinalCondition(attrValues, map, Some(condExpr))
@@ -104,7 +104,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val valName      = s":vb_$nesting"
-      val attrValues   = D4SAttributeEncoder.encodePlain(valName, prefix)
+      val attrValues   = D4SAttributeEncoder.encodeField(valName, prefix)
       val condExpr     = s"begins_with($alias, $valName)"
       FinalCondition(attrValues, map, Some(condExpr))
     }
@@ -130,7 +130,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val valName      = s":vt_$nesting"
-      val attrValues   = D4SAttributeEncoder.encodePlain(valName, tpe)
+      val attrValues   = D4SAttributeEncoder.encodeField(valName, tpe)
       val condExpr     = s"attribute_type($alias, $valName)"
       FinalCondition(attrValues, map, Some(condExpr))
     }
@@ -140,7 +140,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val valName      = s":vc_$nesting"
-      val attrValues   = D4SAttributeEncoder.encodePlain(valName, value)
+      val attrValues   = D4SAttributeEncoder.encodeField(valName, value)
       val condExpr     = s"contains($alias, $valName)"
       FinalCondition(attrValues, map, Some(condExpr))
     }

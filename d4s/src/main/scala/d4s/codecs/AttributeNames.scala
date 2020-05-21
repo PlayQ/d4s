@@ -5,15 +5,16 @@ import scala.reflect.macros.blackbox
 
 /** Retrieves a `ProjectionExpression` for case class `T` */
 final case class AttributeNames[T](attributeNames: Set[String]) {
-  def projectionExpression: String                         = attributeNames.mkString("", ", ", "")
-  def combine[A](t2: AttributeNames[_]): AttributeNames[A] = AttributeNames(this.attributeNames ++ t2.attributeNames)
-  def ++[A](t2: AttributeNames[_]): AttributeNames[A]      = this.combine(t2)
+  def projectionExpression: String                           = attributeNames.mkString("", ", ", "")
+  def combine[A](that: AttributeNames[_]): AttributeNames[A] = AttributeNames(this.attributeNames ++ that.attributeNames)
+  def ++[A](that: AttributeNames[_]): AttributeNames[A]      = AttributeNames(this.attributeNames ++ that.attributeNames)
 }
 
 object AttributeNames {
   def apply[T: AttributeNames]: AttributeNames[T] = implicitly
 
-  def derived[T]: AttributeNames[T]                               = macro AttributeNamesMacro.attributeNamesMacro[T]
+  def derived[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesMacro[T]
+
   implicit def autoMacroUtilsAttributeNames[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesMacro[T]
 
   object AttributeNamesMacro {
@@ -35,7 +36,7 @@ object AttributeNames {
           c.error(
             c.enclosingPosition,
             s"""Field name `$bannedWord` is reserved in Dynamo! Please rename.
-               |When checking attributes for Item type ${weakTypeOf[T]}""".stripMargin
+               |When checking attributes for Item type ${weakTypeOf[T]}""".stripMargin,
           )
       }
 
@@ -617,7 +618,7 @@ object AttributeNames {
       "WRAPPED",
       "WRITE",
       "YEAR",
-      "ZONE"
+      "ZONE",
     )
 
   }

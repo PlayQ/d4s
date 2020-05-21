@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 
 final case class PutItemBatch(
   table: TableReference,
-  batchItems: List[Map[String, AttributeValue]] = Nil
+  batchItems: List[Map[String, AttributeValue]] = Nil,
 ) extends DynamoWriteBatchRequest
   with WithTableReference[PutItemBatch]
   with WithBatch[PutItemBatch, DynamoRequest.BatchWriteEntity] {
@@ -21,12 +21,12 @@ final case class PutItemBatch(
         case Some(ttlName) =>
           batchItems.map {
             case BatchWriteEntity(item, ttl) =>
-              val mbTTL = ttl.map(D4SAttributeEncoder.encodePlain(ttlName, _))
-              D4SEncoder[I].encode(item) ++ mbTTL.getOrElse(Map.empty)
+              val mbTTL = ttl.map(D4SAttributeEncoder.encodeField(ttlName, _))
+              D4SEncoder[I].encodeObject(item) ++ mbTTL.getOrElse(Map.empty)
           }
 
         case None =>
-          batchItems.map(i => D4SEncoder[I].encode(i.item))
+          batchItems.map(i => D4SEncoder[I].encodeObject(i.item))
       }
     }
   }

@@ -84,8 +84,8 @@ object DynamoRequest {
 
     final def withAttributeValues(add: Map[String, AttributeValue]): A          = withAttributeValues(_ ++ add)
     final def withAttributeValues(value: (String, AttributeValue)): A           = withAttributeValues(_ + value)
-    final def withAttribute[Item: D4SEncoder](value: Item): A                   = withAttributeValues(D4SEncoder[Item].encode(value))
-    final def withAttributes[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withAttributeValues(D4SEncoder[I1].encode(v1) ++ D4SEncoder[I2].encode(v2))
+    final def withAttribute[Item: D4SEncoder](value: Item): A                   = withAttributeValues(D4SEncoder[Item].encodeObject(value))
+    final def withAttributes[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withAttributeValues(D4SEncoder[I1].encodeObject(v1) ++ D4SEncoder[I2].encodeObject(v2))
   }
 
   trait WithAttributeNames[A] {
@@ -109,7 +109,7 @@ object DynamoRequest {
 
   trait WithStartKey[A] {
     def withStartKeyMap(startKey: java.util.Map[String, AttributeValue]): A
-    final def withStartKey[Key: D4SEncoder](startKey: Key): A = withStartKeyMap(D4SEncoder[Key].encode(startKey).asJava)
+    final def withStartKey[Key: D4SEncoder](startKey: Key): A = withStartKeyMap(D4SEncoder[Key].encodeObject(startKey).asJava)
   }
 
   trait WithConsistent[A] {
@@ -134,7 +134,7 @@ object DynamoRequest {
     final def withKey(add: Map[String, AttributeValue]): A        = withKey(_ ++ add)
     final def withKey(value: (String, AttributeValue)): A         = withKey(_ + value)
     final def withKeyField[T](field: DynamoField[T])(value: T): A = withKey(_ + field.bind(value))
-    final def withKeyItem[Item: D4SEncoder](value: Item): A       = withKey(_ ++ D4SEncoder[Item].encode(value))
+    final def withKeyItem[Item: D4SEncoder](value: Item): A       = withKey(_ ++ D4SEncoder[Item].encodeObject(value))
   }
 
   trait WithItem[A] {
@@ -143,8 +143,8 @@ object DynamoRequest {
     final def withItemAttributeValues(add: Map[String, AttributeValue]): A = withItemAttributeValues(_ ++ add)
     final def withItemAttributeValues(value: (String, AttributeValue)): A  = withItemAttributeValues(_ + value)
     final def withItemField[T](field: DynamoField[T])(value: T): A         = withItemAttributeValues(_ + field.bind(value))
-    final def withItem[Item: D4SEncoder](value: Item): A                   = withItemAttributeValues(D4SEncoder[Item].encode(value))
-    final def withItems[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withItemAttributeValues(D4SEncoder[I1].encode(v1) ++ D4SEncoder[I2].encode(v2))
+    final def withItem[Item: D4SEncoder](value: Item): A                   = withItemAttributeValues(D4SEncoder[Item].encodeObject(value))
+    final def withItems[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withItemAttributeValues(D4SEncoder[I1].encodeObject(v1) ++ D4SEncoder[I2].encodeObject(v2))
   }
 
   type HasTableReference[A]       = A => WithTableReference[A]
