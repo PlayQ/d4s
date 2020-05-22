@@ -12,26 +12,26 @@ include the following components:
 
 1. _d4s_ – core package, the lib itself.
 2. _d4s-circe_ – provides circe codecs to encode the data.
-3. _d4s-test_ - provides test enviroment and docker containers via DIstage TestKit.
-4. _metrics_ - a small yet convinient package for metrics aggregation.
+3. _d4s-test_ - provides test environment and docker containers via DIstage TestKit.
+4. _metrics_ - a small yet convenient package for metrics aggregation.
 5. _aws-common_ - tagging and namespaces
 
 Quickstart
 ===========
-The latest version is `1.0.4`. To use it just add the following line to your `build.sbt` file:
+The latest version is `1.0.6`. To use it just add the following line to your `build.sbt` file:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "d4s" %% "1.0.4"
+libraryDependencies += "net.playq" %% "d4s" %% "1.0.6"
 ```
 In case you want to have Circe codecs you should also add this:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.4"
+libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.6"
 ```
 If you want to use only the metrics package from `d4s` you can add it like this:
 ```
 // available for 2.12 and 2.13
-libraryDependencies += "net.playq" %% "metrics" %% "1.0.4"
+libraryDependencies += "net.playq" %% "metrics" %% "1.0.6"
 ```
 
 Example project:
