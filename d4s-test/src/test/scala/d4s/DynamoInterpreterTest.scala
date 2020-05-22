@@ -7,10 +7,9 @@ import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, WithD4S}
 import d4s.env.Models._
 import d4s.env.{DynamoRnd, DynamoTestBase}
 import d4s.implicits._
-import d4s.models.DynamoException
+import d4s.models.{DynamoException, OffsetLimit}
 import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
-import d4s.util.OffsetLimit
 import zio.interop.catz._
 import zio.{IO, Ref, ZIO}
 

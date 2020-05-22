@@ -1,4 +1,4 @@
-package d4s.util
+package d4s.keys
 
 import java.time.ZonedDateTime
 
@@ -8,13 +8,14 @@ import org.scalacheck.Prop._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 
-final class OrderedTimestampKeyTest extends AnyWordSpec with Checkers with DynamoRnd {
+final class ReversedTimestampKeyTest extends AnyWordSpec with Checkers with DynamoRnd {
+
   // test 10k times
   implicit val propertyConf: PropertyCheckConfiguration = {
     generatorDrivenConfig.copy(minSuccessful = 10000)
   }
 
-  "digit timestamp has has the lexicographic ordering as usual timestamp ordering" in check {
+  "negated timestamp has opposite lexicographic ordering to usual timestamp" in check {
     times: List[ZonedDateTime] =>
       val sortedTs = times.sorted
 

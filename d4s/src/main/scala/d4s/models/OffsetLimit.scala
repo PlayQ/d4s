@@ -1,4 +1,4 @@
-package d4s.util
+package d4s.models
 
 import d4s.codecs.{D4SDecoder, D4SEncoder}
 

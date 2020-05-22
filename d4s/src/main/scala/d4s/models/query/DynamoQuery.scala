@@ -12,8 +12,7 @@ import d4s.models.query.DynamoRequest._
 import d4s.models.query.requests.UpdateTable
 import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex, TableIndex}
 import d4s.models.table.{DynamoField, TableReference}
-import d4s.models.{DynamoExecution, FnBIO}
-import d4s.util.OffsetLimit
+import d4s.models.{DynamoExecution, FnBIO, OffsetLimit}
 import izumi.functional.bio.{BIO, BIOError, F}
 import izumi.fundamentals.platform.language.unused
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConsumedCapacity, ReturnValue, Select}
