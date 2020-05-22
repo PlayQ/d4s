@@ -15,29 +15,39 @@ object AttributeNames {
 
   def derived[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesMacro[T]
 
+  def derivedNoError[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesNoCheckMacro[T]
+
   implicit def autoMacroUtilsAttributeNames[T]: AttributeNames[T] = macro AttributeNamesMacro.attributeNamesMacro[T]
 
   object AttributeNamesMacro {
     def attributeNamesMacro[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[AttributeNames[T]] = {
       c.universe.reify {
-        new AttributeNames[T](AttributeNamesMacro.fetchValsMacro[T](c).splice)
+        new AttributeNames[T](AttributeNamesMacro.fetchValsMacro[T](c)(checkReserved = true).splice)
       }
     }
 
-    def fetchValsMacro[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Set[String]] = {
+    def attributeNamesNoCheckMacro[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[AttributeNames[T]] = {
+      c.universe.reify {
+        new AttributeNames[T](AttributeNamesMacro.fetchValsMacro[T](c)(checkReserved = false).splice)
+      }
+    }
+
+    def fetchValsMacro[T: c.WeakTypeTag](c: blackbox.Context)(checkReserved: Boolean): c.Expr[Set[String]] = {
       import c.universe._
 
       val members = c.weakTypeOf[T].members.toList.collect {
         case m: TermSymbolApi if m.isVal => m.name.decodedName.toString.trim
       }
 
-      members.find(reservedWords contains _.toUpperCase).fold(()) {
-        bannedWord =>
-          c.error(
-            c.enclosingPosition,
-            s"""Field name `$bannedWord` is reserved in Dynamo! Please rename.
-               |When checking attributes for Item type ${weakTypeOf[T]}""".stripMargin,
-          )
+      if (checkReserved) {
+        members.find(reservedWords contains _.toUpperCase).fold(()) {
+          bannedWord =>
+            c.error(
+              c.enclosingPosition,
+              s"""Field name `$bannedWord` is reserved in Dynamo! Please rename.
+                 |When checking attributes for Item type ${weakTypeOf[T]}""".stripMargin,
+            )
+        }
       }
 
       reify {
