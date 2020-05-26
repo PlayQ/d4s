@@ -38,6 +38,11 @@ object Models {
     override val ddl: TableDDL         = TableDDL(table)
   }
 
+  class TestTable4(implicit dynamoMeta: DynamoMeta) extends TableDef {
+    override val table: TableReference = TableReference[String]("table4")("key1")
+    override val ddl: TableDDL         = TableDDL(table)
+  }
+
   class UpdatedTestTable(implicit dynamoMeta: DynamoMeta) extends TableDef {
     override val table: TableReference = TableReference[String, String]("table_update")("key1", "key2")
     override val ddl: TableDDL         = TableDDL(table)
@@ -52,7 +57,7 @@ object Models {
       Projection
         .builder()
         .projectionType(ProjectionType.ALL)
-        .build()
+        .build(),
     )
 
     override val ddl: TableDDL = TableDDL(table).withGlobalIndexes(globalIndex)
@@ -67,7 +72,7 @@ object Models {
       Projection
         .builder()
         .projectionType(ProjectionType.ALL)
-        .build()
+        .build(),
     )
 
     val globalIndex2: GlobalIndex[String, String] = GlobalIndex(
@@ -76,7 +81,7 @@ object Models {
       Projection
         .builder()
         .projectionType(ProjectionType.ALL)
-        .build()
+        .build(),
     )
 
     override val ddl: TableDDL = TableDDL(table).withGlobalIndexes(globalIndex, globalIndex2)
@@ -90,7 +95,7 @@ object Models {
       Projection
         .builder()
         .projectionType(ProjectionType.ALL)
-        .build()
+        .build(),
     )
     override val table: TableReference = TableReference(tableName(), mainKey)
     override val ddl: TableDDL = TableDDL(table)

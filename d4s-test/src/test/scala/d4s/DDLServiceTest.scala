@@ -18,24 +18,25 @@ object DDLServiceTest {
     connector: DynamoConnector[IO],
     dynamoClient: DynamoClient[IO],
     instances: Set[TableDef],
-    testTable: TestTable1
+    testTable: TestTable1,
   )
 
 }
 
 final class DDLServiceTest extends DynamoTestBase[Ctx] with DynamoRnd {
+
   "ddl service " must {
     "perform ddl up" in scopeIO {
       ctx =>
         import ctx._
         for {
-          prefix     <- randomIO[UUID]
-          _          <- assertIO(instances.nonEmpty)
+          prefix    <- randomIO[UUID]
+          _         <- assertIO(instances.nonEmpty)
           randomKey  = Table1Key(UUID.randomUUID().toString, UUID.randomUUID().toString)
           randomItem = Table1Item(UUID.randomUUID().toString, UUID.randomUUID().toString)
 
           put = testTable.table.putItem.withItems(randomKey, randomItem).withPrefix(prefix)
-          _   <- connector.runUnrecorded(put.retryWithPrefix(testTable.ddl))
+          _  <- connector.runUnrecorded(put.retryWithPrefix(testTable.ddl))
           get = testTable.table.getItem(randomKey).withPrefix(prefix)
 
           item <- connector.runUnrecorded(get.decodeItem[Table1Item].retryWithPrefix(testTable.ddl))

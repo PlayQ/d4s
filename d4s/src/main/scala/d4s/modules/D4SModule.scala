@@ -9,6 +9,8 @@ import distage.{ModuleDef, TagKK}
 import izumi.fundamentals.platform.integration.PortCheck
 import net.playq.aws.tagging.AwsNameSpace
 
+import scala.concurrent.duration._
+
 class D4SModule[F[+_, +_]: TagKK] extends ModuleDef {
   include(D4SModule.base[F])
   include(D4SModule.configs)
@@ -30,7 +32,7 @@ object D4SModule {
     many[TableDef]
 
     make[PortCheck].named("dynamo-port").from {
-      new PortCheck(3000)
+      new PortCheck(3.seconds)
     }
   }
 
