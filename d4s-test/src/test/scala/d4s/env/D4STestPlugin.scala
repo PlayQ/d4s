@@ -1,6 +1,5 @@
 package d4s.env
 
-import d4s.modules.D4SModule
 import d4s.test.envs.D4SDockerModule
 import izumi.distage.docker.modules.DockerSupportModule
 import izumi.distage.effect.modules.ZIODIEffectModule
