@@ -8,7 +8,7 @@ final case class ProvisionedGlobalIndex[-H, -R](
   name: String,
   key: DynamoKey[H, R],
   projection: Projection,
-  provisionedThroughputConfig: ProvisionedThroughputConfig
+  provisionedThroughputConfig: ProvisionedThroughputConfig,
 ) extends TableIndex[H, R] {
 
   def asCreateAction: CreateGlobalSecondaryIndexAction = {
@@ -23,7 +23,7 @@ final case class ProvisionedGlobalIndex[-H, -R](
 }
 
 object ProvisionedGlobalIndex {
-  implicit final class FromGlobalIndex[H, R](index: GlobalIndex[H, R]) {
+  implicit final class FromGlobalIndex[H, R](private val index: GlobalIndex[H, R]) extends AnyVal {
     def toProvisionedIndex(cfg: TableProvisionedThroughputConfig): ProvisionedGlobalIndex[H, R] = {
       ProvisionedGlobalIndex(index.name, index.key, index.projection, cfg.getIndexProvisioning(index.name))
     }
