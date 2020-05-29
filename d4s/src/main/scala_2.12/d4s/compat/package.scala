@@ -4,7 +4,7 @@ package object compat {
 
   private[d4s] object chaining {
 
-    implicit final class CainingOps[A](val a: A) extends AnyVal {
+    implicit final class ChainingOps[A](val a: A) extends AnyVal {
       def tap[U](f: A => U): A = {
         f(a)
         a
