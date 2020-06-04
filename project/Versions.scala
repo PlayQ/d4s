@@ -1,7 +1,7 @@
 object V {
   val scala_212     = "2.12.11"
   val scala_213     = "2.13.2"
-  val izumi_version = "0.10.10"
+  val izumi_version = "0.10.11"
 
   // compiler
   val kind_projector = "0.11.0"
