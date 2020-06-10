@@ -66,17 +66,17 @@ private[metrics] sealed trait LowPriorityInstances {
           case i: Int    => "initial" -> io.circe.Json.fromInt(i)
           case d: Double => "initial" -> io.circe.Json.fromDoubleOrNull(d)
           case _         => "initial" -> io.circe.Json.Null
-        }
+        },
       )
     }
 
     io.circe.Encoder.AsObject
       .instance[MetricDef]({
-        case MetricDef.MetricCounter(role, label, initial)   => io.circe.JsonObject.fromMap(Map("counter"   -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricCounter(role, label, initial)   => io.circe.JsonObject.fromMap(Map("counter" -> encodeMetricDef(role, label, initial)))
         case MetricDef.MetricHistogram(role, label, initial) => io.circe.JsonObject.fromMap(Map("histogram" -> encodeMetricDef(role, label, initial)))
-        case MetricDef.MetricTimer(role, label, initial)     => io.circe.JsonObject.fromMap(Map("timer"     -> encodeMetricDef(role, label, initial)))
-        case MetricDef.MetricMeter(role, label, initial)     => io.circe.JsonObject.fromMap(Map("meter"     -> encodeMetricDef(role, label, initial)))
-        case MetricDef.MetricGauge(role, label, initial)     => io.circe.JsonObject.fromMap(Map("gauge"     -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricTimer(role, label, initial)     => io.circe.JsonObject.fromMap(Map("timer" -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricMeter(role, label, initial)     => io.circe.JsonObject.fromMap(Map("meter" -> encodeMetricDef(role, label, initial)))
+        case MetricDef.MetricGauge(role, label, initial)     => io.circe.JsonObject.fromMap(Map("gauge" -> encodeMetricDef(role, label, initial)))
       }).asInstanceOf[R[MetricDef]]
   }
 
@@ -133,10 +133,10 @@ private[metrics] sealed trait LowPriorityInstances {
 }
 
 /**
- * This is done to disambiguate between `encoder` and `decoder` functions in
- * LowPriorityInstances sealed trait. Basically, these values are required to
- * give the compiler a hint about what function to use.
- */
+  * This is done to disambiguate between `encoder` and `decoder` functions in
+  * LowPriorityInstances sealed trait. Basically, these values are required to
+  * give the compiler a hint about what function to use.
+  */
 object LowPriorityInstances {
   sealed abstract class _Encoder[R[_]]
   object _Encoder {

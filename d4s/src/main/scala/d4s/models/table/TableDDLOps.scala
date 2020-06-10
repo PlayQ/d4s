@@ -50,7 +50,7 @@ object TableDDLOps {
     val oldConfig = ProvisionedThroughputConfig(
       oldTableDescription.provisionedThroughput().readCapacityUnits(),
       oldTableDescription.provisionedThroughput().writeCapacityUnits(),
-      Option(oldTableDescription.billingModeSummary()).flatMap(b => Option(b.billingMode())).getOrElse(BillingMode.UNKNOWN_TO_SDK_VERSION)
+      Option(oldTableDescription.billingModeSummary()).flatMap(b => Option(b.billingMode())).getOrElse(BillingMode.UNKNOWN_TO_SDK_VERSION),
     )
 
     val currConfig = newDDL.provisioning.tableProvisioning

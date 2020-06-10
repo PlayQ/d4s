@@ -15,7 +15,7 @@ final case class TableReference(
   nameSpace: AwsNameSpace,
   key: DynamoKey[_, _],
   ttlField: Option[String],
-  prefix: Option[NamedPrefix]
+  prefix: Option[NamedPrefix],
 ) {
   def fullName: String = {
     val renderedPrefix = prefix.fold("")(p => s"${p.prefix}-")
@@ -35,54 +35,56 @@ object TableReference {
     tableName: String,
     key: DynamoKey[_, _],
     ttlField: Option[String]    = None,
-    prefix: Option[NamedPrefix] = None
-  )(implicit dynamoMeta: DynamoMeta): TableReference = {
+    prefix: Option[NamedPrefix] = None,
+  )(implicit dynamoMeta: DynamoMeta
+  ): TableReference = {
     new TableReference(
       tableName = tableName,
       nameSpace = dynamoMeta.nameSpace,
       key       = key,
       ttlField  = ttlField,
-      prefix    = prefix
+      prefix    = prefix,
     )
   }
 
   def apply[H: DynamoKeyAttribute: D4SAttributeEncoder](
     tableName: String
-  )(hashName: String)(
-    implicit dynamoMeta: DynamoMeta
+  )(hashName: String
+  )(implicit dynamoMeta: DynamoMeta
   ): TableReference = {
     TableReference(
       tableName = tableName,
-      key       = DynamoKey[H](hashName)
+      key       = DynamoKey[H](hashName),
     )
   }
 
   def apply[H: DynamoKeyAttribute: D4SAttributeEncoder, R: DynamoKeyAttribute: D4SAttributeEncoder](
     tableName: String
-  )(hashName: String, rangeName: String)(
-    implicit dynamoMeta: DynamoMeta
+  )(hashName: String,
+    rangeName: String,
+  )(implicit dynamoMeta: DynamoMeta
   ): TableReference = {
     TableReference(
       tableName = tableName,
-      key       = DynamoKey[H, R](hashName, rangeName)
+      key       = DynamoKey[H, R](hashName, rangeName),
     )
   }
 
   implicit final class TableReferenceOps(private val table: TableReference) extends AnyVal {
-    def getItem: DynamoQuery[GetItem, GetItemResponse]                                     = GetItem(table).toQuery
-    def getItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[GetItem, GetItemResponse] = GetItem(table).toQuery.withKeyItem(keyItem)
-    def getItem(key: Map[String, AttributeValue]): DynamoQuery[GetItem, GetItemResponse]   = GetItem(table).toQuery.withKey(key)
+    def getItem: DynamoQuery[GetItem, GetItemResponse]                                   = GetItem(table).toQuery
+    def getItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[GetItem, GetItemResponse]  = GetItem(table).toQuery.withKeyItem(keyItem)
+    def getItem(key: Map[String, AttributeValue]): DynamoQuery[GetItem, GetItemResponse] = GetItem(table).toQuery.withKey(key)
 
     def putItem: DynamoQuery[PutItem, PutItemResponse]                                   = PutItem(table).toQuery
-    def putItem[Item: D4SEncoder](item: Item): DynamoQuery[PutItem, PutItemResponse]  = PutItem(table).toQuery.withItem(item)
+    def putItem[Item: D4SEncoder](item: Item): DynamoQuery[PutItem, PutItemResponse]     = PutItem(table).toQuery.withItem(item)
     def putItem(key: Map[String, AttributeValue]): DynamoQuery[PutItem, PutItemResponse] = PutItem(table).toQuery.withItemAttributeValues(key)
 
-    def deleteItem: DynamoQuery[DeleteItem, DeleteItemResponse]                                     = DeleteItem(table).toQuery
-    def deleteItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[DeleteItem, DeleteItemResponse] = DeleteItem(table).toQuery.withKeyItem(keyItem)
-    def deleteItem(key: Map[String, AttributeValue]): DynamoQuery[DeleteItem, DeleteItemResponse]   = DeleteItem(table).toQuery.withKey(key)
+    def deleteItem: DynamoQuery[DeleteItem, DeleteItemResponse]                                   = DeleteItem(table).toQuery
+    def deleteItem[Item: D4SEncoder](keyItem: Item): DynamoQuery[DeleteItem, DeleteItemResponse]  = DeleteItem(table).toQuery.withKeyItem(keyItem)
+    def deleteItem(key: Map[String, AttributeValue]): DynamoQuery[DeleteItem, DeleteItemResponse] = DeleteItem(table).toQuery.withKey(key)
 
     def updateItem: DynamoQuery[UpdateItem, UpdateItemResponse]                                   = UpdateItem(table).toQuery
-    def updateItem[Item: D4SEncoder](item: Item): DynamoQuery[UpdateItem, UpdateItemResponse]  = UpdateItem(table).toQuery.withItem(item)
+    def updateItem[Item: D4SEncoder](item: Item): DynamoQuery[UpdateItem, UpdateItemResponse]     = UpdateItem(table).toQuery.withItem(item)
     def updateItem(key: Map[String, AttributeValue]): DynamoQuery[UpdateItem, UpdateItemResponse] = UpdateItem(table).toQuery.withItemAttributeValues(key)
 
     def deleteItemBatch: DynamoQuery[DeleteItemBatch, List[BatchWriteItemResponse]] = DeleteItemBatch(table).toQuery
@@ -93,7 +95,7 @@ object TableReference {
     def putItemBatch[I: D4SEncoder](putBatch: List[BatchWriteEntity[I]]): DynamoQuery[PutItemBatch, List[BatchWriteItemResponse]] =
       PutItemBatch(table).toQuery.withBatch(putBatch)
 
-    def getItemBatch: DynamoQuery[GetItemBatch, List[BatchGetItemResponse]]                                      = GetItemBatch(table).toQuery
+    def getItemBatch: DynamoQuery[GetItemBatch, List[BatchGetItemResponse]]                                   = GetItemBatch(table).toQuery
     def getItemBatch[I: D4SEncoder](getBatch: List[I]): DynamoQuery[GetItemBatch, List[BatchGetItemResponse]] = GetItemBatch(table).toQuery.withBatch(getBatch)
 
     def scan: DynamoQuery[Scan, ScanResponse]                          = Scan(table).toQuery

@@ -9,7 +9,7 @@ final case class TableDDL(
   localIndexes: Set[LocalIndex[_, _]],
   additionalAttributes: Set[DynamoField[_]],
   provisioning: TableProvisionedThroughputConfig,
-  backupEnabled: Option[Boolean]
+  backupEnabled: Option[Boolean],
 ) {
   def key: DynamoKey[_, _]     = tableReference.key
   def ttlField: Option[String] = tableReference.ttlField
@@ -34,15 +34,16 @@ object TableDDL {
     tableReference: TableReference,
     globalIndexes: Set[GlobalIndex[_, _]]     = Set.empty,
     localIndexes: Set[LocalIndex[_, _]]       = Set.empty,
-    additionalAttributes: Set[DynamoField[_]] = Set.empty
-  )(implicit dynamoMeta: DynamoMeta): TableDDL = {
+    additionalAttributes: Set[DynamoField[_]] = Set.empty,
+  )(implicit dynamoMeta: DynamoMeta
+  ): TableDDL = {
     new TableDDL(
       tableReference       = tableReference,
       globalIndexes        = globalIndexes,
       localIndexes         = localIndexes,
       additionalAttributes = additionalAttributes,
       provisioning         = dynamoMeta.getProvisioning(tableReference.tableName),
-      dynamoMeta.backupEnabled
+      dynamoMeta.backupEnabled,
     )
   }
 }

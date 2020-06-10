@@ -20,7 +20,7 @@ object ExecutionStrategy {
     implicit val F: BIOTemporal[F],
     implicit val interpreter: DynamoInterpreter[F],
     private[d4s] val streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?] = FunctionK.id[F[Throwable, ?]],
-    interpreterErrorHandler: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty
+    interpreterErrorHandler: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty,
   ) {
     def tapInterpreterError(f: PartialFunction[DynamoException, F[Nothing, Unit]]): StrategyInput[F, DR, Dec] = {
       copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)

@@ -7,7 +7,7 @@ import logstage.LogBIO
 
 final class DynamoDDLService[F[+_, +_]: BIOAsync: LogBIO](
   instances: Set[TableDef],
-  tablesManager: DynamoTablesService[F]
+  tablesManager: DynamoTablesService[F],
 ) extends DIResource.SelfNoClose[F[Throwable, ?], DynamoDDLService[F]] {
 
   override def acquire: F[Throwable, Unit] = {

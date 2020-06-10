@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 final case class UpdateTableTags(
   table: TableReference,
   dynamoResourceName: String,
-  tagsToAdd: Map[String, String] = Map.empty
+  tagsToAdd: Map[String, String] = Map.empty,
 ) extends DynamoRequest
   with WithTableReference[UpdateTableTags] {
 

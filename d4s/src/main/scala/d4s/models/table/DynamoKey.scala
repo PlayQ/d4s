@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 
 final case class DynamoKey[-H, -R](
   hashKey: DynamoField[H],
-  rangeKey: Option[DynamoField[R]]
+  rangeKey: Option[DynamoField[R]],
 ) {
   def toList: List[KeySchemaElement] = {
     element(hashKey.name, KeyType.HASH) :: rangeKey.map(r => element(r.name, KeyType.RANGE)).toList
@@ -46,10 +46,14 @@ object DynamoKey {
 
   def apply[H](hashKey: String)(implicit ev0: DynamoKeyAttribute[H], ev1: D4SAttributeEncoder[H]): DynamoKey[H, INothing] =
     DynamoKey(DynamoField[H](hashKey), None)
-  def apply[H, R](hashKey: String, rangeKey: String)(implicit
-                                                     ev0: DynamoKeyAttribute[H],
-                                                     ev1: D4SAttributeEncoder[H],
-                                                     ev2: DynamoKeyAttribute[R],
-                                                     ev3: D4SAttributeEncoder[R]): DynamoKey[H, R] =
+  def apply[H, R](
+    hashKey: String,
+    rangeKey: String,
+  )(implicit
+    ev0: DynamoKeyAttribute[H],
+    ev1: D4SAttributeEncoder[H],
+    ev2: DynamoKeyAttribute[R],
+    ev3: D4SAttributeEncoder[R],
+  ): DynamoKey[H, R] =
     DynamoKey(DynamoField[H](hashKey), Some(DynamoField[R](rangeKey)))
 }

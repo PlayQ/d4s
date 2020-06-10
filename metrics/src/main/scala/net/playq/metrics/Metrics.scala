@@ -45,14 +45,18 @@ object Metrics {
       metrics.timerUpdate(metric, duration)
     }
 
-    def timerUpdateDiffNow(metric: String, start: ZonedDateTime)(implicit
-                                                                 macroSaveTimerMetric: MacroMetricTimer[metric.type],
-                                                                 clock: Clock2[F],
-                                                                 F: BIOMonad[F]): F[Nothing, Unit] = {
+    def timerUpdateDiffNow(
+      metric: String,
+      start: ZonedDateTime,
+    )(implicit
+      macroSaveTimerMetric: MacroMetricTimer[metric.type],
+      clock: Clock2[F],
+      F: BIOMonad[F],
+    ): F[Nothing, Unit] = {
       for {
-        end      <- clock.now()
+        end     <- clock.now()
         duration = FiniteDuration(MILLIS.between(start, end), MILLISECONDS)
-        _        <- metrics.timerUpdate(metric, duration)
+        _       <- metrics.timerUpdate(metric, duration)
       } yield ()
     }
   }

@@ -33,7 +33,7 @@ object MacroMetricSaver {
           s"""When materializing $className[$tpe],
              |Couldn't record metric for metric name `$tpe` - metric name should be a String Constant. It can't be an expression.
              |To disable metric recording for `$tpe`, import $discardName._ - a metric created like this will not be visible in MetricsApi
-           """.stripMargin
+           """.stripMargin,
         )
     }
   }

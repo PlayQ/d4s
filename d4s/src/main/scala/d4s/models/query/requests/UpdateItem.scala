@@ -17,7 +17,7 @@ final case class UpdateItem(
   updateExpressionItem: Map[String, AttributeValue] = Map.empty,
   updateExpression: String                          = "",
   condition: Condition                              = ZeroCondition,
-  returnValue: Option[ReturnValue]                  = None
+  returnValue: Option[ReturnValue]                  = None,
 ) extends DynamoRequest
   with WithTableReference[UpdateItem]
   with WithAttributeValues[UpdateItem]
