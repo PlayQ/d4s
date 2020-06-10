@@ -10,7 +10,7 @@ object HealthState {
     case "UNKNOWN" => UNKNOWN
   }
 
-  case object OK extends HealthState { override def toString: String      = "OK" }
+  case object OK extends HealthState { override def toString: String = "OK" }
   case object DEFUNCT extends HealthState { override def toString: String = "DEFUNCT" }
   case object UNKNOWN extends HealthState { override def toString: String = "UNKNOWN" }
 }

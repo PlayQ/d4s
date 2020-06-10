@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.dynamodb.model.{LocalSecondaryIndex, Proj
 final case class LocalIndex[-H, -R](
   name: String,
   key: DynamoKey[H, R],
-  projection: Projection
+  projection: Projection,
 ) extends TableIndex[H, R] {
   def toAmz: LocalSecondaryIndex =
     LocalSecondaryIndex

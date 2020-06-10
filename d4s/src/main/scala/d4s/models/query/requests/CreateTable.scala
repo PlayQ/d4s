@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 
 final case class CreateTable(
   table: TableReference,
-  ddl: TableDDL
+  ddl: TableDDL,
 ) extends DynamoRequest
   with WithTableReference[CreateTable] {
 
@@ -28,7 +28,7 @@ final case class CreateTable(
         ddl.key.toAttributes,
         ddl.globalIndexes.flatMap(_.key.toAttributes),
         ddl.localIndexes.flatMap(_.key.toAttributes),
-        ddl.additionalAttributes.map(_.toAttribute)
+        ddl.additionalAttributes.map(_.toAttribute),
       ).flatten.distinct
     }
 

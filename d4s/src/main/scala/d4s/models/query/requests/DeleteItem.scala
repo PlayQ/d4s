@@ -14,7 +14,7 @@ final case class DeleteItem(
   conditionExpression: Condition               = ZeroCondition,
   attributeValues: Map[String, AttributeValue] = Map.empty,
   attributeNames: Map[String, String]          = Map.empty,
-  key: Map[String, AttributeValue]             = Map.empty
+  key: Map[String, AttributeValue]             = Map.empty,
 ) extends DynamoRequest
   with WithAttributeValues[DeleteItem]
   with WithTableReference[DeleteItem]

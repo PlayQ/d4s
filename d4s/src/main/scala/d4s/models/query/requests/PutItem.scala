@@ -14,7 +14,7 @@ final case class PutItem(
   conditionExpression: Condition               = ZeroCondition,
   attributeValues: Map[String, AttributeValue] = Map.empty,
   attributeNames: Map[String, String]          = Map.empty,
-  item: Map[String, AttributeValue]            = Map.empty
+  item: Map[String, AttributeValue]            = Map.empty,
 ) extends DynamoRequest
   with WithAttributeValues[PutItem]
   with WithAttributeNames[PutItem]

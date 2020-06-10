@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.dynamodb.model.{GlobalSecondaryIndex, Pro
 final case class GlobalIndex[-H, -R](
   name: String,
   key: DynamoKey[H, R],
-  projection: Projection
+  projection: Projection,
 ) extends TableIndex[H, R] {
   def toAmz(provisionedThroughputConfig: ProvisionedThroughputConfig): GlobalSecondaryIndex =
     provisionedThroughputConfig

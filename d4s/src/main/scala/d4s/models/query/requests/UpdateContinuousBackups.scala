@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.dynamodb.model.{PointInTimeRecoverySpecif
 
 final case class UpdateContinuousBackups(
   table: TableReference,
-  backupEnabled: Boolean
+  backupEnabled: Boolean,
 ) extends DynamoRequest {
 
   override type Rq  = UpdateContinuousBackupsRequest

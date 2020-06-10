@@ -6,7 +6,7 @@ import d4s.models.query.DynamoRequest.PageableRequest
 import software.amazon.awssdk.services.dynamodb.model.{ListTablesRequest, ListTablesResponse}
 
 final case class ListTables(
-  startTable: Option[String] = None,
+  startTable: Option[String] = None
 ) extends DynamoRequest {
 
   override type Rq  = ListTablesRequest

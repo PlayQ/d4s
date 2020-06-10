@@ -13,7 +13,7 @@ object DynamoClient {
 
   final class Impl[F[+_, +_]](
     blocking: BlockingIO[F],
-    dynamo: DynamoComponent
+    dynamo: DynamoComponent,
   ) extends DynamoClient[F] {
     def raw[T](f: DynamoDbClient => T): F[Throwable, T] = {
       blocking.syncBlocking(f(dynamo.client))

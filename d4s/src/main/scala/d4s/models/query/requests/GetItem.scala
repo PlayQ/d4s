@@ -14,7 +14,7 @@ final case class GetItem(
   attributeValues: Map[String, AttributeValue] = Map.empty,
   attributeNames: Map[String, String]          = Map.empty,
   key: Map[String, AttributeValue]             = Map.empty,
-  consistent: Boolean                          = false
+  consistent: Boolean                          = false,
 ) extends DynamoRequest
   with WithAttributeNames[GetItem]
   with WithProjectionExpression[GetItem]

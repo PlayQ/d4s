@@ -24,7 +24,7 @@ object Fixtures {
     e: Seq[Int],
     f: Option[Unit],
     m: Map[String, Int],
-    wrap: TestDataWrap
+    wrap: TestDataWrap,
   )
   object TestCaseClass {
     implicit val circeCodec: Codec.AsObject[TestCaseClass] = derivation.deriveCodec[TestCaseClass]

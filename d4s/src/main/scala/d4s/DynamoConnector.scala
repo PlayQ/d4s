@@ -17,14 +17,20 @@ trait DynamoConnector[F[+_, +_]] {
   def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A]
   def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[Throwable, ?], A]
 
-  def run[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution[DR, Dec, A])(implicit
-                                                                                      macroTimeSaver: MacroMetricDynamoTimer[label.type],
-                                                                                      macroMeterSaver: MacroMetricDynamoMeter[label.type]): F[DynamoException, A]
-
-  def runStreamed[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution.Streamed[DR, Dec, A])(
-    implicit
+  def run[DR <: DynamoRequest, Dec, A](
+    label: String
+  )(q: DynamoExecution[DR, Dec, A]
+  )(implicit
     macroTimeSaver: MacroMetricDynamoTimer[label.type],
-    macroMeterSaver: MacroMetricDynamoMeter[label.type]
+    macroMeterSaver: MacroMetricDynamoMeter[label.type],
+  ): F[DynamoException, A]
+
+  def runStreamed[DR <: DynamoRequest, Dec, A](
+    label: String
+  )(q: DynamoExecution.Streamed[DR, Dec, A]
+  )(implicit
+    macroTimeSaver: MacroMetricDynamoTimer[label.type],
+    macroMeterSaver: MacroMetricDynamoMeter[label.type],
   ): Stream[F[DynamoException, ?], A]
 }
 
@@ -34,7 +40,7 @@ object DynamoConnector {
     @unused dynamoDBHealthChecker: DynamoDBHealthChecker[F],
     @unused dynamoDDLService: DynamoDDLService[F],
     metrics: Metrics[F],
-    log: LogBIO[F]
+    log: LogBIO[F],
   ) extends DynamoConnector[F] {
 
     override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A] =
@@ -47,20 +53,24 @@ object DynamoConnector {
       q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter))
     }
 
-    override def run[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution[DR, Dec, A])(
-      implicit
+    override def run[DR <: DynamoRequest, Dec, A](
+      label: String
+    )(q: DynamoExecution[DR, Dec, A]
+    )(implicit
       macroTimeSaver: MacroMetricDynamoTimer[label.type],
-      macroMeterSaver: MacroMetricDynamoMeter[label.type]
+      macroMeterSaver: MacroMetricDynamoMeter[label.type],
     ): F[DynamoException, A] = {
       recordMetrics(label) {
         runUnrecorded(q)
       }.leftMap(QueryException(label, _))
     }
 
-    override def runStreamed[DR <: DynamoRequest, Dec, A](label: String)(q: DynamoExecution.Streamed[DR, Dec, A])(
-      implicit
+    override def runStreamed[DR <: DynamoRequest, Dec, A](
+      label: String
+    )(q: DynamoExecution.Streamed[DR, Dec, A]
+    )(implicit
       macroTimeSaver: MacroMetricDynamoTimer[label.type],
-      macroMeterSaver: MacroMetricDynamoMeter[label.type]
+      macroMeterSaver: MacroMetricDynamoMeter[label.type],
     ): Stream[F[DynamoException, ?], A] = {
       val recordStreamPage = Lambda[F[Throwable, ?] ~> F[Throwable, ?]] {
         recordMetrics(label)(_)
@@ -72,10 +82,12 @@ object DynamoConnector {
         })
     }
 
-    private[this] def recordMetrics[A](label: String)(f: F[Throwable, A])(
-      implicit
+    private[this] def recordMetrics[A](
+      label: String
+    )(f: F[Throwable, A]
+    )(implicit
       macroTimeSaver: MacroMetricDynamoTimer[label.type],
-      macroMeterSaver: MacroMetricDynamoMeter[label.type]
+      macroMeterSaver: MacroMetricDynamoMeter[label.type],
     ): F[Throwable, A] = {
       metrics.withTimer(label) {
         f.tapError {

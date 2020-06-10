@@ -21,7 +21,7 @@ final case class Scan(
   limit: Option[Int]                                      = None,
   select: Option[Select]                                  = None,
   startKey: Option[java.util.Map[String, AttributeValue]] = None,
-  consistent: Boolean                                     = false
+  consistent: Boolean                                     = false,
 ) extends DynamoRequest
   with WithFilterExpression[Scan]
   with WithAttributeValues[Scan]

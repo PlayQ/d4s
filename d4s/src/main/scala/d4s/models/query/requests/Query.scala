@@ -24,7 +24,7 @@ final case class Query(
   attributeValues: Map[String, AttributeValue]             = Map.empty,
   attributeNames: Map[String, String]                      = Map.empty,
   condition: Condition                                     = ZeroCondition,
-  keyConditionAttributeValues: Map[String, AttributeValue] = Map.empty
+  keyConditionAttributeValues: Map[String, AttributeValue] = Map.empty,
 ) extends DynamoRequest
   with WithFilterExpression[Query]
   with WithAttributeValues[Query]

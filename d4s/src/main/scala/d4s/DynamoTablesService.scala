@@ -33,7 +33,7 @@ object DynamoTablesService {
 
   final class Memo[F[+_, +_]: BIOTemporal](
     logger: LogBIO[F],
-    interpreter: DynamoInterpreter[F]
+    interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService.Impl[F](logger, interpreter) {
     val prefixedTables: mutable.Set[String] = mutable.Set.empty[String]
 

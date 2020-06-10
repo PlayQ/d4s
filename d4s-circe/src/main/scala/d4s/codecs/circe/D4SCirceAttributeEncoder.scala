@@ -17,7 +17,7 @@ object D4SCirceAttributeEncoder {
       jsonNumber  = n => toAttr(n.toString, _.n),
       jsonString  = s => toAttr(s, _.s),
       jsonArray   = array => AttributeValue.builder.l(array.toList.map(jsonToAttribute).asJava).build(),
-      jsonObject  = obj => toAttr(obj.toMap.map { case (k, v) => k -> jsonToAttribute(v) }.asJava, _.m)
+      jsonObject  = obj => toAttr(obj.toMap.map { case (k, v) => k -> jsonToAttribute(v) }.asJava, _.m),
     )
   }
 

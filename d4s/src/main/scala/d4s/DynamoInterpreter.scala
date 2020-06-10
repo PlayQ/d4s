@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 trait DynamoInterpreter[F[_, _]] {
   def run[DR <: DynamoRequest, Dec](
     q: DynamoQuery[DR, Dec],
-    tapError: PartialFunction[DynamoException, F[Nothing, Unit]]
+    tapError: PartialFunction[DynamoException, F[Nothing, Unit]],
   ): F[DynamoException, DR#Rsp]
 }
 
@@ -28,19 +28,19 @@ object DynamoInterpreter {
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
   )(implicit
-    log: LogBIO[F],
+    log: LogBIO[F]
   ) extends DynamoInterpreter[F] {
 
     override def run[DR <: DynamoRequest.Aux[_, _], Dec](
       q: DynamoQuery[DR, Dec],
-      tapError: PartialFunction[DynamoException, F[Nothing, Unit]]
+      tapError: PartialFunction[DynamoException, F[Nothing, Unit]],
     ): F[DynamoException, DR#Rsp] = {
       runImpl[DR, Dec, DR#Rq, DR#Rsp](q, tapError)
     }
 
     private[this] def runImpl[DR <: DynamoRequest.Aux[Rq, Rsp], Dec, Rq, Rsp](
       query: DynamoQuery[DR, Dec],
-      tapError: PartialFunction[DynamoException, F[Nothing, Unit]]
+      tapError: PartialFunction[DynamoException, F[Nothing, Unit]],
     ): F[DynamoException, Rsp] = {
       query.request match {
         case q: CreateTable =>
@@ -105,7 +105,7 @@ object DynamoInterpreter {
       F.traverse(batches) {
         items =>
           batchLoop(request.withBatch(items).toAmz)(
-            _.batchWriteItem(_),
+            _.batchWriteItem(_)
           )(_.unprocessedItems())(
             _.toBuilder.requestItems(_).build()
           )
@@ -126,9 +126,10 @@ object DynamoInterpreter {
 
     @inline private[this] def batchLoop[Rq, Rsp, K, V](
       rq0: Rq
-    )(raw: (DynamoDbClient, Rq) => Rsp)(
-      getUnprocessed: Rsp => java.util.Map[K, V]
-    )(mkNewRq: (Rq, java.util.Map[K, V]) => Rq): F[Throwable, Rsp] = {
+    )(raw: (DynamoDbClient, Rq) => Rsp
+    )(getUnprocessed: Rsp => java.util.Map[K, V]
+    )(mkNewRq: (Rq, java.util.Map[K, V]) => Rq
+    ): F[Throwable, Rsp] = {
       val sleepDuration = batchConfig.unprocessedBatchSleep getOrElse 1.second
 
       def go(rq: Rq): F[Throwable, Rsp] = {
@@ -172,8 +173,10 @@ object DynamoInterpreter {
     def logWrapError(
       operation: String,
       tableName: String,
-      errorHandler: PartialFunction[DynamoException, F[Nothing, Unit]]
-    )(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
+      errorHandler: PartialFunction[DynamoException, F[Nothing, Unit]],
+    )(implicit F: BIOError[F],
+      log: LogBIO[F],
+    ): F[DynamoException, A] = {
       f.leftMap(InterpreterException(operation, Some(tableName), _)).tapError {
         errorHandler orElse {
           case failure => log.error(s"Dynamo: Got error during executing $operation for $tableName. ${failure.cause -> "Failure"}.")

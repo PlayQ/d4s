@@ -32,9 +32,12 @@ final case class ProvisionedThroughputConfig(
     builder.billingMode(mode)
   }
 
-  def configure[T](builder: T)(implicit
-                               ev0: T <:< { def provisionedThroughput(provisionedThroughput: ProvisionedThroughput): T },
-                               ev1: T <:< { def billingMode(billingMode: BillingMode): T }): T = {
+  def configure[T](
+    builder: T
+  )(implicit
+    ev0: T <:< { def provisionedThroughput(provisionedThroughput: ProvisionedThroughput): T },
+    ev1: T <:< { def billingMode(billingMode: BillingMode): T },
+  ): T = {
     configureBilling(configureThroughput(builder))
   }
 
