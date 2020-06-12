@@ -173,21 +173,21 @@ object DynamoInterpreter {
     def logWrapError(
       operation: String,
       tableName: String,
-      errorHandler: PartialFunction[DynamoException, F[Nothing, Unit]],
+      errorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
     )(implicit F: BIOError[F],
       log: LogBIO[F],
     ): F[DynamoException, A] = {
       f.leftMap(InterpreterException(operation, Some(tableName), _)).tapError {
-        errorHandler orElse {
+        errorLogger.orElse {
           case failure => log.error(s"Dynamo: Got error during executing $operation for $tableName. ${failure.cause -> "Failure"}.")
         }
       }
     }
 
     def logWrapError(operation: String)(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
-      f.leftMap(InterpreterException(operation, None, _)) tapError (
-        failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}")
-      )
+      f.leftMap(InterpreterException(operation, None, _)).tapError(
+          failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}")
+        )
     }
   }
 
