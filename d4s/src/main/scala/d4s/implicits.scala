@@ -1,5 +1,5 @@
 package d4s
 
-import d4s.models.FieldOps
+import d4s.models.StringFieldOps
 
-object implicits extends FieldOps
+object implicits extends StringFieldOps

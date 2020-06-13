@@ -1,18 +1,18 @@
 package d4s.models
 
 import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
-import d4s.models.FieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
+import d4s.models.StringFieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
 import d4s.models.conditions._
 import d4s.models.table.DynamoField
 
 import scala.language.implicitConversions
 
-trait FieldOps {
+trait StringFieldOps {
   @inline implicit final def stringToTypedFieldOps(s: String): StringTypedFieldOpsCtor = new StringTypedFieldOpsCtor(s)
   @inline implicit final def pathToFieldOps(path: List[String]): PathBasedFieldOpsCtor = new PathBasedFieldOpsCtor(path)
 }
 
-object FieldOps {
+object StringFieldOps {
 
   final class StringTypedFieldOpsCtor(private val name: String) extends AnyVal {
     def of[T]: TypedFieldOps[T] = new TypedFieldOps[T](List(name))

@@ -13,7 +13,7 @@ import izumi.fundamentals.platform.language.unused
 import logstage.LogBIO
 import net.playq.metrics.Metrics
 
-trait DynamoConnector[F[+_, +_]] {
+trait DynamoConnector[F[_, _]] {
   def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A]
   def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[DynamoException, ?], A]
 
