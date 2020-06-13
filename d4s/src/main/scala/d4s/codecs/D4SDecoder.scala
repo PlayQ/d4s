@@ -37,7 +37,7 @@ trait D4SDecoder[T] {
 }
 
 object D4SDecoder extends D4SDecoderScala213 {
-  @inline def apply[A: D4SDecoder]: D4SDecoder[A] = implicitly
+  @inline def apply[A](implicit ev: D4SDecoder[A]): ev.type = ev
 
   def derived[A]: D4SDecoder[A] = macro Magnolia.gen[A]
 

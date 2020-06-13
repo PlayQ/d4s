@@ -26,7 +26,7 @@ trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
 }
 
 object D4SEncoder {
-  @inline def apply[A: D4SEncoder]: D4SEncoder[A] = implicitly
+  @inline def apply[A](implicit ev: D4SEncoder[A]): ev.type = ev
 
   def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
 

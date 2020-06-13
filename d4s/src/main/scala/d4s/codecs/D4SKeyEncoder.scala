@@ -7,7 +7,7 @@ trait D4SKeyEncoder[A] {
 }
 
 object D4SKeyEncoder {
-  @inline def apply[A: D4SKeyEncoder]: D4SKeyEncoder[A] = implicitly
+  @inline def apply[A](implicit ev: D4SKeyEncoder[A]): ev.type = ev
 
   def encode[A: D4SKeyEncoder](item: A): String = D4SKeyEncoder[A].encode(item)
 
