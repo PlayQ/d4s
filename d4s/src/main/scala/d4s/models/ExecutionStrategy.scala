@@ -19,11 +19,11 @@ object ExecutionStrategy {
     query: DynamoQuery[DR, Dec],
     implicit val F: BIOTemporal[F],
     implicit val interpreter: DynamoInterpreter[F],
-    private[d4s] val streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?] = FunctionK.id[F[Throwable, ?]],
-    interpreterErrorHandler: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty,
+    streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?]                 = FunctionK.id[F[Throwable, ?]],
+    interpreterErrorLogger: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty,
   ) {
     def tapInterpreterError(f: PartialFunction[DynamoException, F[Nothing, Unit]]): StrategyInput[F, DR, Dec] = {
-      copy(interpreterErrorHandler = f orElse this.interpreterErrorHandler)
+      copy(interpreterErrorLogger = f orElse this.interpreterErrorLogger)
     }
     def discardInterpreterError[Err: ClassTag]: StrategyInput[F, DR, Dec] = {
       tapInterpreterError { case DynamoException(_, _: Err) => F.unit }

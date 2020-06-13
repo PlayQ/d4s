@@ -105,7 +105,7 @@ object DynamoExecution {
       in =>
         import in._
         in.interpreter
-          .run(in.query, in.interpreterErrorHandler)
+          .run(in.query, in.interpreterErrorLogger)
           .flatMap(in.query.decoder(_))
     }
   }
@@ -170,19 +170,19 @@ object DynamoExecution {
             case Some(nextPage) =>
               val newRq = query.modify(paging.withPageMarker(_, nextPage).withLimit(offsetLimit.offset - fetched))
               interpreter
-                .run(newRq, in.interpreterErrorHandler)
+                .run(newRq, in.interpreterErrorLogger)
                 .flatMap(newRsp => go(paging.getPageMarker(newRsp), fetched + newRsp.count()))
           }
         }
 
         for {
-          skipOffsetRsp <- interpreter.run(query.withLimit(offsetLimit.offset).countOnly, in.interpreterErrorHandler)
+          skipOffsetRsp <- interpreter.run(query.withLimit(offsetLimit.offset).countOnly, in.interpreterErrorLogger)
           res           <- go(paging.getPageMarker(skipOffsetRsp), skipOffsetRsp.count())
         } yield res
       }
 
       if (offsetLimit.offset <= 0) {
-        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(query, F, interpreter, interpreterErrorHandler = interpreterErrorHandler))
+        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(query, F, interpreter, interpreterErrorLogger = interpreterErrorLogger))
       } else {
         for {
           lastKey <- firstOffsetKey()
@@ -192,7 +192,7 @@ object DynamoExecution {
                 .fold(rq)(paging.withPageMarker(rq, _))
                 .withLimit(offsetLimit.limit.toInt)
           }
-          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(newReq, F, interpreter, interpreterErrorHandler = interpreterErrorHandler))
+          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(newReq, F, interpreter, interpreterErrorLogger = interpreterErrorLogger))
         } yield res
       }
   }
@@ -227,14 +227,14 @@ object DynamoExecution {
             case Some(nextPage) =>
               val newReq = query.modify(paging.withPageMarker(_, nextPage))
               (for {
-                newRsp  <- interpreter.run(newReq, interpreterErrorHandler)
+                newRsp  <- interpreter.run(newReq, interpreterErrorLogger)
                 decoded <- query.decoder[F](newRsp)
               } yield go(newRsp, rows :+ decoded)).flatMap(identity)
           }
         }
 
         for {
-          newRsp  <- interpreter.run(query, interpreterErrorHandler)
+          newRsp  <- interpreter.run(query, interpreterErrorLogger)
           decoded <- query.decoder[F](newRsp)
           res     <- go(newRsp, Queue(decoded))
         } yield res
@@ -286,16 +286,10 @@ object DynamoExecution {
   ) extends DynamoExecution.Dependent[DR, Dec, StreamFThrowable[?[_, `+_`], A]] {
 
     def map[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
-      copy(executionStrategy = ExecutionStrategy.Streamed[DR, Dec, B] {
-        in =>
-          executionStrategy(in).map(f)
-      })
+      through(_.map(f))
     }
-    def flatMap[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
-      copy(executionStrategy = ExecutionStrategy.Streamed[DR, Dec, B] {
-        in =>
-          executionStrategy(in).map(f)
-      })
+    def flatMap[B](f: A => StreamFThrowable[UnknownF, B]): DynamoExecution.Streamed[DR, Dec, B] = {
+      through(_.flatMap(f))
     }
     def void: DynamoExecution.Streamed[DR, Dec, Unit] = {
       map(_ => ())
@@ -346,7 +340,7 @@ object DynamoExecution {
                     oldKey <- lastEvaluatedKey.get
                     newReq  = query.modify(paging.withPageMarkerOption(_, oldKey))
 
-                    newRsp <- interpreter.run(newReq, in.interpreterErrorHandler)
+                    newRsp <- interpreter.run(newReq, in.interpreterErrorLogger)
                     newKey  = paging.getPageMarker(newRsp)
                     _      <- lastEvaluatedKey.set(newKey)
 

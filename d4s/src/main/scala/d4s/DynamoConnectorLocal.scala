@@ -16,8 +16,8 @@ class DynamoConnectorLocal[F[-_, +_, +_]: BIO3: BIOLocal](implicit tag: Tag[Dyna
 
   override def runUnrecorded[DR <: DynamoRequest, A](
     q: DynamoExecution.Streamed[DR, _, A]
-  ): Stream[F[HasDynamoConnector[F], Throwable, ?], A] = {
-    Stream.force[F[HasDynamoConnector[F], Throwable, ?], A] {
+  ): Stream[F[HasDynamoConnector[F], DynamoException, ?], A] = {
+    Stream.force[F[HasDynamoConnector[F], DynamoException, ?], A] {
       F.askWith(_.get.runUnrecorded(q))
     }
   }

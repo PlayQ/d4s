@@ -1,10 +1,19 @@
 package d4s.models
 
+import scala.annotation.tailrec
+
 abstract class DynamoException(val message: String, val cause: Throwable) extends RuntimeException(message, cause)
 
 object DynamoException {
+  @tailrec def unapply(arg: DynamoException): Option[(String, Throwable)] = shallow.unapply(arg) match {
+    case Some((_, inner: DynamoException)) => unapply(inner)
+    case None                              => None
+    case res                               => res
+  }
 
-  def unapply(arg: DynamoException): Option[(String, Throwable)] = Some((arg.message, arg.cause))
+  object shallow {
+    def unapply(arg: DynamoException): Option[(String, Throwable)] = Some((arg.message, arg.cause))
+  }
 
   final case class InterpreterException(operation: String, tableName: Option[String], override val cause: Throwable)
     extends DynamoException(s"Got error during executing `$operation` for table `$tableName`. Cause: ${cause.getMessage}", cause)
@@ -16,8 +25,8 @@ object DynamoException {
     private def from(queryName: Option[String], cause: Throwable) = {
       val mbName = queryName.fold(" ")(n => s" `$n` ")
       cause match {
-        case DynamoException(message, cause) => new QueryException(s"Dynamo query" ++ mbName ++ s"failed due to error: $message", cause)
-        case cause                           => new QueryException(s"Dynamo query" ++ mbName ++ s"failed due to error: ${cause.getMessage}", cause)
+        case DynamoException(message, cause) => new QueryException(s"Dynamo query${mbName}failed due to error: $message", cause)
+        case cause                           => new QueryException(s"Dynamo query${mbName}failed due to error: ${cause.getMessage}", cause)
       }
     }
   }
