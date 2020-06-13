@@ -11,7 +11,7 @@ import d4s.models.{DynamoException, OffsetLimit}
 import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import zio.interop.catz._
-import zio.{IO, Ref, ZIO}
+import zio.{IO, Ref, Task, ZIO}
 
 object DynamoInterpreterTest {
 
@@ -390,7 +390,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .decodeItems[InterpreterTestPayload]
               .execStreamed
               .retryWithPrefix(testTable.ddl)
-          _ <- connector.runUnrecorded(get2OnUncreatedTable).compile.drain
+          _ <- connector.runUnrecorded(get2OnUncreatedTable).covary[Task].compile.drain
         } yield ()
     }
 
