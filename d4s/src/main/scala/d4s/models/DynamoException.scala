@@ -23,10 +23,10 @@ object DynamoException {
     def apply(cause: Throwable): QueryException                    = from(None, cause)
     def apply(queryName: String, cause: Throwable): QueryException = from(Some(queryName), cause)
     private def from(queryName: Option[String], cause: Throwable) = {
-      val mbName = queryName.fold("")(n => s"`$n`")
+      val mbName = queryName.fold(" ")(n => s" `$n` ")
       cause match {
-        case DynamoException(message, cause) => new QueryException(s"Dynamo query $mbName failed due to error: $message", cause)
-        case cause                           => new QueryException(s"Dynamo query $mbName failed due to error: ${cause.getMessage}", cause)
+        case DynamoException(message, cause) => new QueryException(s"Dynamo query${mbName}failed due to error: $message", cause)
+        case cause                           => new QueryException(s"Dynamo query${mbName}failed due to error: ${cause.getMessage}", cause)
       }
     }
   }
