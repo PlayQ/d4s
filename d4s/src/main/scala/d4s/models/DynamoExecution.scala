@@ -32,6 +32,7 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def void: DynamoExecution[DR, Dec, Unit] = {
     map(_ => ())
   }
+
   def redeem[B](
     err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B],
     succ: A => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, B],
@@ -41,14 +42,18 @@ final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   def catchAll[A1 >: A](err: Throwable => StrategyInput[UnknownF, DR, Dec] => UnknownF[Throwable, A1]): DynamoExecution[DR, Dec, A1] = {
     redeem(err, a => _.F.pure(a))
   }
-  def optConditionFailure: DynamoExecution[DR, Dec, Option[ConditionalCheckFailedException]] = {
+
+  def eitherConditionSuccess: DynamoExecution[DR, Dec, Either[ConditionalCheckFailedException, A]] = {
     redeem(
       {
-        case DynamoException(_, err: ConditionalCheckFailedException) => _.F.pure(Some(err))
+        case DynamoException(_, err: ConditionalCheckFailedException) => _.F.pure(Left(err))
         case err: Throwable                                           => _.F.fail(err)
       },
-      _ => _.F.pure(None),
+      a => _.F.pure(Right(a)),
     ).discardInterpreterError[ConditionalCheckFailedException]
+  }
+  def optConditionFailure: DynamoExecution[DR, Dec, Option[ConditionalCheckFailedException]] = {
+    eitherConditionSuccess.map(_.left.toOption)
   }
   def boolConditionSuccess: DynamoExecution[DR, Dec, Boolean] = {
     optConditionFailure.map(_.isEmpty)
