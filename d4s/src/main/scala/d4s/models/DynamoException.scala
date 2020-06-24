@@ -9,7 +9,7 @@ abstract class DynamoException(val message: String, val cause: Throwable) extend
 object DynamoException {
   @tailrec def unapply(arg: DynamoException): Some[(String, Throwable)] = arg.cause match {
     case inner: DynamoException => unapply(inner)
-    case otherCause             => Some(arg.message, otherCause)
+    case otherCause             => Some((arg.message, otherCause))
   }
 
   object shallow {

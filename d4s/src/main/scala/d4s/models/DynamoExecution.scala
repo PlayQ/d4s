@@ -221,6 +221,7 @@ object DynamoExecution {
 
         def go(rsp: DR#Rsp, rows: Queue[Dec]): F[Throwable, List[A]] = {
           val lastEvaluatedKey = paging.getPageMarker(rsp)
+
           def stop = {
             val res = f(rows.toList)
             F.pure(limit.fold(res)(res.take))
