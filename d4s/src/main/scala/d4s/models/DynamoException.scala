@@ -2,17 +2,18 @@ package d4s.models
 
 import scala.annotation.tailrec
 
-abstract class DynamoException(val message: String, val cause: Throwable) extends RuntimeException(message, cause)
+abstract class DynamoException(val message: String, val cause: Throwable) extends RuntimeException(message, cause) {
+  require(cause ne null)
+}
 
 object DynamoException {
-  @tailrec def unapply(arg: DynamoException): Option[(String, Throwable)] = shallow.unapply(arg) match {
-    case Some((_, inner: DynamoException)) => unapply(inner)
-    case None                              => None
-    case res                               => res
+  @tailrec def unapply(arg: DynamoException): Some[(String, Throwable)] = arg.cause match {
+    case inner: DynamoException => unapply(inner)
+    case otherCause             => Some(arg.message, otherCause)
   }
 
   object shallow {
-    def unapply(arg: DynamoException): Option[(String, Throwable)] = Some((arg.message, arg.cause))
+    def unapply(arg: DynamoException): Some[(String, Throwable)] = Some((arg.message, arg.cause))
   }
 
   final case class InterpreterException(operation: String, tableName: Option[String], override val cause: Throwable)
