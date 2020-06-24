@@ -31,11 +31,11 @@ final case class DynamoKey[-H, -R](
   def bind(hashValue: H, rangeValue: R): Map[String, AttributeValue] = bind(hashValue, Some(rangeValue))
   def bind(hashValue: H): Map[String, AttributeValue]                = bind(hashValue, None)
 
-  def contramapHash[H1](f: H1 => H): DynamoKey[H1, R]     = copy(hashKey  = hashKey.contramap(f))
-  def contramapRange[R1](f: R1 => R): DynamoKey[H, R1]    = copy(rangeKey = rangeKey.map(_.contramap(f)))
-  def contramapBoth[X](f: X => H with R): DynamoKey[X, X] = copy(hashKey  = hashKey.contramap(f), rangeKey = rangeKey.map(_.contramap(f)))
+  def contramapHash[H1](f: H1 => H): DynamoKey[H1, R]                  = copy(hashKey = hashKey.contramap(f))
+  def contramapRange[R1](f: R1 => R): DynamoKey[H, R1]                 = copy(rangeKey = rangeKey.map(_.contramap(f)))
+  def contramapBoth[H1, R1](f: H1 => H, g: R1 => R): DynamoKey[H1, R1] = copy(hashKey = hashKey.contramap(f), rangeKey = rangeKey.map(_.contramap(g)))
 
-  private def element(name: String, tpe: KeyType): KeySchemaElement = {
+  private[this] def element(name: String, tpe: KeyType): KeySchemaElement = {
     KeySchemaElement.builder().attributeName(name).keyType(tpe).build()
   }
 }

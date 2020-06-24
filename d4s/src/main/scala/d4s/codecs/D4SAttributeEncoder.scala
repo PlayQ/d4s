@@ -17,8 +17,8 @@ trait D4SAttributeEncoder[T] {
   def postprocessAttributeEncoder(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encode(item))
 }
 
-object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
-  @inline def apply[T: D4SAttributeEncoder]: D4SAttributeEncoder[T] = implicitly
+object D4SAttributeEncoder {
+  @inline def apply[A](implicit ev: D4SAttributeEncoder[A]): ev.type = ev
 
   def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
 
@@ -83,6 +83,12 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
   implicit val floatSetEncoder: D4SAttributeEncoder[Set[Float]]   = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
   implicit val doubleSetEncoder: D4SAttributeEncoder[Set[Double]] = item => AttributeValue.builder().ns(item.map(_.toString).asJavaCollection).build()
 
+  implicit def stringTupleEncoder[S <: String, V: D4SAttributeEncoder]: D4SEncoder[(S, V)] = {
+    case (k, v) => D4SAttributeEncoder.encodeField(k, v)
+  }
+
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = D4SEncoder.derived
+
   implicit def iterableEncoder[L[_], T: D4SAttributeEncoder](implicit ev: L[T] <:< Iterable[T]): D4SAttributeEncoder[L[T]] = {
     item: L[T] =>
       val ls = item.map(encode[T])
@@ -97,8 +103,6 @@ object D4SAttributeEncoder extends D4SAttributeEncoderScala213 {
     item: Option[T] =>
       item.map(encode[T]).getOrElse(AttributeValue.builder().nul(true).build())
   }
-
-  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = D4SEncoder.derived
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 

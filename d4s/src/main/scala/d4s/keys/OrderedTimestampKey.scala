@@ -4,7 +4,6 @@ import java.time.{LocalDateTime, ZonedDateTime}
 
 import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import izumi.fundamentals.platform.time.IzTime
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /**
   * A string representation of ZonedDateTime that preserves its native ordering
@@ -27,7 +26,7 @@ object OrderedTimestampKey {
   implicit val encoder: D4SAttributeEncoder[OrderedTimestampKey] = D4SAttributeEncoder[String].contramap(_.asString)
   implicit val decoder: D4SDecoder[OrderedTimestampKey]          = D4SDecoder[String].map(OrderedTimestampKey(_))
 
-  implicit val keyAttribute: DynamoKeyAttribute[OrderedTimestampKey] = new DynamoKeyAttribute[OrderedTimestampKey](ScalarAttributeType.S)
+  implicit val keyAttribute: DynamoKeyAttribute[OrderedTimestampKey] = DynamoKeyAttribute.S
 
   implicit val ordering: Ordering[OrderedTimestampKey] = Ordering[String].on(_.asString)
 }

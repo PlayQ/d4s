@@ -4,7 +4,6 @@ import java.util.UUID
 
 import d4s.codecs.{D4SAttributeEncoder, D4SDecoder, DynamoKeyAttribute}
 import d4s.util.leftpadLongInvertNegative
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 
 /**
   * A string representation of UUID that preserves UUID and TimeUUID native ordering
@@ -26,7 +25,7 @@ object OrderedUUIDKey {
   implicit val encoder: D4SAttributeEncoder[OrderedUUIDKey] = D4SAttributeEncoder[String].contramap(_.asString)
   implicit val decoder: D4SDecoder[OrderedUUIDKey]          = D4SDecoder[String].map(OrderedUUIDKey(_))
 
-  implicit val keyAttribute: DynamoKeyAttribute[OrderedUUIDKey] = new DynamoKeyAttribute[OrderedUUIDKey](ScalarAttributeType.S)
+  implicit val keyAttribute: DynamoKeyAttribute[OrderedUUIDKey] = DynamoKeyAttribute.S
 
   implicit val ordering: Ordering[OrderedUUIDKey] = Ordering[String].on(_.asString)
 }

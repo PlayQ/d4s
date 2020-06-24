@@ -26,7 +26,7 @@ final class MetricsExtractor(rolesInfo: RolesInfo, logger: IzLogger) {
       val (errors, rawFetched) = resourceList.asScala.toList.flatMap {
         case res if !res.getPath.endsWith("metrics.json") =>
           val filename = res.getPath
-          logger.crit(s"Found a junk file with $filename in $metricsDir - filename does not end with `metrics.json`, Skipping.")
+          logger.crit(s"Found a junk file with $filename in ${metricsDir -> "metricsDir"} - filename does not end with `metrics.json`, Skipping.")
           Nil
         case res =>
           val bytes   = res.load()

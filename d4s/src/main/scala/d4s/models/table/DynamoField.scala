@@ -1,7 +1,7 @@
 package d4s.models.table
 
 import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
-import d4s.models.FieldOps.TypedFieldOps
+import d4s.models.StringFieldOps.TypedFieldOps
 import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, AttributeValue, ScalarAttributeType}
 
 import scala.language.implicitConversions

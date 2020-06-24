@@ -14,7 +14,6 @@ import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex, TableI
 import d4s.models.table.{DynamoField, TableDDL, TableReference}
 import d4s.models.{DynamoExecution, FnBIO, OffsetLimit}
 import izumi.functional.bio.{BIO, BIOError, F}
-import izumi.fundamentals.platform.language.unused
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConsumedCapacity, ReturnValue, Select}
 
 import scala.language.{implicitConversions, reflectiveCalls}
@@ -257,12 +256,11 @@ object DynamoQuery {
     def withTtlFieldOption(expiration: Option[ZonedDateTime]): DynamoQuery[DR, Dec] =
       expiration.fold(dynamoQuery)(withTtlField)
 
-    def withTtlFieldOption(
-      expirationEpochSeconds: Option[Long]
-    )(implicit ev: DR <:< WithItem[DR] with WithTableReference[DR],
-      @unused dummy: DummyImplicit,
-    ): DynamoQuery[DR, Dec] = {
-      expirationEpochSeconds.fold(dynamoQuery)(withTtlField)
+    def withTtlFieldOption(expirationEpochSeconds: Option[Long])(implicit dummy: DummyImplicit): DynamoQuery[DR, Dec] = {
+      expirationEpochSeconds match {
+        case Some(expiration) => withTtlField(expiration)
+        case None             => dynamoQuery
+      }
     }
 
     def withTtlField(expiration: ZonedDateTime): DynamoQuery[DR, Dec] =

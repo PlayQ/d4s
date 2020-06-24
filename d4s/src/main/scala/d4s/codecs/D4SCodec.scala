@@ -26,7 +26,7 @@ trait D4SCodec[A] extends D4SAttributeCodec[A] with D4SEncoder[A] {
 }
 
 object D4SCodec {
-  @inline def apply[A: D4SCodec]: D4SCodec[A] = implicitly
+  @inline def apply[A](implicit ev: D4SCodec[A]): ev.type = ev
 
   def derived[A](implicit derivedCodec: D4SDerivedCodec[A]): D4SCodec[A] = D4SCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
 

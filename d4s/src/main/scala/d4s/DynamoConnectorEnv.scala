@@ -4,19 +4,15 @@ import d4s.metrics.{MacroMetricDynamoMeter, MacroMetricDynamoTimer}
 import d4s.models.query.DynamoRequest
 import d4s.models.{DynamoException, DynamoExecution}
 import fs2.Stream
-import izumi.functional.bio.{BIO3, BIOLocal, F}
+import izumi.functional.bio.{BIOMonadAsk, F}
 import izumi.reflect.Tag
 
-class DynamoConnectorLocal[F[-_, +_, +_]: BIO3: BIOLocal](implicit tag: Tag[DynamoConnector3[F]]) extends DynamoConnector[F[HasDynamoConnector[F], +?, +?]] {
-  override def runUnrecorded[DR <: DynamoRequest, A](
-    q: DynamoExecution[DR, _, A]
-  ): F[HasDynamoConnector[F], DynamoException, A] = {
+class DynamoConnectorEnv[F[-_, +_, +_]: BIOMonadAsk](implicit tag: Tag[DynamoConnector3[F]]) extends DynamoConnector[F[HasDynamoConnector[F], +?, +?]] {
+  override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[HasDynamoConnector[F], DynamoException, A] = {
     F.access(_.get.runUnrecorded(q))
   }
 
-  override def runUnrecorded[DR <: DynamoRequest, A](
-    q: DynamoExecution.Streamed[DR, _, A]
-  ): Stream[F[HasDynamoConnector[F], DynamoException, ?], A] = {
+  override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[HasDynamoConnector[F], DynamoException, ?], A] = {
     Stream.force[F[HasDynamoConnector[F], DynamoException, ?], A] {
       F.askWith(_.get.runUnrecorded(q))
     }

@@ -12,7 +12,7 @@ trait D4SKeyDecoder[A] {
 }
 
 object D4SKeyDecoder {
-  @inline def apply[A: D4SKeyDecoder]: D4SKeyDecoder[A] = implicitly
+  @inline def apply[A](implicit ev: D4SKeyDecoder[A]): ev.type = ev
 
   def decode[A: D4SKeyDecoder](item: String): Either[DecoderException, A] = D4SKeyDecoder[A].decode(item)
 

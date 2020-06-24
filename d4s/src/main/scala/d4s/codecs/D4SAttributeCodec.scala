@@ -10,7 +10,7 @@ trait D4SAttributeCodec[A] extends D4SAttributeEncoder[A] with D4SDecoder[A] {
 }
 
 object D4SAttributeCodec {
-  @inline def apply[A: D4SAttributeCodec]: D4SAttributeCodec[A] = implicitly
+  @inline def apply[A](implicit ev: D4SAttributeCodec[A]): ev.type = ev
 
   def derived[A](implicit derivedCodec: D4SDerivedAttributeCodec[A]): D4SAttributeCodec[A] = D4SAttributeCodec.fromPair(derivedCodec.enc, derivedCodec.dec)
 
