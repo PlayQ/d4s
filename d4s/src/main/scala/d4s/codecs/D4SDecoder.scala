@@ -18,6 +18,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 import scala.util.Try
+import scala.util.control.NonFatal
 
 trait D4SDecoder[T] {
   def decode(attr: AttributeValue): Either[DecoderException, T]
@@ -155,13 +156,13 @@ object D4SDecoder extends D4SDecoderScala213 {
   implicit val floatSetDecoder: D4SDecoder[Set[Float]]   = numberSetDecoder("Float")(_.toFloat)
   implicit val doubleSetDecoder: D4SDecoder[Set[Double]] = numberSetDecoder("Double")(_.toDouble)
 
-  implicit def iterableDecoder[T, C[x] <: Iterable[x]](implicit T: D4SDecoder[T], factory: Factory[T, C[T]]): D4SDecoder[C[T]] = attributeDecoder {
+  implicit def iterableDecoder[A, C[x] <: Iterable[x]](implicit T: D4SDecoder[A], factory: Factory[A, C[A]]): D4SDecoder[C[A]] = attributeDecoder {
     attr =>
       Either.fromTry(Try(attr.l()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]])) match {
         case Left(err) => Left(DecoderException(s"Cannot decode $attr as List", Some(err)))
         case Right(value) =>
           value.asScala.toList
-            .foldM[Either[DecoderException, ?], mutable.Builder[T, C[T]]](factory.newBuilder) {
+            .foldM[Either[DecoderException, ?], mutable.Builder[A, C[A]]](factory.newBuilder) {
               (acc, attr) =>
                 T.decode(attr).map(acc += _)
             }.map(_.result())
@@ -187,7 +188,7 @@ object D4SDecoder extends D4SDecoderScala213 {
         }
     }
 
-  implicit def optionDecoder[T](implicit T: D4SDecoder[T]): D4SDecoder[Option[T]] = attributeDecoder {
+  implicit def optionDecoder[A](implicit T: D4SDecoder[A]): D4SDecoder[Option[A]] = attributeDecoder {
     attr =>
       if (attr.nul()) Right(None) else T.decode(attr).map(Some(_))
   }
@@ -196,7 +197,12 @@ object D4SDecoder extends D4SDecoderScala213 {
 
   def tryDecoder[A](name: String)(f: AttributeValue => A): D4SDecoder[A] = attributeDecoder {
     attr =>
-      Either.fromTry(Try(f(attr))).leftMap(err => DecoderException(s"Cannot decode $attr as $name", Some(err)))
+      try {
+        Right(f(attr))
+      } catch {
+        case err if NonFatal(err) =>
+          Left(DecoderException(s"Cannot decode $attr as $name", Some(err)))
+      }
   }
 
   def numberSetDecoder[N](name: String)(f: String => N): D4SDecoder[Set[N]] = attributeDecoder {
