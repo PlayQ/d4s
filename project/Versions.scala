@@ -8,7 +8,7 @@ object V {
 
   // java
   val aws_java_sdk   = "1.11.750"
-  val aws_java_sdk_2 = "2.13.19"
+  val aws_java_sdk_2 = "2.13.54"
 
   // scala
   val scalacheck           = "1.14.1"
