@@ -2,7 +2,7 @@ package d4s.codecs
 
 import scala.language.experimental.macros
 
-/** Retrieves a `ProjectionExpression` for case class `T` */
+/** Describes a `ProjectionExpression` required for case class `T` */
 final case class AttributeNames[T](attributeNames: Set[String]) {
   def projectionExpression: String                           = attributeNames.mkString("", ", ", "")
   def combine[A](that: AttributeNames[_]): AttributeNames[A] = AttributeNames(this.attributeNames ++ that.attributeNames)

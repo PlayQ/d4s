@@ -1,6 +1,6 @@
 object V {
   val scala_212     = "2.12.11"
-  val scala_213     = "2.13.2"
+  val scala_213     = "2.13.3"
   val izumi_version = "0.10.16"
 
   // compiler
@@ -26,7 +26,7 @@ object V {
   val cats             = "2.1.1"
   val cats_effect      = "2.1.3"
   val zio              = "1.0.0-RC21-2"
-  val zio_interop_cats = "2.0.0.0-RC14"
+  val zio_interop_cats = "2.1.3.0-RC16"
 
   val scalatest                = "3.1.2"
   val scalatestplus_scalacheck = "3.1.2.0"
