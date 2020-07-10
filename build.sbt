@@ -94,7 +94,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
         "-Ycache-macro-class-loader:last-modified"
       )
       case (_, "2.13.2") => Seq(
-        "-Xlint:_,-eta-sam",
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -223,7 +223,7 @@ lazy val `metrics` = project.in(file("./metrics"))
         "-Ycache-macro-class-loader:last-modified"
       )
       case (_, "2.13.2") => Seq(
-        "-Xlint:_,-eta-sam",
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -353,7 +353,7 @@ lazy val `d4s` = project.in(file("./d4s"))
         "-Ycache-macro-class-loader:last-modified"
       )
       case (_, "2.13.2") => Seq(
-        "-Xlint:_,-eta-sam",
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -477,7 +477,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
         "-Ycache-macro-class-loader:last-modified"
       )
       case (_, "2.13.2") => Seq(
-        "-Xlint:_,-eta-sam",
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -605,7 +605,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
         "-Ycache-macro-class-loader:last-modified"
       )
       case (_, "2.13.2") => Seq(
-        "-Xlint:_,-eta-sam",
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
