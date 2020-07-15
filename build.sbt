@@ -9,7 +9,6 @@ lazy val `aws-common` = project.in(file("./aws-common"))
   .settings(
     libraryDependencies ++= Seq(
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "io.7mind.izumi" %% "distage-extension-plugins" % V.izumi_version,
       "io.7mind.izumi" %% "distage-extension-config" % V.izumi_version
     )
   )
@@ -52,10 +51,10 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.3",
-      "2.12.11"
+      "2.12.12"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.11") => Seq(
+      case (_, "2.12.12") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -108,7 +107,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.11") => Seq(
+      case (false, "2.12.12") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -127,270 +126,14 @@ lazy val `metrics` = project.in(file("./metrics"))
   .settings(
     libraryDependencies ++= Seq(
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "org.typelevel" %% "cats-core" % V.cats,
       "io.7mind.izumi" %% "distage-framework" % V.izumi_version excludeAll (ExclusionRule(organization = "io.circe")),
-      "dev.zio" %% "zio" % V.zio,
-      "org.scalatest" %% "scalatest" % V.scalatest % Test,
-      "org.scalatestplus" %% "scalacheck-1-14" % V.scalatestplus_scalacheck % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       "io.circe" %% "circe-core" % V.circe % Optional,
       "io.circe" %% "circe-generic" % V.circe % Optional,
       "io.circe" %% "circe-generic-extras" % V.circe_generic_extras % Optional,
       "io.circe" %% "circe-parser" % V.circe % Optional,
       "io.circe" %% "circe-literal" % V.circe % Optional,
-      "io.circe" %% "circe-derivation" % V.circe_derivation % Optional
-    )
-  )
-  .settings(
-    organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
-    resolvers += DefaultMavenRepository,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
-      dir =>
-       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
-       def scalaDir(s: String) = file(dir.getPath + s)
-       (partialVersion match {
-         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
-         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
-         case None         => Seq.empty
-       })
-    },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
-      dir =>
-       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
-       def scalaDir(s: String) = file(dir.getPath + s)
-       (partialVersion match {
-         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
-         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
-         case None         => Seq.empty
-       })
-    },
-    scalaVersion := crossScalaVersions.value.head,
-    crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.11"
-    ),
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.11") => Seq(
-        "-Xsource:2.13",
-        "-Ybackend-parallelism",
-        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
-        "-Ypartial-unification",
-        "-Yno-adapted-args",
-        "-Xlint:adapted-args",
-        "-Xlint:by-name-right-associative",
-        "-Xlint:constant",
-        "-Xlint:delayedinit-select",
-        "-Xlint:doc-detached",
-        "-Xlint:inaccessible",
-        "-Xlint:infer-any",
-        "-Xlint:missing-interpolator",
-        "-Xlint:nullary-override",
-        "-Xlint:nullary-unit",
-        "-Xlint:option-implicit",
-        "-Xlint:package-object-classes",
-        "-Xlint:poly-implicit-overload",
-        "-Xlint:private-shadow",
-        "-Xlint:stars-align",
-        "-Xlint:type-parameter-shadow",
-        "-Xlint:unsound-match",
-        "-opt-warnings:_",
-        "-Ywarn-extra-implicit",
-        "-Ywarn-unused:_",
-        "-Ywarn-adapted-args",
-        "-Ywarn-dead-code",
-        "-Ywarn-inaccessible",
-        "-Ywarn-infer-any",
-        "-Ywarn-nullary-override",
-        "-Ywarn-nullary-unit",
-        "-Ywarn-numeric-widen",
-        "-Ywarn-unused-import",
-        "-Ywarn-value-discard",
-        "-Ycache-plugin-class-loader:always",
-        "-Ycache-macro-class-loader:last-modified"
-      )
-      case (_, "2.13.3") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
-        "-Ybackend-parallelism",
-        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
-        "-Wdead-code",
-        "-Wextra-implicit",
-        "-Wnumeric-widen",
-        "-Wunused:_",
-        "-Wvalue-discard",
-        "-Ycache-plugin-class-loader:always",
-        "-Ycache-macro-class-loader:last-modified"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.11") => Seq(
-        "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
-        "-opt-inline-from:net.playq.**"
-      )
-      case (false, "2.13.3") => Seq(
-        "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
-        "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } }
-  )
-  .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
-
-lazy val `d4s` = project.in(file("./d4s"))
-  .dependsOn(
-    `aws-common` % "test->compile;compile->compile",
-    `metrics` % "test->compile;compile->compile"
-  )
-  .settings(
-    libraryDependencies ++= Seq(
-      compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "org.typelevel" %% "cats-effect" % V.cats_effect,
-      "dev.zio" %% "zio-interop-cats" % V.zio_interop_cats,
-      "co.fs2" %% "fs2-io" % V.fs2,
-      "io.7mind.izumi" %% "fundamentals-bio" % V.izumi_version,
-      "io.7mind.izumi" %% "logstage-adapter-slf4j" % V.izumi_version,
-      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
-      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
-      "com.propensive" %% "magnolia" % V.magnolia_version,
-      "org.scalatest" %% "scalatest" % V.scalatest,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    )
-  )
-  .settings(
-    organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
-    resolvers += DefaultMavenRepository,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
-      dir =>
-       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
-       def scalaDir(s: String) = file(dir.getPath + s)
-       (partialVersion match {
-         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
-         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
-         case None         => Seq.empty
-       })
-    },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
-      dir =>
-       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
-       def scalaDir(s: String) = file(dir.getPath + s)
-       (partialVersion match {
-         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
-         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
-         case None         => Seq.empty
-       })
-    },
-    scalaVersion := crossScalaVersions.value.head,
-    crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.11"
-    ),
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.11") => Seq(
-        "-Xsource:2.13",
-        "-Ybackend-parallelism",
-        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
-        "-Ypartial-unification",
-        "-Yno-adapted-args",
-        "-Xlint:adapted-args",
-        "-Xlint:by-name-right-associative",
-        "-Xlint:constant",
-        "-Xlint:delayedinit-select",
-        "-Xlint:doc-detached",
-        "-Xlint:inaccessible",
-        "-Xlint:infer-any",
-        "-Xlint:missing-interpolator",
-        "-Xlint:nullary-override",
-        "-Xlint:nullary-unit",
-        "-Xlint:option-implicit",
-        "-Xlint:package-object-classes",
-        "-Xlint:poly-implicit-overload",
-        "-Xlint:private-shadow",
-        "-Xlint:stars-align",
-        "-Xlint:type-parameter-shadow",
-        "-Xlint:unsound-match",
-        "-opt-warnings:_",
-        "-Ywarn-extra-implicit",
-        "-Ywarn-unused:_",
-        "-Ywarn-adapted-args",
-        "-Ywarn-dead-code",
-        "-Ywarn-inaccessible",
-        "-Ywarn-infer-any",
-        "-Ywarn-nullary-override",
-        "-Ywarn-nullary-unit",
-        "-Ywarn-numeric-widen",
-        "-Ywarn-unused-import",
-        "-Ywarn-value-discard",
-        "-Ycache-plugin-class-loader:always",
-        "-Ycache-macro-class-loader:last-modified"
-      )
-      case (_, "2.13.3") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
-        "-Ybackend-parallelism",
-        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
-        "-Wdead-code",
-        "-Wextra-implicit",
-        "-Wnumeric-widen",
-        "-Wunused:_",
-        "-Wvalue-discard",
-        "-Ycache-plugin-class-loader:always",
-        "-Ycache-macro-class-loader:last-modified"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.11") => Seq(
-        "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
-        "-opt-inline-from:net.playq.**"
-      )
-      case (false, "2.13.3") => Seq(
-        "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
-        "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } }
-  )
-  .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
-
-lazy val `d4s-test` = project.in(file("./d4s-test"))
-  .dependsOn(
-    `d4s` % "test->compile;compile->compile"
-  )
-  .settings(
-    libraryDependencies ++= Seq(
-      compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "io.7mind.izumi" %% "distage-framework-docker" % V.izumi_version,
-      "io.7mind.izumi" %% "distage-testkit-scalatest" % V.izumi_version,
+      "io.circe" %% "circe-derivation" % V.circe_derivation % Optional,
       "org.scalatest" %% "scalatest" % V.scalatest % Test,
       "org.scalatestplus" %% "scalacheck-1-14" % V.scalatestplus_scalacheck % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test
@@ -435,10 +178,10 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.3",
-      "2.12.11"
+      "2.12.12"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.11") => Seq(
+      case (_, "2.12.12") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -491,7 +234,262 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.11") => Seq(
+      case (false, "2.12.12") => Seq(
+        "-opt:l:inline",
+        "-opt-inline-from:izumi.**",
+        "-opt-inline-from:net.playq.**"
+      )
+      case (false, "2.13.3") => Seq(
+        "-opt:l:inline",
+        "-opt-inline-from:izumi.**",
+        "-opt-inline-from:net.playq.**"
+      )
+      case (_, _) => Seq.empty
+    } }
+  )
+  .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
+
+lazy val `d4s` = project.in(file("./d4s"))
+  .dependsOn(
+    `aws-common` % "test->compile;compile->compile",
+    `metrics` % "test->compile;compile->compile"
+  )
+  .settings(
+    libraryDependencies ++= Seq(
+      compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
+      "org.typelevel" %% "cats-effect" % V.cats_effect,
+      "dev.zio" %% "zio" % V.zio,
+      "co.fs2" %% "fs2-io" % V.fs2,
+      "io.7mind.izumi" %% "fundamentals-bio" % V.izumi_version,
+      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
+      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
+      "com.propensive" %% "magnolia" % V.magnolia_version,
+      "io.7mind.izumi" %% "distage-extension-plugins" % V.izumi_version,
+      "org.scalatest" %% "scalatest" % V.scalatest % Test,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+    )
+  )
+  .settings(
+    organization := "net.playq",
+    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
+    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
+    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
+    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
+    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
+    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    testOptions in Test += Tests.Argument("-oDF"),
+    logBuffered in Test := true,
+    resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    scalaVersion := crossScalaVersions.value.head,
+    crossScalaVersions := Seq(
+      "2.13.3",
+      "2.12.12"
+    ),
+    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
+      case (_, "2.12.12") => Seq(
+        "-Xsource:2.13",
+        "-Ybackend-parallelism",
+        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
+        "-Ypartial-unification",
+        "-Yno-adapted-args",
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-opt-warnings:_",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-unused:_",
+        "-Ywarn-adapted-args",
+        "-Ywarn-dead-code",
+        "-Ywarn-inaccessible",
+        "-Ywarn-infer-any",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused-import",
+        "-Ywarn-value-discard",
+        "-Ycache-plugin-class-loader:always",
+        "-Ycache-macro-class-loader:last-modified"
+      )
+      case (_, "2.13.3") => Seq(
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+        "-Ybackend-parallelism",
+        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:_",
+        "-Wvalue-discard",
+        "-Ycache-plugin-class-loader:always",
+        "-Ycache-macro-class-loader:last-modified"
+      )
+      case (_, _) => Seq.empty
+    } },
+    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
+      case (false, "2.12.12") => Seq(
+        "-opt:l:inline",
+        "-opt-inline-from:izumi.**",
+        "-opt-inline-from:net.playq.**"
+      )
+      case (false, "2.13.3") => Seq(
+        "-opt:l:inline",
+        "-opt-inline-from:izumi.**",
+        "-opt-inline-from:net.playq.**"
+      )
+      case (_, _) => Seq.empty
+    } }
+  )
+  .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
+
+lazy val `d4s-test` = project.in(file("./d4s-test"))
+  .dependsOn(
+    `d4s` % "test->compile;compile->compile"
+  )
+  .settings(
+    libraryDependencies ++= Seq(
+      compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
+      "io.7mind.izumi" %% "distage-framework-docker" % V.izumi_version,
+      "io.7mind.izumi" %% "distage-testkit-scalatest" % V.izumi_version,
+      "dev.zio" %% "zio-interop-cats" % V.zio_interop_cats % Test,
+      "org.scalatest" %% "scalatest" % V.scalatest % Test,
+      "org.scalatestplus" %% "scalacheck-1-14" % V.scalatestplus_scalacheck % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test
+    )
+  )
+  .settings(
+    organization := "net.playq",
+    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
+    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
+    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
+    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
+    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default",
+    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    testOptions in Test += Tests.Argument("-oDF"),
+    logBuffered in Test := true,
+    resolvers += DefaultMavenRepository,
+    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+      dir =>
+       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
+       def scalaDir(s: String) = file(dir.getPath + s)
+       (partialVersion match {
+         case Some((2, n)) => Seq(scalaDir("_2"), scalaDir("_2." + n.toString))
+         case Some((x, n)) => Seq(scalaDir("_3"), scalaDir("_" + x.toString + "." + n.toString))
+         case None         => Seq.empty
+       })
+    },
+    scalaVersion := crossScalaVersions.value.head,
+    crossScalaVersions := Seq(
+      "2.13.3",
+      "2.12.12"
+    ),
+    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
+      case (_, "2.12.12") => Seq(
+        "-Xsource:2.13",
+        "-Ybackend-parallelism",
+        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
+        "-Ypartial-unification",
+        "-Yno-adapted-args",
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-opt-warnings:_",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-unused:_",
+        "-Ywarn-adapted-args",
+        "-Ywarn-dead-code",
+        "-Ywarn-inaccessible",
+        "-Ywarn-infer-any",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused-import",
+        "-Ywarn-value-discard",
+        "-Ycache-plugin-class-loader:always",
+        "-Ycache-macro-class-loader:last-modified"
+      )
+      case (_, "2.13.3") => Seq(
+        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+        "-Ybackend-parallelism",
+        math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:_",
+        "-Wvalue-discard",
+        "-Ycache-plugin-class-loader:always",
+        "-Ycache-macro-class-loader:last-modified"
+      )
+      case (_, _) => Seq.empty
+    } },
+    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
+      case (false, "2.12.12") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -563,10 +561,10 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.3",
-      "2.12.11"
+      "2.12.12"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.11") => Seq(
+      case (_, "2.12.12") => Seq(
         "-Xsource:2.13",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
@@ -619,7 +617,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.11") => Seq(
+      case (false, "2.12.12") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
