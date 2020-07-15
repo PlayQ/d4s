@@ -61,11 +61,12 @@ object ProjectBuilder {
   object ProjectDeps {
     private val circe_exclude = LibSetting.Raw("""excludeAll (ExclusionRule(organization = "io.circe"))""")
 
-    final val distage_framework      = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
-    final val distage_plugins        = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_config         = Library("io.7mind.izumi", "distage-extension-config", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_testkit        = Library("io.7mind.izumi", "distage-testkit-scalatest", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_docker         = Library("io.7mind.izumi", "distage-framework-docker", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_core      = Library("io.7mind.izumi", "distage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_framework = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
+    final val distage_plugins   = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_config    = Library("io.7mind.izumi", "distage-extension-config", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_testkit   = Library("io.7mind.izumi", "distage-testkit-scalatest", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_docker    = Library("io.7mind.izumi", "distage-framework-docker", Version.VExpr("V.izumi_version"), LibraryType.Auto)
 
     final val circe = Seq(
       Library("io.circe", "circe-core", Version.VExpr("V.circe"), LibraryType.Auto),
@@ -81,7 +82,6 @@ object ProjectBuilder {
     final val scala_reflect = Library("org.scala-lang", "scala-reflect", Version.VExpr("scalaVersion.value"), LibraryType.Invariant)
 
     final val logstage_rendering_circe = Library("io.7mind.izumi", "logstage-rendering-circe", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val logstage_adapter_slf4j   = Library("io.7mind.izumi", "logstage-adapter-slf4j", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val logstage_core            = Library("io.7mind.izumi", "logstage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
 
     final val cats_core   = Library("org.typelevel", "cats-core", Version.VExpr("V.cats"), LibraryType.Auto)
@@ -196,7 +196,6 @@ object ProjectBuilder {
       Artifact(
         name    = Projects.aws_common,
         libs    = Seq(
-          distage_plugins,
           distage_config,
         ).map(_ in Scope.Compile.all),
         depends = Seq.empty,
@@ -204,31 +203,30 @@ object ProjectBuilder {
       Artifact(
         name = Projects.metrics,
         libs = Seq(
-          cats_core,
           distage_framework,
-          zio_core,
         ).map(_ in Scope.Compile.all) ++ Seq(
+          scala_reflect in Scope.Provided.all,
+        ) ++ circe.map(_ in Scope.Optional.all) ++ Seq(
           scalatest,
           scalatestplus_scalacheck,
           scalacheck_shapeless
-        ).map(_ in Scope.Test.all) ++ Seq(
-          scala_reflect in Scope.Provided.all,
-        ) ++ circe.map(_ in Scope.Optional.all),
+        ).map(_ in Scope.Test.all),
         depends = Seq.empty,
       ),
       Artifact(
         name = Projects.d4s,
         libs = Seq(
           cats_effect,
-          zio_interop,
+          zio_core,
           fs2,
           fundamentals_bio,
-          logstage_adapter_slf4j,
           aws_dynamo,
           aws_impl_apache,
           magnolia,
-          scalatest,
+          distage_plugins,
         ).map(_ in Scope.Compile.all)  ++ Seq(
+          scalatest in Scope.Test.all,
+        ) ++ Seq(
           scala_reflect in Scope.Provided.all,
         ),
         depends = Seq(
@@ -242,9 +240,10 @@ object ProjectBuilder {
           distage_docker,
           distage_testkit,
         ).map(_ in Scope.Compile.all) ++ Seq(
+          zio_interop,
           scalatest,
           scalatestplus_scalacheck,
-          scalacheck_shapeless
+          scalacheck_shapeless,
         ).map(_ in Scope.Test.all),
         depends = Seq(Projects.d4s),
       ),
