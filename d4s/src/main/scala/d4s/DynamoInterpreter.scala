@@ -4,7 +4,7 @@ import d4s.config.{DynamoBatchConfig, DynamoConfig}
 import d4s.models.DynamoException
 import d4s.models.DynamoException.InterpreterException
 import d4s.models.ExecutionStrategy.StrategyInput
-import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, WithBatch}
+import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest, WithBatch, WithProjectionExpression, WithTableReference}
 import d4s.models.query._
 import d4s.models.query.requests._
 import izumi.functional.bio.catz._
@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 
 import scala.concurrent.duration._
+import scala.language.reflectiveCalls
 
 trait DynamoInterpreter[F[_, _]] {
   def run[DR <: DynamoRequest, Dec](
@@ -73,7 +74,8 @@ object DynamoInterpreter {
         case q: DeleteItemBatch  => runWriteBatch(q).logWrapError("DeleteItemBatch", q.table.fullName, tapError)
         case q: PutItemBatch     => runWriteBatch(q).logWrapError("WriteItemBatch", q.table.fullName, tapError)
         case q: GetItemBatch     => runGetBatch(q).logWrapError("GetItemBatch", q.table.fullName, tapError)
-        case q: QueryDeleteBatch => runQueryDeleteBatch(q).logWrapError("QueryDeleteBatch", q.table.fullName, tapError)
+        case q: QueryDeleteBatch => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes).logWrapError("QueryDeleteBatch", q.table.fullName, tapError)
+        case q: ScanDeleteBatch  => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes).logWrapError("ScanDeleteBatch", q.table.fullName, tapError)
 
         case q: UpdateContinuousBackups => updateContinuousBackups(q.toAmz).logWrapError("UpdateContinuousBackups", q.table.fullName, tapError)
 
@@ -81,18 +83,23 @@ object DynamoInterpreter {
       }
     }
 
-    private[this] def runQueryDeleteBatch(rq: QueryDeleteBatch): F[Throwable, List[BatchWriteItemResponse]] = {
+    private[this] def runStreamDeleteBatch[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR]](
+      dynamoQuery: DynamoQuery[DR, _],
+      parallelism: Option[Int],
+    )(implicit ev0: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] },
+      ev1: PageableRequest[DR],
+    ): F[Throwable, List[BatchWriteItemResponse]] = {
       import scala.jdk.CollectionConverters._
 
-      val exec = rq.toRegularQuery.toQuery
-        .withProjectionExpression(rq.table.key.keyFields.toList: _*)
+      val exec = dynamoQuery
+        .withProjectionExpression(dynamoQuery.table.key.keyFields.toList: _*)
         .decode(_.items().asScala.map(_.asScala.toMap).toList)
         .execStreamedFlatten
 
       exec
         .executionStrategy(StrategyInput(exec.dynamoQuery, F, this))
         .chunkN(batchConfig.writeBatchSize)
-        .parEvalMap(rq.maxParallelDeletes.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(rq.table, itemsChunk.toList)))
+        .parEvalMap(parallelism.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(dynamoQuery.table, itemsChunk.toList)))
         .flatMap(fs2.Stream.emits)
         .compile.toList
     }

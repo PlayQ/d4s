@@ -5,7 +5,7 @@ import java.util
 import d4s.models.conditions.Condition
 import d4s.models.conditions.Condition.ZeroCondition
 import d4s.models.query.DynamoRequest
-import d4s.models.query.DynamoRequest.{WithAttributeNames, WithAttributeValues, WithCondition, WithConsistent, WithFilterExpression, WithIndex, WithKey, WithLimit, WithProjectionExpression, WithScanIndexForward, WithSelect, WithStartKey, WithTableReference}
+import d4s.models.query.DynamoRequest.{WithAttributeNames, WithAttributeValues, WithCondition, WithConsistent, WithFilterExpression, WithIndex, WithKey, WithLimit, WithParallelism, WithProjectionExpression, WithScanIndexForward, WithSelect, WithStartKey, WithTableReference, WithWrappedRequest}
 import d4s.models.table.TableReference
 import d4s.models.table.index.TableIndex
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, BatchWriteItemResponse, QueryRequest, Select}
@@ -38,12 +38,14 @@ final case class QueryDeleteBatch(
   with WithScanIndexForward[QueryDeleteBatch]
   with WithCondition[QueryDeleteBatch]
   with WithTableReference[QueryDeleteBatch]
-  with WithKey[QueryDeleteBatch] {
+  with WithKey[QueryDeleteBatch]
+  with WithParallelism[QueryDeleteBatch]
+  with WithWrappedRequest[Query] {
 
   override type Rq  = QueryRequest
   override type Rsp = List[BatchWriteItemResponse]
 
-  def withParallelism(parallelism: Int): QueryDeleteBatch = copy(maxParallelDeletes = Some(parallelism))
+  override def withParallelism(parallelism: Int): QueryDeleteBatch = copy(maxParallelDeletes = Some(parallelism))
 
   override def withCondition(t: Condition): QueryDeleteBatch = copy(condition = condition && t)
 
@@ -72,9 +74,9 @@ final case class QueryDeleteBatch(
   override def withKey(f: Map[String, AttributeValue] => Map[String, AttributeValue]): QueryDeleteBatch =
     copy(keyConditionAttributeValues = f(keyConditionAttributeValues))
 
-  override def toAmz: QueryRequest = this.toRegularQuery.toAmz
+  override def toAmz: QueryRequest = wrapped.toAmz
 
-  def toRegularQuery: Query = {
+  override def wrapped: Query = {
     Query(
       table                       = table,
       index                       = index,

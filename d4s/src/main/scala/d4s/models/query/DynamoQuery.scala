@@ -287,6 +287,16 @@ object DynamoQuery {
     def consistent: DynamoQuery[DR, Dec] = withConsistent(true)
   }
 
+  implicit final class TweakWithParallelism[DR <: DynamoRequest with WithParallelism[DR], Dec](
+    dynamoQuery: DynamoQuery[DR, Dec]
+  ) extends WithParallelism[DynamoQuery[DR, Dec]] {
+    @inline override def maxParallelDeletes: Option[Int] = dynamoQuery.request.maxParallelDeletes
+
+    @inline override def withParallelism(parallelism: Int): DynamoQuery[DR, Dec] = {
+      dynamoQuery.modify(_.withParallelism(parallelism))
+    }
+  }
+
   implicit final class TweakReturnValue[DR <: DynamoRequest with WithReturnValue[DR], Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
   ) extends WithReturnValue[DynamoQuery[DR, Dec]] {

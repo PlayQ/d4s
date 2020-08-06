@@ -147,21 +147,12 @@ object DynamoRequest {
     final def withItems[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withItemAttributeValues(D4SEncoder[I1].encodeObject(v1) ++ D4SEncoder[I2].encodeObject(v2))
   }
 
-  type HasTableReference[A]       = A => WithTableReference[A]
-  type HasIndex[A]                = A => WithIndex[A]
-  type HasCondition[A]            = A => WithCondition[A]
-  type HasFilterExpression[A]     = A => WithFilterExpression[A]
-  type HasProjectionExpression[A] = A => WithProjectionExpression[A]
-  type HasUpdateExpression[A]     = A => WithUpdateExpression[A]
-  type HasAttributeValues[A]      = A => WithAttributeValues[A]
-  type HasAttributeNames[A]       = A => WithAttributeNames[A]
-  type HasLimit[A]                = A => WithLimit[A]
-  type HasSelect[A]               = A => WithSelect[A]
-  type HasReturnValue[A]          = A => WithReturnValue[A]
-  type HasStartKey[A]             = A => WithStartKey[A]
-  type HasConsistent[A]           = A => WithConsistent[A]
-  type HasBatch[A, BatchType[_]]  = A => WithBatch[A, BatchType]
-  type HasScanIndexForward[A]     = A => WithScanIndexForward[A]
-  type HasKey[A]                  = A => WithKey[A]
-  type HasItem[A]                 = A => WithItem[A]
+  trait WithParallelism[A] {
+    def maxParallelDeletes: Option[Int]
+    def withParallelism(parallelism: Int): A
+  }
+
+  trait WithWrappedRequest[Wrapped] {
+    def wrapped: Wrapped
+  }
 }
