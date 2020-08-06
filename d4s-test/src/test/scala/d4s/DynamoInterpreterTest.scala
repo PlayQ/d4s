@@ -142,7 +142,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
       ctx =>
         import ctx._
         val randomPayload = RandomPayload("f2")
-        val stressed = IO.foreach(1 to 200) {
+        val stressed = IO.foreach((1 to 200).toList) {
           indx =>
             IO(InterpreterTestPayload("perform put/get/delete batch", indx, "xxx", randomPayload))
         }
@@ -426,7 +426,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val prefix       = UUID.randomUUID()
         val expectedSize = 100
         for {
-          items <- IO.foreachParN(3)(1 to expectedSize)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
+          items <- IO.foreachParN(3)((1 to expectedSize).toList)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
           put =
             testTable.table
               .putItemBatch(items)
@@ -564,7 +564,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val prefix       = UUID.randomUUID()
         val expectedSize = 100
         for {
-          items <- IO.foreachParN(3)(1 to expectedSize)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
+          items <- IO.foreachParN(3)((1 to expectedSize).toList)(i => IO(BatchWriteEntity(payload.copy(field2 = i))))
           put =
             testTable.table
               .putItemBatch(items)
