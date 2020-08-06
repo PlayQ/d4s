@@ -128,5 +128,8 @@ object TableReference {
       QueryDeleteBatch(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
     def queryDeleteBatch[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery
+
+    def scanDeleteBatch: DynamoQuery[ScanDeleteBatch, List[BatchWriteItemResponse]]                          = ScanDeleteBatch(table).toQuery
+    def scanDeleteBatch(maxParallelDeletes: Int): DynamoQuery[ScanDeleteBatch, List[BatchWriteItemResponse]] = ScanDeleteBatch(table, Some(maxParallelDeletes)).toQuery
   }
 }

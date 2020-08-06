@@ -343,7 +343,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val put          = testTable.table.putItem.withPrefix(prefix)
         val expectedSize = 100
         for {
-          _ <- IO.foreachParN(3)(1 to expectedSize)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
+          _ <- IO.foreachParN(3)((1 to expectedSize).toList)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
           get =
             testTable.table.query
               .withKey(testTable.mainKey.bind("paging_test"))
@@ -366,7 +366,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val put          = testTable.table.putItem.withPrefix(prefix)
         val expectedSize = 100
         for {
-          _   <- IO.foreachParN(3)(1 to expectedSize)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
+          _   <- IO.foreachParN(3)((1 to expectedSize).toList)(i => connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl)))
           ref <- Ref.make(Set.empty[InterpreterTestPayload])
           get =
             testTable.table.query
@@ -402,7 +402,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         val put          = testTable.table.putItem.withPrefix(prefix)
         val expectedSize = 20
         for {
-          _ <- IO.foreachParN(3)(1 to expectedSize) {
+          _ <- IO.foreachParN(3)((1 to expectedSize).toList) {
             i =>
               connector.runUnrecorded(put.withItem(payload.copy(field2 = i)).retryWithPrefix(testTable.ddl))
           }
@@ -557,7 +557,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         } yield ()
     }
 
-    "perform queryDeleteBatch request" in scopeIO {
+    "perform streamed DeleteBatch request" in scopeIO {
       ctx =>
         import ctx._
         val payload      = InterpreterTestPayload("batch_test", 333, "f3", RandomPayload("f2"))
@@ -584,39 +584,51 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           _     <- assertIO(read1.size == expectedSize)
           _     <- assertIO(read1.toSet == items.map(_.item).toSet)
 
-          delete =
+          deleteQuery =
             testTable.table
               .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
               .withPrefix(prefix)
-              .exec
               .retryWithPrefix(testTable.ddl)
-          _ <- connector.runUnrecorded(delete)
+          _ <- connector.runUnrecorded(deleteQuery)
 
           read2 <- connector.runUnrecorded(get)
           _     <- assertIO(read2.isEmpty)
+
+          _ <- connector.runUnrecorded(put)
+
+          read3 <- connector.runUnrecorded(get)
+          _     <- assertIO(read3.size == expectedSize)
+          _     <- assertIO(read3.toSet == items.map(_.item).toSet)
+
+          deleteScan =
+            testTable.table.scanDeleteBatch
+              .withPrefix(prefix)
+              .retryWithPrefix(testTable.ddl)
+          _ <- connector.runUnrecorded(deleteScan)
+
+          read4 <- connector.runUnrecorded(get)
+          _     <- assertIO(read4.isEmpty)
         } yield ()
     }
 
-    "perform queryDeleteBatch request on non-existent table with retryWithPrefix" in scopeIO {
+    "perform streamed DeleteBatch request on non-existent table with retryWithPrefix" in scopeIO {
       ctx =>
         import ctx._
-        val prefix = UUID.randomUUID()
+        val prefix1 = UUID.randomUUID()
+        val prefix2 = UUID.randomUUID()
 
         for {
           _ <- connector.runUnrecorded(
             testTable.table
               .queryDeleteBatch(testTable.mainKey.bind("batch_test"))
-              .withPrefix(prefix)
+              .withPrefix(prefix1)
               .retryWithPrefix(testTable.ddl)
           )
-          read2 <- connector.runUnrecorded(
-            testTable.table.query
-              .withPrefix(prefix)
-              .withKey(testTable.mainKey.bind("batch_test"))
-              .decodeItems[InterpreterTestPayload]
-              .execPagedFlatten()
+          _ <- connector.runUnrecorded(
+            testTable.table.scanDeleteBatch
+              .withPrefix(prefix2)
+              .retryWithPrefix(testTable.ddl)
           )
-          _ <- assertIO(read2.isEmpty)
         } yield ()
     }
 
