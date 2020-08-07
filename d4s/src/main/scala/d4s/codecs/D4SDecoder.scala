@@ -23,6 +23,12 @@ import scala.util.control.NonFatal
 trait D4SDecoder[T] {
   def decode(attr: AttributeValue): Either[DecoderException, T]
   def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, T]
+  def decodeOptional(attr: Option[AttributeValue], label: String): Either[DecoderException, T] = {
+    attr match {
+      case Some(value) => decode(value)
+      case None        => Left(DecoderException(s"Cannot find parameter with name `$label` of type [${this.getClass.getSimpleName}].", None))
+    }
+  }
 
   final def decodeObject(item: java.util.Map[String, AttributeValue]): Either[DecoderException, T] = decodeObject(item.asScala.toMap)
 
@@ -80,10 +86,8 @@ object D4SDecoder extends D4SDecoderScala213 {
     item =>
       ctx.constructMonadic {
         p =>
-          item.get(p.label) match {
-            case Some(value) => p.typeclass.decode(value)
-            case None        => Left(DecoderException(s"Cannot find parameter with name ${p.label}", None))
-          }
+          val label = p.label
+          p.typeclass.decodeOptional(item.get(label), label)
       }
   }
 
@@ -92,7 +96,7 @@ object D4SDecoder extends D4SDecoderScala213 {
       if (item.m().isEmpty) {
         ctx.subtypes
           .find(_.typeName.short == item.s())
-          .toRight(DecoderException(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
+          .toRight(DecoderException(s"Cannot decode item of type [${ctx.typeName.full}] from string: ${item.s()}", None))
           .flatMap(_.typeclass.decode(item))
       } else {
         if (item.m().size != 1) {
@@ -101,7 +105,7 @@ object D4SDecoder extends D4SDecoderScala213 {
           val (typeName, attrValue) = item.m().asScala.head
           ctx.subtypes
             .find(_.typeName.short == typeName)
-            .toRight(DecoderException(s"Cannot find a subtype $typeName for a sealed trait ${ctx.typeName.full}", None))
+            .toRight(DecoderException(s"Cannot find a subtype [$typeName] for a sealed trait [${ctx.typeName.full}]", None))
             .flatMap(_.typeclass.decode(attrValue))
         }
       }
@@ -188,9 +192,14 @@ object D4SDecoder extends D4SDecoderScala213 {
         }
     }
 
-  implicit def optionDecoder[A](implicit T: D4SDecoder[A]): D4SDecoder[Option[A]] = attributeDecoder {
-    attr =>
-      if (attr.nul()) Right(None) else T.decode(attr).map(Some(_))
+  implicit def optionDecoder[A](implicit T: D4SDecoder[A]): D4SDecoder[Option[A]] = new D4SDecoder[Option[A]] {
+    override def decode(attr: AttributeValue): Either[DecoderException, Option[A]]                    = decodeOptional(Some(attr), "")
+    override def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, Option[A]] = decode(AttributeValue.builder().m(item.asJava).build())
+    override def decodeOptional(attr: Option[AttributeValue], label: String): Either[DecoderException, Option[A]] = attr match {
+      case None                     => Right(None)
+      case Some(attr) if attr.nul() => Right(None)
+      case Some(attr)               => T.decode(attr).map(Some(_))
+    }
   }
 
   implicit def eitherDecoder[A: D4SDecoder, B: D4SDecoder]: D4SDecoder[Either[A, B]] = D4SDecoder.derived
