@@ -9,10 +9,18 @@ import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
 final class DynamoCodecTest extends AnyWordSpec with Checkers {
+  "decode options from empty map or missed attribute" in {
+    val decoder = D4SDecoder.derived[Option[Int]]
+    val map     = AttributeValue.builder().m(Map.empty[String, AttributeValue].asJava).build()
+    decoder.decodeOptional(Some(map), "").exists(_.isEmpty)
+    decoder.decodeOptional(None, "").exists(_.isEmpty)
+  }
+
   "encode/decode TestCaseClass" in check {
     Prop.forAllNoShrink {
       testData: TestCaseClass =>

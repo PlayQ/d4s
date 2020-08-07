@@ -96,7 +96,7 @@ object D4SDecoder extends D4SDecoderScala213 {
       if (item.m().isEmpty) {
         ctx.subtypes
           .find(_.typeName.short == item.s())
-          .toRight(DecoderException(s" Cannot decode item of type ${ctx.typeName.full} from string: ${item.s()}", None))
+          .toRight(DecoderException(s"Cannot decode item of type [${ctx.typeName.full}] from string: ${item.s()}", None))
           .flatMap(_.typeclass.decode(item))
       } else {
         if (item.m().size != 1) {
@@ -105,7 +105,7 @@ object D4SDecoder extends D4SDecoderScala213 {
           val (typeName, attrValue) = item.m().asScala.head
           ctx.subtypes
             .find(_.typeName.short == typeName)
-            .toRight(DecoderException(s"Cannot find a subtype $typeName for a sealed trait ${ctx.typeName.full}", None))
+            .toRight(DecoderException(s"Cannot find a subtype [$typeName] for a sealed trait [${ctx.typeName.full}]", None))
             .flatMap(_.typeclass.decode(attrValue))
         }
       }
@@ -196,9 +196,9 @@ object D4SDecoder extends D4SDecoderScala213 {
     override def decode(attr: AttributeValue): Either[DecoderException, Option[A]]                    = decodeOptional(Some(attr), "")
     override def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, Option[A]] = decode(AttributeValue.builder().m(item.asJava).build())
     override def decodeOptional(attr: Option[AttributeValue], label: String): Either[DecoderException, Option[A]] = attr match {
-      case Some(attr) if attr.nul() || Try(attr.m()).toOption.exists(_.isEmpty) => Right(None)
-      case Some(attr)                                                           => T.decode(attr).map(Some(_))
-      case None                                                                 => Right(None)
+      case Some(attr) if attr.nul() => Right(None)
+      case Some(attr)               => T.decode(attr).map(Some(_))
+      case None                     => Right(None)
     }
   }
 
