@@ -196,9 +196,9 @@ object D4SDecoder extends D4SDecoderScala213 {
     override def decode(attr: AttributeValue): Either[DecoderException, Option[A]]                    = decodeOptional(Some(attr), "")
     override def decodeObject(item: Map[String, AttributeValue]): Either[DecoderException, Option[A]] = decode(AttributeValue.builder().m(item.asJava).build())
     override def decodeOptional(attr: Option[AttributeValue], label: String): Either[DecoderException, Option[A]] = attr match {
+      case None                     => Right(None)
       case Some(attr) if attr.nul() => Right(None)
       case Some(attr)               => T.decode(attr).map(Some(_))
-      case None                     => Right(None)
     }
   }
 

@@ -3,22 +3,19 @@ package d4s.codecs
 import d4s.codecs.Fixtures._
 import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
 import d4s.models.DynamoException.DecoderException
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.extras.semiauto
+import io.circe.{Decoder, Encoder}
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 import software.amazon.awssdk.core.SdkBytes
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
 final class DynamoCodecTest extends AnyWordSpec with Checkers {
-  "decode options from empty map or missed attribute" in {
-    val decoder = D4SDecoder.derived[Option[Int]]
-    val map     = AttributeValue.builder().m(Map.empty[String, AttributeValue].asJava).build()
-    decoder.decodeOptional(Some(map), "").exists(_.isEmpty)
-    decoder.decodeOptional(None, "").exists(_.isEmpty)
+  "decode options from missed attribute" in {
+    val decoder = D4SDecoder.optionDecoder[Int]
+    assert(decoder.decodeOptional(None, "").exists(_.isEmpty))
   }
 
   "encode/decode TestCaseClass" in check {
