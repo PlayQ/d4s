@@ -1,7 +1,7 @@
 object V {
   val scala_212     = "2.12.12"
   val scala_213     = "2.13.3"
-  val izumi_version = "0.10.17"
+  val izumi_version = "0.10.18"
 
   // compiler
   val kind_projector = "0.11.0"
@@ -28,6 +28,6 @@ object V {
   val zio              = "1.0.1"
   val zio_interop_cats = "2.1.4.0"
 
-  val scalatest                = "3.1.3"
-  val scalatestplus_scalacheck = "3.1.3.0"
+  val scalatest                = "3.2.1"
+  val scalatestplus_scalacheck = "3.2.1.0"
 }
