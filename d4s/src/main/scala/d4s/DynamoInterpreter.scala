@@ -7,6 +7,7 @@ import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest, WithBatch, WithProjectionExpression, WithTableReference}
 import d4s.models.query._
 import d4s.models.query.requests._
+import d4s.models.query.responses.HasItems
 import izumi.functional.bio.catz._
 import izumi.functional.bio.{BIOError, BIOFork, BIOTemporal, F}
 import logstage.LogBIO
@@ -14,7 +15,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 
 import scala.concurrent.duration._
-import scala.language.reflectiveCalls
 
 trait DynamoInterpreter[F[_, _]] {
   def run[DR <: DynamoRequest, Dec](
@@ -86,14 +86,14 @@ object DynamoInterpreter {
     private[this] def runStreamDeleteBatch[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR]](
       dynamoQuery: DynamoQuery[DR, _],
       parallelism: Option[Int],
-    )(implicit ev0: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] },
+    )(implicit ev: HasItems[DR#Rsp],
       ev1: PageableRequest[DR],
     ): F[Throwable, List[BatchWriteItemResponse]] = {
       import scala.jdk.CollectionConverters._
 
       val exec = dynamoQuery
         .withProjectionExpression(dynamoQuery.table.key.keyFields.toList: _*)
-        .decode(_.items().asScala.map(_.asScala.toMap).toList)
+        .decode(ev.items(_).asScala.map(_.asScala.toMap).toList)
         .execStreamedFlatten
 
       exec

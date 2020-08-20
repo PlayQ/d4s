@@ -10,13 +10,14 @@ import d4s.models.conditions.Condition
 import d4s.models.conditions.Condition.{attribute_exists, attribute_not_exists}
 import d4s.models.query.DynamoRequest._
 import d4s.models.query.requests.UpdateTable
+import d4s.models.query.responses.{HasAttributes, HasConsumedCapacity, HasItem, HasItems, HasScannedCount}
 import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex, TableIndex}
 import d4s.models.table.{DynamoField, TableDDL, TableReference}
 import d4s.models.{DynamoExecution, FnBIO, OffsetLimit}
 import izumi.functional.bio.{BIO, BIOError, F}
-import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ConsumedCapacity, ReturnValue, Select}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, BatchGetItemResponse, ConsumedCapacity, ReturnValue, Select}
 
-import scala.language.{implicitConversions, reflectiveCalls}
+import scala.language.implicitConversions
 
 final case class DynamoQuery[DR <: DynamoRequest, +Dec](
   request: DR,
@@ -86,7 +87,7 @@ object DynamoQuery {
   implicit final class ExecOffset[DR <: DynamoRequest with WithSelect[DR] with WithLimit[DR] with WithProjectionExpression[DR], A](
     private val dynamoQuery: DynamoQuery[DR, List[A]]
   ) extends AnyVal {
-    def execOffset(offsetLimit: OffsetLimit)(implicit paging: PageableRequest[DR], ev: DR#Rsp => { def count(): Integer }): DynamoExecution[DR, List[A], List[A]] = {
+    def execOffset(offsetLimit: OffsetLimit)(implicit paging: PageableRequest[DR], ev: HasScannedCount[DR#Rsp]): DynamoExecution[DR, List[A], List[A]] = {
       new DynamoExecution[DR, List[A], List[A]](dynamoQuery, DynamoExecution.offset[DR, List[A], A](offsetLimit))
     }
   }
@@ -328,33 +329,32 @@ object DynamoQuery {
   implicit final class QueryCountOnly[DR <: DynamoRequest with WithSelect[DR] with WithProjectionExpression[DR], Dec](
     private val dynamoQuery: DynamoQuery[DR, Dec]
   ) extends AnyVal {
-    def countOnly(implicit ev: DR#Rsp => { def count(): Integer }): DynamoQuery[DR, Int] =
-      dynamoQuery.modify(_.withSelect(Select.COUNT).withProjectionExpression(_ => None)).decode(_.count())
+    def countOnly(implicit ev: HasScannedCount[DR#Rsp]): DynamoQuery[DR, Int] =
+      dynamoQuery.modify(_.withSelect(Select.COUNT).withProjectionExpression(_ => None)).decode(ev.count)
 
-    def scannedCountOnly(implicit ev: DR#Rsp => { def scannedCount(): Integer }): DynamoQuery[DR, Int] =
-      dynamoQuery.modify(_.withSelect(Select.COUNT).withProjectionExpression(_ => None)).decode(_.scannedCount())
+    def scannedCountOnly(implicit ev: HasScannedCount[DR#Rsp]): DynamoQuery[DR, Int] =
+      dynamoQuery.modify(_.withSelect(Select.COUNT).withProjectionExpression(_ => None)).decode(ev.scannedCount)
   }
 
   implicit final class QueryCount[DR <: DynamoRequest, Dec](
     private val dynamoQuery: DynamoQuery[DR, Dec]
   ) extends AnyVal {
-    def consumedCapacityOnly(implicit ev: DR#Rsp => { def consumedCapacity(): ConsumedCapacity }): DynamoQuery[DR, ConsumedCapacity] =
-      dynamoQuery.decode(_.consumedCapacity())
+    def consumedCapacityOnly(implicit ev: HasConsumedCapacity[DR#Rsp]): DynamoQuery[DR, ConsumedCapacity] =
+      dynamoQuery.decode(ev.consumedCapacity)
 
-    def withCount(implicit ev: DR#Rsp => { def count(): Integer }): DynamoQuery[DR, (Dec, Int)] =
-      dynamoQuery.decodeWith((a, c) => (c, a.count()))
+    def withCount(implicit ev: HasScannedCount[DR#Rsp]): DynamoQuery[DR, (Dec, Int)] =
+      dynamoQuery.decodeWith((a, c) => (c, ev.count(a)))
 
-    def withScannedCount(implicit ev: DR#Rsp => { def scannedCount(): Integer }): DynamoQuery[DR, (Dec, Int)] =
-      dynamoQuery.decodeWith((a, c) => (c, a.scannedCount()))
+    def withScannedCount(implicit ev: HasScannedCount[DR#Rsp]): DynamoQuery[DR, (Dec, Int)] =
+      dynamoQuery.decodeWith((a, c) => (c, ev.scannedCount(a)))
 
-    def withConsumedCapacity(implicit ev: DR#Rsp => { def consumedCapacity(): ConsumedCapacity }): DynamoQuery[DR, (Dec, ConsumedCapacity)] =
-      dynamoQuery.decodeWith((a, c) => (c, a.consumedCapacity()))
+    def withConsumedCapacity(implicit ev: HasConsumedCapacity[DR#Rsp]): DynamoQuery[DR, (Dec, ConsumedCapacity)] =
+      dynamoQuery.decodeWith((a, c) => (c, ev.consumedCapacity(a)))
   }
 
   implicit final class DecodeBatchedItems[DR <: DynamoRequest, Dec, A](
     dynamoQuery: DynamoQuery[DR, Dec]
-  )(implicit ev1: DR#Rsp <:< List[A],
-    ev2: A => { def responses(): java.util.Map[String, java.util.List[java.util.Map[String, AttributeValue]]] },
+  )(implicit ev1: DR#Rsp <:< List[BatchGetItemResponse]
   ) {
 
     def decodeItems[Item: D4SDecoder]: DynamoQuery[DR, List[Item]] = {
@@ -370,7 +370,7 @@ object DynamoQuery {
 
   implicit final class DecodeItems[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR], Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
-  )(implicit ev: DR#Rsp => { def items(): java.util.List[java.util.Map[String, AttributeValue]] }
+  )(implicit ev: HasItems[DR#Rsp]
   ) {
     def decodeItems[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, List[Item]] = {
       dynamoQuery
@@ -380,7 +380,7 @@ object DynamoQuery {
           response => implicit F =>
             import scala.jdk.CollectionConverters._
 
-            val itemsData = response.items().asScala.toList
+            val itemsData = ev.items(response).asScala.toList
             F.traverse(itemsData)(decodeItemImpl(_)).map(_.flatten)
         })
     }
@@ -396,7 +396,7 @@ object DynamoQuery {
           response => implicit F =>
             import scala.jdk.CollectionConverters._
 
-            val itemsData = response.items().asScala.toList
+            val itemsData = ev.items(response).asScala.toList
             F.traverse(itemsData)(decodeItemTTLImpl(ttlName)(_)).map(_.flatten)
         })
     }
@@ -405,19 +405,19 @@ object DynamoQuery {
 
   implicit final class DecodeItemAttributes[DR <: DynamoRequest, Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
-  )(implicit ev: DR#Rsp => { def attributes(): java.util.Map[String, AttributeValue] }
+  )(implicit ev: HasAttributes[DR#Rsp]
   ) {
     def decodeItem[Item: D4SDecoder]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery.decodeF(FnBIO {
         response => implicit F =>
-          decodeItemImpl(response.attributes())
+          decodeItemImpl(ev.attributes(response))
       })
     }
   }
 
   implicit final class DecodeItem[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR], Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
-  )(implicit ev: DR#Rsp => { def item(): java.util.Map[String, AttributeValue] }
+  )(implicit ev: HasItem[DR#Rsp]
   ) {
     def decodeItem[Item: D4SDecoder: AttributeNames]: DynamoQuery[DR, Option[Item]] = {
       dynamoQuery
@@ -425,7 +425,7 @@ object DynamoQuery {
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
         ).decodeF(FnBIO {
           response => implicit F =>
-            decodeItemImpl(response.item())
+            decodeItemImpl(ev.item(response))
         })
     }
 
@@ -439,7 +439,7 @@ object DynamoQuery {
             .withProjectionExpression(ttlName)
         ).decodeF(FnBIO {
           response => implicit F =>
-            decodeItemTTLImpl(ttlName)(response.item())
+            decodeItemTTLImpl(ttlName)(ev.item(response))
         })
     }
 

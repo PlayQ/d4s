@@ -5,6 +5,7 @@ import cats.effect.concurrent.Ref
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput, StreamFThrowable, UnknownF}
 import d4s.models.query.DynamoRequest.{PageableRequest, WithLimit, WithProjectionExpression, WithSelect, WithTableReference}
 import d4s.models.query.requests._
+import d4s.models.query.responses.HasScannedCount
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.{TableDDL, TableReference}
 import fs2.Stream
@@ -15,7 +16,6 @@ import software.amazon.awssdk.services.dynamodb.model.{ConditionalCheckFailedExc
 import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
 
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
@@ -160,7 +160,7 @@ object DynamoExecution {
     offsetLimit: OffsetLimit
   )(implicit
     paging: PageableRequest[DR],
-    ev2: DR#Rsp => { def count(): Integer },
+    ev2: HasScannedCount[DR#Rsp],
     ev3: Dec <:< List[A],
   ): ExecutionStrategy[DR, Dec, List[A]] = ExecutionStrategy {
     in =>
@@ -176,13 +176,13 @@ object DynamoExecution {
               val newRq = query.modify(paging.withPageMarker(_, nextPage).withLimit(offsetLimit.offset - fetched))
               interpreter
                 .run(newRq, in.interpreterErrorLogger)
-                .flatMap(newRsp => go(paging.getPageMarker(newRsp), fetched + newRsp.count()))
+                .flatMap(newRsp => go(paging.getPageMarker(newRsp), fetched + ev2.count(newRsp)))
           }
         }
 
         for {
           skipOffsetRsp <- interpreter.run(query.withLimit(offsetLimit.offset).countOnly, in.interpreterErrorLogger)
-          res           <- go(paging.getPageMarker(skipOffsetRsp), skipOffsetRsp.count())
+          res           <- go(paging.getPageMarker(skipOffsetRsp), ev2.count(skipOffsetRsp))
         } yield res
       }
 
