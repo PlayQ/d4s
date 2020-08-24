@@ -14,7 +14,7 @@ object V {
   val scalacheck           = "1.14.1"
   val scalacheck_shapeless = "1.2.5"
 
-  val fs2 = "2.4.3"
+  val fs2 = "2.4.4"
 
   // Izumi Deps
   val circe                = "0.13.0"
@@ -28,6 +28,6 @@ object V {
   val zio              = "1.0.1"
   val zio_interop_cats = "2.1.4.0"
 
-  val scalatest                = "3.2.1"
+  val scalatest                = "3.2.2"
   val scalatestplus_scalacheck = "3.2.2.0"
 }
