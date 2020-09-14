@@ -19,7 +19,7 @@ libraryDependencies += "net.playq" %% "d4s-circe" %% "1.0.13"
 ```
 If you want to use the metrics package from d4s you can add it like this:
 ```
-libraryDependencies += "net.playq" %% "metrics" %% "1.0.10"
+libraryDependencies += "net.playq" %% "metrics" %% "1.0.13"
 ```
 
 ## A simple example

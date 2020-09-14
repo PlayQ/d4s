@@ -2,7 +2,7 @@
 home: true
 heroImage: /D4S_logo.svg
 actionText: Get Started →
-actionLink: /docs/
+actionLink: /docs/overview.md
 features:
 - title: Purely functional
   details: ---
