@@ -1,6 +1,11 @@
 name: Build Microsite
 on:
+  pull_request:
+    paths:
+      - 'vuepress/**'
   push:
+    branches:
+      - master
     paths:
       - 'vuepress/**'
 
