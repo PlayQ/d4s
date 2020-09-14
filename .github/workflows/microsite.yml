@@ -18,7 +18,5 @@ jobs:
           rm -rf docs/microsite
           cp -r vuepress/docs/.vuepress/dist docs/microsite
           git add docs
-          git config user.name "Vlad Podilnyk"
-          git config user.email "vpodilnyk@playq.net"
           git commit -m "CI step: update docs"
-          git push
+          git push -f git@github.com:playq/d4s.github.io.git master
