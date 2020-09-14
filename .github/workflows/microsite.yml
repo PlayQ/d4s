@@ -5,7 +5,7 @@ on:
       - 'vuepress/**'
   push:
     branches:
-      - master
+      - develop
     paths:
       - 'vuepress/**'
 
@@ -29,5 +29,5 @@ jobs:
             git config user.email "vpodilnyk@playq.net"
             git add docs
             git commit -m "CI step: update docs"
-            git push origin master
+            git push origin develop
           fi
