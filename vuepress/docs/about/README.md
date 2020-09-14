@@ -1,3 +1,2 @@
 # About
-Boom-Bap
 :construction:

@@ -20,8 +20,8 @@ jobs:
           yarn install
           yarn docs:build
           cd ..
-          rm -rf docs/microsite
-          cp -r vuepress/docs/.vuepress/dist docs/microsite
+          rm -rf docs
+          cp -r vuepress/docs/.vuepress/dist docs
       - name: Update docs
         run:  |
           if [[ "$GITHUB_REF" == refs/heads/develop ]] ; then
