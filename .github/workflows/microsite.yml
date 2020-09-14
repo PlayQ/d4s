@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build and Update docs
+      - name: Build
         run: |
           cd vuepress
           yarn install
@@ -22,8 +22,12 @@ jobs:
           cd ..
           rm -rf docs/microsite
           cp -r vuepress/docs/.vuepress/dist docs/microsite
-          git config user.name "Vlad Podilnyk"
-          git config user.email "vpodilnyk@playq.net"
-          git add docs
-          git commit -m "CI step: update docs"
-          git push
+      - name: Update docs
+        run:  |
+          if [[ "$GITHUB_REF" == refs/heads/develop ]] ; then
+            git config user.name "Vlad Podilnyk"
+            git config user.email "vpodilnyk@playq.net"
+            git add docs
+            git commit -m "CI step: update docs"
+            git push origin master
+          fi
