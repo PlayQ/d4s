@@ -23,7 +23,7 @@ libraryDependencies += "net.playq" %% "metrics" %% "1.0.10"
 ```
 
 ## A simple example
-Let's imagine that we have the following interface for a game ladder's repository: 
+Let's imagine that we have the following interface for a game's ladders repository: 
 ```scala
 trait Ladder[F[_, _]] {
   def submitScore(userId: UUID, score: Long): F[DynamoException, Unit]
@@ -35,15 +35,11 @@ To do this the one should extend `TableDef` trait and pass `DynamoMeta` which is
 
 ```scala
 final class LadderTable(implicit meta: DynamoMeta) extends TableDef {
-  private[this] val mainKey = DynamoKey(hashKey = DynamoField[UUID]("userId"))
+  val mainKey = DynamoKey(hashKey = DynamoField[UUID]("userId"))
 
   override val table: TableReference = TableReference("d4s-ladder-table", mainKey)
 
   override val ddl: TableDDL = TableDDL(table)
-
-  def mainFullKey(userId: UserId): Map[String, AttributeValue] = {
-    mainKey.bind(userId.value)
-  }
 }
 ```
 We mustn't forget  to  provide codecs for our custom type that we wanna store in the DB.
@@ -57,7 +53,7 @@ object LadderTable {
 }
 ```
 By default, d4s relies on [Magnolia](https://propensive.com/opensource/magnolia/) to derive typeclasses,
-but you could also use [Circe](https://circe.github.io/circe/) to so. In case you wanna use `circe` just
+but you could also use [Circe](https://circe.github.io/circe/) to do the same. In case you wanna use `circe` just
 include `d4s-circe` module as a dependency for your project.
 
 Finally, we can write some queries!
@@ -65,7 +61,7 @@ To build a query we need `DynamoConnector` and of course our previously defined 
 `DynamoConnector` is meant to execute a query.
 
 In order to get all scores from the ladder we need to scan the whole table. The `execPagedFlatten` combinator
-handles pagination and flatten the result to one dimensional list.
+handles pagination and flattens the result to one dimensional list.
 ```scala
 connector.run("get scores query") {
   table.scan.decodeItems[UserIdWithScoreStored].execPagedFlatten()
@@ -97,3 +93,5 @@ final class D4SLadder[F[+_, +_]: BIO](connector: DynamoConnector[F], ladderTable
   }
 }
 ```
+
+In case you wanna have a deeper look on project with d4s, you could play with it using this showcase project: [d4s-example](https://github.com/VladPodilnyk/d4s-example) 
