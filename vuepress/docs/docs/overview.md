@@ -1,12 +1,12 @@
-# Getting started #2
+# Getting started
 
 ## Overview
-+ __d4s__ is a Scala library to work with DynamoDB.
-+ __d4s__ is powered by [Izumi](https://izumi.7mind.io/latest/release/doc/index.html)
-+ __d4s__ uses Bifunctor IO and allows you to choose whatever effect type you want to use.
-+ __d4s__ provides flexible and extensible DSL 
-+ __d4s__ supports AWS SDK v2
-+ __d4s__ has great integration with [ZIO](https://zio.dev/) and [Monix-BIO](https://bio.monix.io/) (not yet but soon).
++ __D4S__ is a Scala library to work with DynamoDB.
++ __D4S__ is powered by [Izumi](https://izumi.7mind.io/latest/release/doc/index.html)
++ __D4S__ uses Bifunctor IO and allows you to choose whatever effect type you want to use.
++ __D4S__ provides flexible and extensible DSL 
++ __D4S__ supports AWS SDK v2
++ __D4S__ has great integration with [ZIO](https://zio.dev/) and [Monix-BIO](https://bio.monix.io/) (not yet but soon).
 
 ## Dependencies
 
