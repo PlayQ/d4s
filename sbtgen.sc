@@ -61,6 +61,7 @@ object ProjectBuilder {
   object ProjectDeps {
     private val circe_exclude = LibSetting.Raw("""excludeAll (ExclusionRule(organization = "io.circe"))""")
 
+    final val scala_collection_compat = Library("org.scala-lang.modules", "scala-collection-compat", Version.VExpr("V.scala_collection_compat"), LibraryType.Auto)
     final val distage_core      = Library("io.7mind.izumi", "distage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
     final val distage_framework = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
     final val distage_plugins   = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
@@ -224,6 +225,7 @@ object ProjectBuilder {
           aws_impl_apache,
           magnolia,
           distage_plugins,
+          scala_collection_compat,
         ).map(_ in Scope.Compile.all)  ++ Seq(
           scalatest in Scope.Test.all,
         ) ++ Seq(

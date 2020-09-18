@@ -2,7 +2,6 @@ package d4s.models.query.requests
 
 import java.util
 
-import d4s.compat.chaining._
 import d4s.models.conditions.Condition._
 import d4s.models.conditions.{Condition, LogicalOperator}
 import d4s.models.query.DynamoRequest
@@ -10,6 +9,8 @@ import d4s.models.query.DynamoRequest._
 import d4s.models.table.TableReference
 import d4s.models.table.index.TableIndex
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, QueryRequest, QueryResponse, Select}
+
+import scala.util.chaining._
 
 final case class Query(
   table: TableReference,

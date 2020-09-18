@@ -1,12 +1,12 @@
 package d4s.models.query.requests
 
-import d4s.compat.chaining._
 import d4s.models.query.DynamoRequest
 import d4s.models.query.DynamoRequest.{WithAttributeNames, WithConsistent, WithKey, WithProjectionExpression, WithTableReference}
 import d4s.models.table.TableReference
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, GetItemRequest, GetItemResponse}
 
 import scala.jdk.CollectionConverters._
+import scala.util.chaining._
 
 final case class GetItem(
   table: TableReference,

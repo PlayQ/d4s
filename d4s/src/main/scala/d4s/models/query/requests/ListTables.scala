@@ -1,9 +1,10 @@
 package d4s.models.query.requests
 
-import d4s.compat.chaining._
 import d4s.models.query.DynamoRequest
 import d4s.models.query.DynamoRequest.PageableRequest
 import software.amazon.awssdk.services.dynamodb.model.{ListTablesRequest, ListTablesResponse}
+
+import scala.util.chaining._
 
 final case class ListTables(
   startTable: Option[String] = None

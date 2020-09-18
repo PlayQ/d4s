@@ -2,13 +2,13 @@ package d4s.models.query.requests
 
 import java.util
 
-import d4s.compat.chaining._
 import d4s.models.query.DynamoRequest
 import d4s.models.query.DynamoRequest.WithTableReference
 import d4s.models.table.{TableDDL, TableReference}
 import software.amazon.awssdk.services.dynamodb.model._
 
 import scala.jdk.CollectionConverters._
+import scala.util.chaining._
 
 final case class CreateTable(
   table: TableReference,

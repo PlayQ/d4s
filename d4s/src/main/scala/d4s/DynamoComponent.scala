@@ -2,7 +2,6 @@ package d4s
 
 import java.net.{URI, URL}
 
-import d4s.compat.chaining._
 import d4s.config.DynamoConfig
 import izumi.distage.framework.model.IntegrationCheck
 import izumi.distage.model.definition.{DIResource, Id}
@@ -14,6 +13,8 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
 import software.amazon.awssdk.http.apache.ApacheSdkHttpService
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+
+import scala.util.chaining._
 
 final case class DynamoComponent(client: DynamoDbClient)
 
