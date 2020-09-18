@@ -271,6 +271,7 @@ lazy val `d4s` = project.in(file("./d4s"))
       "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
       "com.propensive" %% "magnolia" % V.magnolia_version,
       "io.7mind.izumi" %% "distage-extension-plugins" % V.izumi_version,
+      "org.scala-lang.modules" %% "scala-collection-compat" % V.scala_collection_compat,
       "org.scalatest" %% "scalatest" % V.scalatest % Test,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     )

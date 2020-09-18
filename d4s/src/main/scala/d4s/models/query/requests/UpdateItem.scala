@@ -1,6 +1,5 @@
 package d4s.models.query.requests
 
-import d4s.compat.chaining._
 import d4s.models.conditions.Condition
 import d4s.models.conditions.Condition._
 import d4s.models.query.DynamoRequest
@@ -9,6 +8,7 @@ import d4s.models.table.TableReference
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, ReturnValue, UpdateItemRequest, UpdateItemResponse}
 
 import scala.jdk.CollectionConverters._
+import scala.util.chaining._
 
 final case class UpdateItem(
   table: TableReference,

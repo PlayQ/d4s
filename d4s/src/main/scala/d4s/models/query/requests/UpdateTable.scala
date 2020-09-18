@@ -1,6 +1,5 @@
 package d4s.models.query.requests
 
-import d4s.compat.chaining._
 import d4s.config.ProvisionedThroughputConfig
 import d4s.models.query.DynamoRequest
 import d4s.models.query.DynamoRequest.WithTableReference
@@ -9,6 +8,7 @@ import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex}
 import software.amazon.awssdk.services.dynamodb.model._
 
 import scala.jdk.CollectionConverters._
+import scala.util.chaining._
 
 final case class UpdateTable(
   table: TableReference,
