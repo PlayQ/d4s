@@ -43,6 +43,8 @@ module.exports = {
             sidebarDepth: 2,
             children: [
               '',
+              'tutorial',
+              'setup',
             ]
           }]
         }
