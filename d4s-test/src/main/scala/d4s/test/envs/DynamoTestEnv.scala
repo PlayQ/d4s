@@ -16,12 +16,8 @@ trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable,
     moduleOverrides = new ModuleDef {
       make[DDLDown[F]]
     },
-    memoizationRoots = Set(
-      DIKey[DDLDown[F]]
-    ),
-    forcedRoots = Set(
-      DIKey[DDLDown[F]]
-    ),
+    memoizationRoots = Map(Scene.Managed -> DIKey[DDLDown[F]]),
+    forcedRoots      = Map(Scene.Managed -> DIKey[DDLDown[F]]),
   )
 }
 
