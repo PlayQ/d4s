@@ -2,7 +2,7 @@
 home: true
 heroImage: /D4S_logo.svg
 actionText: Get Started →
-actionLink: /docs/overview.md
+actionLink: /docs/
 features:
 - title: Purely functional
   details: Exposes a pure functional API and ensures referential transparency

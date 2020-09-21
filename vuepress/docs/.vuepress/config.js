@@ -45,6 +45,8 @@ module.exports = {
               '',
               'tutorial',
               'setup',
+              'table-definition',
+              'persistence-implementation',
             ]
           }]
         }

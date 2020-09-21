@@ -6,6 +6,6 @@ In case you are interested in a particular topic you can find information about 
 
 ### Table of Contents
 + [Setup](setup.md)
-+ [Table Definition](...)
-+ [Basic Queries](...)
++ [Table Definition](table-definition.md)
++ [Persistence implementation](persistence-implementation.md)
 + and more ...
