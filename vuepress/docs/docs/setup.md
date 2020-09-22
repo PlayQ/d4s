@@ -55,14 +55,10 @@ object LeaderboardPlugin extends PluginDef {
 `D4SModule` creates everything you need to work with D4S even healthcheck. We also add `AwsTagsModule` that could be quite
 helpful in case we want to tag our AWS tables.
 
+__TODO__: plugin for effects
+
 Huurraayyy, we've finished setting up our project, now we are ready to move further. Before we move to the next session, 
 we would like to list what we achive so far:
 - our app safely acquire/release resources
 - we have a healthcheck for our DynamoDB
 - we don't need to manually create tables (that is handled by D4S).
-
-__TODO__: plugin for effects
-
-## Managing dependencies manually :construction_worker: :hammer_and_wrench:
-__TODO__
-

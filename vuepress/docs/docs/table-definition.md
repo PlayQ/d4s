@@ -1,44 +1,16 @@
 # Table definition
 
-## App structure
-Our `LeaderBoardService` will have the following functionality:
-- store ladder (user's id with score)
-- store profile (user's name and profile description)
-- calculate rank based on user's score (just for fun :smiley:)
-
-Here is how interfaces for our tables will look like:
+Let's imagine that we want to implement game leaderboard. Leaderboard would contain user's id and score.
+Here is how the possible interface for a leaderboard persistence could look like:
 ```scala
 trait Ladder[F[_, _]] {
   def submitScore(userId: UserId, score: Score): F[QueryFailure, Unit]
   def getScores: F[QueryFailure, List[UserWithScore]]
 }
 
-trait Profiles[F[_, _]] {
-  def setProfile(userId: UserId, profile: UserProfile): F[QueryFailure, Unit]
-  def getProfile(userId: UserId): F[QueryFailure, Option[UserProfile]]
-}
-
-trait Ranks[F[_, _]] {
-  def getRank(userId: UserId): F[QueryFailure, Option[RankedProfile]]
-}
-```
-Here is how `UserId`, `Score` and `UserProfile definitions look like
-```scala
 final case class UserId(value: UUID) extends AnyVal
 final case class Score(value: Long) extends AnyVal
-final case class UserProfile(userName: String, description: String)
-```
-`RankedProfile` contains user's name and description with score and rank
-```scala
-final case class RankedProfile(
-  name: String,
-  description: String,
-  rank: Int,
-  score: Score,
-)
-```
-We also want to define a domain failure 
-```scala
+final case class UserWithScore(userId: UserId, score: Score)
 final case class QueryFailure(queryName: String, cause: Throwable)
   extends RuntimeException(
     s"""Query "$queryName" failed with ${cause.getMessage}""",
@@ -47,10 +19,8 @@ final case class QueryFailure(queryName: String, cause: Throwable)
 ```
 
 ## Define a table
-We will skip dummy implementation for our repo layer to avoid information noise, but you could find complete code [here](https://github.com/VladPodilnyk/d4s-example/tree/0ef2a95d12d9fb26206bf6ba25b2a5c67eba640d/src/main/scala/leaderboard/repo).
-
-### Ladder table
-Let's define a table for ladder first.
+To define a table you must extend `TableDef` trait which has `table` and `ddl` values that describes the table. In this particular case we have a SUPER-simple table without indexes
+and with `hash key` only.
 ```scala
 final class LadderTable(implicit meta: DynamoMeta) extends TableDef {
   private[this] val mainKey = DynamoKey(hashKey = DynamoField[UUID]("userId"))
@@ -63,12 +33,20 @@ final class LadderTable(implicit meta: DynamoMeta) extends TableDef {
     mainKey.bind(userId.value)
   }
 }
+``` 
+`DynamoFiled` is used to describe type of the key. `DynamoKey` type has several constructors. We use the one with `hashKey` only, but you could also specify
+`rangeKey` value. `TableReference` is used to describe a table. In the example above we pass name of the table and key, but you could also specify optional TTL field and prefix
+like that:
+```scala
+val table = TableReference("name", key, Some("expiredAt"), Some(NamedPrefix("tag", "prefix"))) 
 ```
-To define a table you must extend `TableDef` trait which has `table` and `ddl` values. We have a SUPER-simple table
-with `hash key` only. `DynamoFiled` is used to describe type of the key. Here we described a helper function `mainFullKey`
-to access key indirectly, which is not necessary thing to do. Also, we must define codecs that convert data types we wanna store in DB
-to AWS format. Hopefully, D4S has capabilities to automatically derive codes from user's defined types. This could be made with
-`D4SCodec.derived` macros that successfully derives an encoder and decoder for you custom data type.
+Obviously, ddl values contains table's ddl, and we use `TableDDL` type to represent this in Scala code. Using `TableDDL` you can 
+describe global and local indexes, provide additional attributes and even set up provisioning throughput. In our example, we just pass a `TableReference` to `TableDDL`.
+More information about a table's ddl and indexes you could find [here](indexes.md).
+You could notice that we make the key private value and define helper function to access key indirectly, which is not necessary thing to do.
+ 
+We mustn't forget to define codecs that convert data types we wanna store in DB to AWS format. Hopefully, D4S has capabilities to automatically derive codes from user's defined types. This could be made with
+`D4SCodec.derived` macros that successfully derives an encoder and decoder instances for user's defined data type.
 ```scala
 object LadderTable {
   final case class UserIdWithScoreStored(userId: UUID, score: Long){
@@ -83,28 +61,4 @@ By default, D4S relies on [Magnolia](https://propensive.com/opensource/magnolia/
 but you could also use [Circe](https://circe.github.io/circe/) to do the same. In case you wanna use `circe` just
 include `d4s-circe` module as a dependency for your project.
 
-### Profile table
-We repeat the same procedure with `Profile` table.
-```scala
-final class ProfilesTable(implicit meta: DynamoMeta) extends TableDef {
-  private[this] val mainKey = DynamoKey(hashKey = DynamoField[UUID]("userId"))
-
-  override val table: TableReference = TableReference("d4s-profile-table", mainKey)
-
-  override val ddl: TableDDL = TableDDL(table)
-
-  def mainFullKey(userId: UserId): Map[String, AttributeValue] = {
-    mainKey.bind(userId.value)
-  }
-}
-
-object ProfilesTable {
-  final case class UserProfileWithIdStored(userId: UUID, userName: String, description: String) {
-    def toAPI: UserProfileWithId = UserProfileWithId(UserId(userId), UserProfile(userName, description))
-  }
-  object UserProfileWithIdStored {
-    implicit val codec: D4SCodec[UserProfileWithIdStored] = D4SCodec.derived[UserProfileWithIdStored]
-  }
-}
-```
 Now, we are ready to make some queries!!!

@@ -46,7 +46,10 @@ module.exports = {
               'tutorial',
               'setup',
               'table-definition',
-              'persistence-implementation',
+              'basic-queries',
+              'batched-operations',
+              'conditionals',
+              'indexes'
             ]
           }]
         }
