@@ -18,8 +18,7 @@ final case class QueryFailure(queryName: String, cause: Throwable)
   )
 ```
 
-## Define a table
-To define a table you must extend `TableDef` trait which has `table` and `ddl` values that describes the table. In this particular case we have a SUPER-simple table without indexes
+To define a table you must extend `TableDef` trait which has `table` and `ddl` values. In this particular case we have a SUPER-simple table without indexes
 and with `hash key` only.
 ```scala
 final class LadderTable(implicit meta: DynamoMeta) extends TableDef {
@@ -35,8 +34,7 @@ final class LadderTable(implicit meta: DynamoMeta) extends TableDef {
 }
 ``` 
 `DynamoFiled` is used to describe type of the key. `DynamoKey` type has several constructors. We use the one with `hashKey` only, but you could also specify
-`rangeKey` value. `TableReference` is used to describe a table. In the example above we pass name of the table and key, but you could also specify optional TTL field and prefix
-like that:
+`rangeKey` value. `TableReference` is used to describe a table. In the example above we pass name of the table and key, but you could also specify optional TTL field and prefix like that:
 ```scala
 val table = TableReference("name", key, Some("expiredAt"), Some(NamedPrefix("tag", "prefix"))) 
 ```

@@ -15,7 +15,7 @@ connector.run("query name") {
   // query itself.
 }
 ```
-Remember our example with leaderboard service? Let's implement `Ladder` interface and see how we could use one of the listed above queries
+Remember our example with leaderboard service? Let's implement `Ladder` interface and see how we could use one of listed above queries
 to interact with DB. If you forget how `Ladder` interface is look like, here is a quick reminder:
 ```scala
 trait Ladder[F[_, _]] {
@@ -46,7 +46,7 @@ final class D4SLadder[F[+_, +_]: BIOBifunctor](connector: DynamoConnector[F], la
 }
 ```
 A lot of things happening here, but don't worry we'll explain everything in a bit. `D4SLadder` constructor requires two parameters: `DynamoConnector`
-to run a query and `LadderTable` which is our [table definition](table-definition.md). We also require and instance of `BIOBifunctor` for `leftMap`.
+to run a query and `LadderTable` which is our [table definition](table-definition.md). We also require and instance of `BIOBifunctor` from Izumi for `leftMap`.
 
 ## Scan and Query
 In order to retrieve scores we need to scan whole ladder table. All queries are implemented as extension methods for `TableReferece` data type.
@@ -54,7 +54,7 @@ So to build a query you need to use `table` value from `LadderTable` like we des
 ```scala
 table.scan.decodeItems[UserIdWithScoreStored].execPagedFlatten()
 ``` 
-This query simply scans the table and decode items (using previously defined codecs). Okay, but why we need this `.execPagedFlatten()` combinator?
+This query simply scans the table and decodes items (using previously defined codecs). Okay, but why we need this `.execPagedFlatten()` combinator?
 We could have a huge number of records in the table that couldn't fit in one page of scan result. Using `execPagedFlatten` we create a query 
 that handles pagination and flatten all pages into a single one dimensional list of items. What if we'll change our interface and add one more method
 to fetch records with users that have score greater or equal to 42. This is how such query could be expressed with D4S:
@@ -70,7 +70,7 @@ Here we use `query` operation that requires at least one table's key, we pass us
 `execPagedFlatten`, but this `withFilterExpression` combinator is something new. This combinator applies a filter on a query. 
 Filter requires a `Condition` which could be build using implicits methods from `d4s.implicits` object. The `of` method specify type of the attribute
 we wanna use in expression. In our case we use score attribute and tell D4S that it has type of Long, then using methode `>=` compare it with a particular value.
-For more information about conditionals, please refer to [Conditional](conditionals.md) page. 
+For more information about conditionals, please refer to [Conditionals](conditionals.md) page. 
 
 ## Put, Update and Delete
 Now, lets look at `submitScore` method. The best way to put data or update it if it's already in the table using `updateItem` query.

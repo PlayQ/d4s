@@ -10,7 +10,7 @@
 
 ## Dependencies
 
-To use `d4s`, add the following line in your `build.sbt` file:
+To use `D4S`, add the following line in your `build.sbt` file:
 ```
 libraryDependencies += "net.playq" %% "d4s" %% "1.0.13"
 ```
