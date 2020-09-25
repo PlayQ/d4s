@@ -31,7 +31,7 @@ object DynamoTablesService {
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]]                          = F.pure(List.empty)
   }
 
-  final class Memo[F[+_, +_]: BIOTemporal: BIOAsync](
+  final class Memo[F[+_, +_]: BIOAsync: BIOTemporal](
     logger: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService.Impl[F](logger, interpreter) {
@@ -48,7 +48,7 @@ object DynamoTablesService {
     }
   }
 
-  sealed class Impl[F[+_, +_]: BIOTemporal: BIOAsync](
+  sealed class Impl[F[+_, +_]: BIOAsync: BIOTemporal](
     log: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService[F] {
@@ -76,24 +76,24 @@ object DynamoTablesService {
 
     private[this] def create(tables: Set[TableDef], tweak: TableReference => TableReference): F[Throwable, Unit] = {
       F.parTraverseN(5)(tables) {
-          ddl =>
-            val newTable = tweak(ddl.table)
-            val exec     = DynamoExecution.createTable[F](newTable, ddl.ddl)
-            log.info(s"Going to create ${newTable.fullName}; ${ddl.ddl.provisioning -> "provisioning"}.") *>
-            exec.executionStrategy(StrategyInput(exec.dynamoQuery, interpreter))
-        }.void
+        ddl =>
+          val newTable = tweak(ddl.table)
+          val exec     = DynamoExecution.createTable[F](newTable, ddl.ddl)
+          log.info(s"Going to create ${newTable.fullName}; ${ddl.ddl.provisioning -> "provisioning"}.") *>
+          exec.executionStrategy(StrategyInput(exec.dynamoQuery, interpreter))
+      }.void
     }
 
     private[this] def delete(tables: Set[TableDef], tweak: TableReference => TableReference): F[Throwable, Unit] = {
       F.parTraverseN(5)(tables) {
-          ddl =>
-            val newTable = tweak(ddl.table)
-            (for {
-              arn <- interpreter.run(newTable.describe, PartialFunction.empty).map(_.table().tableArn())
-              _   <- log.info(s"Going to mark table for deletion ${newTable.fullName}, $arn")
-              _   <- interpreter.run(newTable.markForDeletion(arn), PartialFunction.empty)
-            } yield ()).catchAll(error => log.error(s"Error when mark table for deletion $error $ddl")) // ignore errors
-        }.void
+        ddl =>
+          val newTable = tweak(ddl.table)
+          (for {
+            arn <- interpreter.run(newTable.describe, PartialFunction.empty).map(_.table().tableArn())
+            _   <- log.info(s"Going to mark table for deletion ${newTable.fullName}, $arn")
+            _   <- interpreter.run(newTable.markForDeletion(arn), PartialFunction.empty)
+          } yield ()).catchAll(error => log.error(s"Error when mark table for deletion $error $ddl")) // ignore errors
+      }.void
     }
   }
 

@@ -24,7 +24,7 @@ trait DynamoInterpreter[F[_, _]] {
 }
 
 object DynamoInterpreter {
-  final class Impl[F[+_, +_]: BIOTemporal: BIOAsync: BIOFork](
+  final class Impl[F[+_, +_]: BIOAsync: BIOTemporal: BIOFork](
     client: DynamoClient[F],
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
@@ -192,9 +192,8 @@ object DynamoInterpreter {
     }
 
     def logWrapError(operation: String)(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
-      f.leftMap(InterpreterException(operation, None, _)).tapError(
-          failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}")
-        )
+      f.leftMap(InterpreterException(operation, None, _))
+        .tapError(failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}"))
     }
   }
 

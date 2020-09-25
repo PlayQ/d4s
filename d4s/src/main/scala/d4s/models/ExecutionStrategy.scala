@@ -6,7 +6,7 @@ import d4s.DynamoInterpreter
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput}
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import fs2.Stream
-import izumi.functional.bio.{BIOAsync, BIOTemporal}
+import izumi.functional.bio.{BIO, BIOAsync, BIOError, BIOTemporal}
 
 import scala.reflect.ClassTag
 
@@ -37,7 +37,7 @@ object ExecutionStrategy {
       streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?]                 = FunctionK.id[F[Throwable, ?]],
       interpreterErrorLogger: PartialFunction[DynamoException, F[Nothing, Unit]] = PartialFunction.empty,
     ): StrategyInput[F, DR, Dec] = {
-      new StrategyInput(query, BIOAsync[F], BIOTemporal[F], interpreter, streamExecutionWrapper, interpreterErrorLogger)
+      new StrategyInput(query, implicitly, implicitly, interpreter, streamExecutionWrapper, interpreterErrorLogger)
     }
   }
 

@@ -8,7 +8,7 @@ import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest
 import d4s.models.{DynamoException, DynamoExecution}
 import fs2.Stream
-import izumi.functional.bio.{BIOAsync, BIOTemporal}
+import izumi.functional.bio.{BIO, BIOAsync, BIOTemporal}
 import izumi.fundamentals.platform.language.unused
 import logstage.LogBIO
 import net.playq.metrics.Metrics
