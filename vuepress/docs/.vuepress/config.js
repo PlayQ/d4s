@@ -9,8 +9,8 @@ module.exports = {
   locales: {
     '/': {
       lang: 'en-US',
-      title: 'd4s',
-      description: 'Dynamo DB Database Done Scala way',
+      title: 'D4S',
+      description: '«Dynamo DB Database Done Scala way»',
     }
   },
   themeConfig: {
@@ -38,11 +38,18 @@ module.exports = {
         ],
         sidebar: {
           '/docs/': [{
-            title: 'd4s',
+            title: 'D4S',
             collapsable: false,
             sidebarDepth: 2,
             children: [
               '',
+              'tutorial',
+              'setup',
+              'table-definition',
+              'basic-queries',
+              'batched-operations',
+              'conditionals',
+              'indexes'
             ]
           }]
         }

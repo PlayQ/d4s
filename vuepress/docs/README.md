@@ -5,10 +5,9 @@ actionText: Get Started →
 actionLink: /docs/
 features:
 - title: Purely functional
-  details: ---
+  details: Exposes a pure functional API and ensures referential transparency
 - title: Hyperpragmatic
-  details: ---
+  details: Developed with real-world situations in mind and forged in production
 - title: Flexible
-  details: ---
-footer: SITE IS UNDER DEVELOPMENT
+  details: Extensible API with ability to modify queries
 ---
