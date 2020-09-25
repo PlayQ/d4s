@@ -178,6 +178,7 @@ object ProjectBuilder {
       "logBuffered" in SettingScope.Test := true,
 
       "resolvers" += "DefaultMavenRepository".raw,
+      "resolvers" += "Opts.resolver.sonatypeSnapshots".raw,
     )
 
     final val crossScalaSources = Defaults.CrossScalaSources
