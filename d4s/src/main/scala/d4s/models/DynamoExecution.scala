@@ -140,7 +140,7 @@ object DynamoExecution {
             }
 
             // wait until the table appears
-            retryIfTableNotFound(attempts = 120, FT.sleep(sleep).widenError[Throwable])(F.unit) {
+            retryIfTableNotFound(attempts = 120, F.sleep(sleep).widenError[Throwable])(F.unit) {
               updateTTL *> tagResources *> updateContinuousBackups.void
             }
         }
