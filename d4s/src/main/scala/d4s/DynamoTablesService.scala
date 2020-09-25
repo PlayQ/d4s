@@ -3,7 +3,7 @@ package d4s
 import d4s.models.DynamoExecution
 import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.table.{TableDef, TablePrefix, TableReference}
-import izumi.functional.bio.{BIOApplicative, BIOTemporal, F}
+import izumi.functional.bio.{BIOApplicative, BIOAsync, BIOTemporal, F}
 import logstage.LogBIO
 
 import scala.collection.mutable
@@ -31,7 +31,7 @@ object DynamoTablesService {
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]]                          = F.pure(List.empty)
   }
 
-  final class Memo[F[+_, +_]: BIOTemporal](
+  final class Memo[F[+_, +_]: BIOTemporal: BIOAsync](
     logger: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService.Impl[F](logger, interpreter) {
@@ -48,7 +48,7 @@ object DynamoTablesService {
     }
   }
 
-  sealed class Impl[F[+_, +_]: BIOTemporal](
+  sealed class Impl[F[+_, +_]: BIOTemporal: BIOAsync](
     log: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService[F] {
@@ -67,7 +67,7 @@ object DynamoTablesService {
 
     override def listTables: F[Throwable, List[String]] = {
       val exec = DynamoExecution.listTables
-      exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
+      exec.executionStrategy(StrategyInput(exec.dynamoQuery, interpreter))
     }
 
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]] = {
@@ -80,7 +80,7 @@ object DynamoTablesService {
             val newTable = tweak(ddl.table)
             val exec     = DynamoExecution.createTable[F](newTable, ddl.ddl)
             log.info(s"Going to create ${newTable.fullName}; ${ddl.ddl.provisioning -> "provisioning"}.") *>
-            exec.executionStrategy(StrategyInput(exec.dynamoQuery, F, interpreter))
+            exec.executionStrategy(StrategyInput(exec.dynamoQuery, interpreter))
         }.void
     }
 

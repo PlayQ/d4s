@@ -8,11 +8,11 @@ import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest,
 import d4s.models.query._
 import d4s.models.query.requests._
 import d4s.models.query.responses.HasItems
-import izumi.functional.bio.catz._
-import izumi.functional.bio.{BIOError, BIOFork, BIOTemporal, F}
+import izumi.functional.bio.{BIOAsync, BIOError, BIOFork, BIOTemporal, F}
 import logstage.LogBIO
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
+import izumi.functional.bio.catz._
 
 import scala.concurrent.duration._
 
@@ -24,7 +24,7 @@ trait DynamoInterpreter[F[_, _]] {
 }
 
 object DynamoInterpreter {
-  final class Impl[F[+_, +_]: BIOTemporal: BIOFork](
+  final class Impl[F[+_, +_]: BIOTemporal: BIOAsync: BIOFork](
     client: DynamoClient[F],
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
@@ -97,7 +97,7 @@ object DynamoInterpreter {
         .execStreamedFlatten
 
       exec
-        .executionStrategy(StrategyInput(exec.dynamoQuery, F, this))
+        .executionStrategy(StrategyInput(exec.dynamoQuery, this))
         .chunkN(batchConfig.writeBatchSize)
         .parEvalMap(parallelism.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(dynamoQuery.table, itemsChunk.toList)))
         .flatMap(fs2.Stream.emits)

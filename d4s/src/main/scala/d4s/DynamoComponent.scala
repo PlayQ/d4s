@@ -24,9 +24,9 @@ object DynamoComponent {
     conf: DynamoConfig,
     portCheck: PortCheck @Id("dynamo-port"),
   ) extends DIResource[F[Throwable, ?], DynamoComponent]
-    with IntegrationCheck {
+    with IntegrationCheck[F[Throwable, ?]] {
 
-    override def resourcesAvailable(): ResourceCheck = {
+    override def resourcesAvailable(): F[Throwable, ResourceCheck] = F.sync {
       conf.maybeLocalUrl.fold(ResourceCheck.Success(): ResourceCheck) {
         url =>
           portCheck.checkUrl(new URL(url), "DynamoClient")
