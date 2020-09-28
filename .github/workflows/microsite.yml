@@ -22,12 +22,13 @@ jobs:
           cd ..
           rm -rf docs
           cp -r vuepress/docs/.vuepress/dist docs
-      - name: Update docs
+      - name: Deploy docs
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run:  |
-          if [[ "$GITHUB_REF" == refs/heads/develop ]] ; then
-            git config user.name "Vlad Podilnyk"
-            git config user.email "vpodilnyk@playq.net"
-            git add docs
-            git commit -m "CI step: update docs"
-            git push origin develop
-          fi
+            if [[ "$GITHUB_REF" == refs/heads/develop ]] ; then
+              git add docs
+              git commit -m 'deploy docs.'
+              remote_repo="https://PlayQ:${BOT_TOKEN}@github.com/d4s.git"
+              git push "${remote_repo}"
+            fi
