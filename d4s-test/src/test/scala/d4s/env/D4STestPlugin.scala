@@ -10,7 +10,6 @@ import net.playq.metrics.modules.DummyMetricsModule
 import zio.{IO, Task}
 
 object D4STestPlugin extends PluginDef {
-  include(ZIODIEffectModule)
   include(AwsTagsModule)
   include(DummyMetricsModule[IO])
 

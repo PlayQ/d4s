@@ -6,7 +6,7 @@ import d4s.DynamoInterpreter
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput}
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import fs2.Stream
-import izumi.functional.bio.{BIO, BIOAsync, BIOError, BIOTemporal}
+import izumi.functional.bio.{BIOAsync, BIOTemporal}
 
 import scala.reflect.ClassTag
 
