@@ -27,8 +27,10 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run:  |
             if [[ "$GITHUB_REF" == refs/heads/develop ]] ; then
+              git config --local user.email "platform-team@playq.net"
+              git config --local user.name "PlayQPlatformTeam"
               git add docs
               git commit -m 'deploy docs.'
-              remote_repo="https://PlayQ:${BOT_TOKEN}@github.com/d4s.git"
+              remote_repo="https://PlayQPlatformTeam:${BOT_TOKEN}@github.com/PlayQ/d4s.git"
               git push "${remote_repo}"
             fi
