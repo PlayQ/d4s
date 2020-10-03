@@ -21,31 +21,31 @@ abstract class DynamoTestBase[Ctx: Tag](implicit val ctor: AnyConstructor[Ctx]) 
 
   override def config: TestConfig = super.config.copy(
     pluginConfig = PluginConfig.const(D4STestPlugin),
-    moduleOverrides = super.config.moduleOverrides overridenBy new ModuleDef {
-        make[DynamoMeta].from {
-          namespace: AwsNameSpace =>
-            val cfgDefault: ProvisionedThroughputConfig = ProvisionedThroughputConfig.minimal
-            val cfgForTable1                            = ProvisionedThroughputConfig(2L, 2L, BillingMode.PROVISIONED)
-            DynamoMeta(ProvisioningConfig(cfgDefault, List(TableProvisionedThroughputConfig("table1", cfgForTable1, Nil))), namespace, None)
-        }
+    moduleOverrides = super.config.moduleOverrides overriddenBy new ModuleDef {
+      make[DynamoMeta].from {
+        namespace: AwsNameSpace =>
+          val cfgDefault: ProvisionedThroughputConfig = ProvisionedThroughputConfig.minimal
+          val cfgForTable1                            = ProvisionedThroughputConfig(2L, 2L, BillingMode.PROVISIONED)
+          DynamoMeta(ProvisioningConfig(cfgDefault, List(TableProvisionedThroughputConfig("table1", cfgForTable1, Nil))), namespace, None)
+      }
 
-        make[InterpreterTestTable]
-        make[TestTable1]
-        make[TestTable2]
-        make[TestTable3]
-        make[TestTable4]
-        make[UpdatedTestTable]
-        make[UpdatedTestTable1]
-        make[UpdatedTestTable2]
+      make[InterpreterTestTable]
+      make[TestTable1]
+      make[TestTable2]
+      make[TestTable3]
+      make[TestTable4]
+      make[UpdatedTestTable]
+      make[UpdatedTestTable1]
+      make[UpdatedTestTable2]
 
-        many[TableDef]
-          .ref[TestTable1]
-          .ref[TestTable2]
-          .ref[TestTable3]
-          .ref[TestTable4]
-          .ref[UpdatedTestTable]
-          .ref[InterpreterTestTable]
-      },
+      many[TableDef]
+        .ref[TestTable1]
+        .ref[TestTable2]
+        .ref[TestTable3]
+        .ref[TestTable4]
+        .ref[UpdatedTestTable]
+        .ref[InterpreterTestTable]
+    },
     configBaseName = "test",
   )
 

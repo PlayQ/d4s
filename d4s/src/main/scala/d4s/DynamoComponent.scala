@@ -3,8 +3,9 @@ package d4s
 import java.net.{URI, URL}
 
 import d4s.config.DynamoConfig
+import distage.Lifecycle
 import izumi.distage.framework.model.IntegrationCheck
-import izumi.distage.model.definition.{DIResource, Id}
+import izumi.distage.model.definition.Id
 import izumi.functional.bio.{BIO, F}
 import izumi.fundamentals.platform.integration.{PortCheck, ResourceCheck}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
@@ -23,7 +24,7 @@ object DynamoComponent {
   final class Impl[F[+_, +_]: BIO](
     conf: DynamoConfig,
     portCheck: PortCheck @Id("dynamo-port"),
-  ) extends DIResource[F[Throwable, ?], DynamoComponent]
+  ) extends Lifecycle.Basic[F[Throwable, ?], DynamoComponent]
     with IntegrationCheck[F[Throwable, ?]] {
 
     override def resourcesAvailable(): F[Throwable, ResourceCheck] = F.sync {

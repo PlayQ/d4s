@@ -8,7 +8,7 @@ import d4s.util.leftpadLongInvertNegative
 /**
   * A string representation of UUID that preserves UUID and TimeUUID native ordering
   * for use as a RangeKey in Dynamo
-  * */
+  */
 final case class OrderedUUIDKey private (asString: String) extends AnyVal
 
 object OrderedUUIDKey {

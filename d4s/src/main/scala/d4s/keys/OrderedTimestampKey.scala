@@ -8,7 +8,7 @@ import izumi.fundamentals.platform.time.IzTime
 /**
   * A string representation of ZonedDateTime that preserves its native ordering
   * for use as a RangeKey in Dynamo
-  * */
+  */
 final case class OrderedTimestampKey private (asString: String) extends AnyVal
 
 object OrderedTimestampKey {

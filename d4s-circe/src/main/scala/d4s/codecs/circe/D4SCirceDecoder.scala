@@ -17,9 +17,7 @@ object D4SCirceDecoder {
     @inline private[this] def decodeImpl(v: Any, maybeJson: Option[Json]): Either[DecoderException, T] = {
       maybeJson
         .toRight(DecoderException(s"Couldn't decode dynamo item=${v.toString} as Json. A case wasn't handled in DynamoDecoder.attributeToJson", None))
-        .flatMap(
-          json => json.as[T].left.map(cause => DecoderException(s"Circe error when decoding item=${v.toString} json=$json: ${cause.getMessage}", Some(cause)))
-        )
+        .flatMap(json => json.as[T].left.map(cause => DecoderException(s"Circe error when decoding item=${v.toString} json=$json: ${cause.getMessage}", Some(cause))))
     }
   }
 

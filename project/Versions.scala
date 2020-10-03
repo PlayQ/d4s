@@ -1,8 +1,8 @@
 object V {
-  val scala_212                = "2.12.12"
-  val scala_213                = "2.13.3"
+  val scala_212               = "2.12.12"
+  val scala_213               = "2.13.3"
   val scala_collection_compat = "2.2.0"
-  val izumi_version            = "0.11.0-SNAPSHOT"
+  val izumi_version           = "0.11.0-SNAPSHOT"
 
   // compiler
   val kind_projector = "0.11.0"

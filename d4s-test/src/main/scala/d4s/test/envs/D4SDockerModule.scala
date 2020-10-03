@@ -10,7 +10,7 @@ import izumi.distage.model.definition.Id
 class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
   include(D4SDockerModule.config)
   include(DynamoDockerModule[F[Throwable, ?]])
-  include(D4SModule[F] overridenBy new ModuleDef {
+  include(D4SModule[F] overriddenBy new ModuleDef {
     make[DynamoConfig].from {
       (cfg: DynamoConfig @Id("test-config"), docker: DynamoDocker.Container) =>
         val knownAddress = docker.availablePorts.first(DynamoDocker.primaryPort)
