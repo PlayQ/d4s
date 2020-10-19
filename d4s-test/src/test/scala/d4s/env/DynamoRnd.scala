@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 
 import cats.Functor
 import cats.syntax.functor._
-import izumi.functional.bio.{BIO, BIOFunctor, Entropy2, F}
+import izumi.functional.bio.{IO2, Functor2, Entropy2, F}
 import izumi.functional.mono.Entropy
 import izumi.fundamentals.platform.time.IzTime
 import org.scalacheck.Arbitrary.arbitrary
@@ -20,17 +20,17 @@ trait DynamoRnd extends ScalacheckShapeless {
   def random[Z: Arbitrary]: Z = arbitrary[Z].pureApply(Gen.Parameters.default, Seed.random())
 
   def randomIO[Z: Arbitrary]: IO[Nothing, Z]                 = IO.effectTotal(random[Z])
-  def randomBIO[F[+_, +_]: BIO, Z: Arbitrary]: F[Nothing, Z] = F.sync(random[Z])
+  def randomIO2[F[+_, +_]: IO2, Z: Arbitrary]: F[Nothing, Z] = F.sync(random[Z])
 
   def randomEntropy[F[_]: Entropy: Functor, Z](instance: Arbitrary[Z]): F[Z] =
     Entropy[F].nextLong().map(l => instance.arbitrary.pureApply(Gen.Parameters.default, Seed(l)))
   def randomEntropy[F[_]: Entropy: Functor, Z: Arbitrary]: F[Z] = randomEntropy(implicitly[Arbitrary[Z]])
 
-  def randomEntropy2[F[+_, +_]: Entropy2: BIOFunctor, Z](instance: Arbitrary[Z]): F[Nothing, Z] = {
+  def randomEntropy2[F[+_, +_]: Entropy2: Functor2, Z](instance: Arbitrary[Z]): F[Nothing, Z] = {
     import izumi.functional.bio.catz._
     randomEntropy(instance)
   }
-  def randomEntropy2[F[+_, +_]: Entropy2: BIOFunctor, Z: Arbitrary]: F[Nothing, Z] = randomEntropy2(implicitly[Arbitrary[Z]])
+  def randomEntropy2[F[+_, +_]: Entropy2: Functor2, Z: Arbitrary]: F[Nothing, Z] = randomEntropy2(implicitly[Arbitrary[Z]])
 
   implicit def arbitraryZonedDateTime: Arbitrary[ZonedDateTime] = Arbitrary {
     for {

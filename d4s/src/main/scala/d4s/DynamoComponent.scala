@@ -6,7 +6,7 @@ import d4s.config.DynamoConfig
 import distage.Lifecycle
 import izumi.distage.framework.model.IntegrationCheck
 import izumi.distage.model.definition.Id
-import izumi.functional.bio.{BIO, F}
+import izumi.functional.bio.{IO2, F}
 import izumi.fundamentals.platform.integration.{PortCheck, ResourceCheck}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder
@@ -21,7 +21,7 @@ final case class DynamoComponent(client: DynamoDbClient)
 
 object DynamoComponent {
 
-  final class Impl[F[+_, +_]: BIO](
+  final class Impl[F[+_, +_]: IO2](
     conf: DynamoConfig,
     portCheck: PortCheck @Id("dynamo-port"),
   ) extends Lifecycle.Basic[F[Throwable, ?], DynamoComponent]

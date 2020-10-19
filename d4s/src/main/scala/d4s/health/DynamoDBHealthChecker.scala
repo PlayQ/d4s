@@ -1,18 +1,18 @@
 package d4s.health
 
 import d4s.DynamoClient
-import izumi.functional.bio.{BIOExit, BIOPanic}
+import izumi.functional.bio.{Exit, Panic2}
 
-final class DynamoDBHealthChecker[F[+_, +_]: BIOPanic](client: DynamoClient[F]) {
+final class DynamoDBHealthChecker[F[+_, +_]: Panic2](client: DynamoClient[F]) {
   def healthCheck(): F[Throwable, Set[HealthCheckStatus]] = {
     client
       .raw(_.listTables)
-      .sandboxBIOExit.map {
-        case _: BIOExit.Success[_] =>
+      .sandboxExit.map {
+        case _: Exit.Success[_] =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.OK))
-        case _: BIOExit.Error[_] =>
+        case _: Exit.Error[_] =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.DEFUNCT))
-        case _: BIOExit.Termination =>
+        case _: Exit.Termination =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.UNKNOWN))
       }
   }

@@ -9,7 +9,7 @@ import d4s.models.query.responses.HasScannedCount
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.{TableDDL, TableReference}
 import fs2.Stream
-import izumi.functional.bio.BIOError
+import izumi.functional.bio.Error2
 import izumi.functional.bio.catz._
 import software.amazon.awssdk.services.dynamodb.model.{ConditionalCheckFailedException, CreateTableResponse, ResourceInUseException, ResourceNotFoundException}
 

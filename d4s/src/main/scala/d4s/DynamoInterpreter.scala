@@ -8,7 +8,7 @@ import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest,
 import d4s.models.query._
 import d4s.models.query.requests._
 import d4s.models.query.responses.HasItems
-import izumi.functional.bio.{Async2, BIOError, BIOFork, Temporal2, F}
+import izumi.functional.bio.{Async2, Error2, Fork2, Temporal2, F}
 import logstage.LogBIO
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
@@ -24,7 +24,7 @@ trait DynamoInterpreter[F[_, _]] {
 }
 
 object DynamoInterpreter {
-  final class Impl[F[+_, +_]: Async2: Temporal2: BIOFork](
+  final class Impl[F[+_, +_]: Async2: Temporal2: Fork2](
     client: DynamoClient[F],
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
@@ -181,7 +181,7 @@ object DynamoInterpreter {
       operation: String,
       tableName: String,
       errorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
-    )(implicit F: BIOError[F],
+    )(implicit F: Error2[F],
       log: LogBIO[F],
     ): F[DynamoException, A] = {
       f.leftMap(InterpreterException(operation, Some(tableName), _)).tapError {
@@ -191,7 +191,7 @@ object DynamoInterpreter {
       }
     }
 
-    def logWrapError(operation: String)(implicit F: BIOError[F], log: LogBIO[F]): F[DynamoException, A] = {
+    def logWrapError(operation: String)(implicit F: Error2[F], log: LogBIO[F]): F[DynamoException, A] = {
       f.leftMap(InterpreterException(operation, None, _))
         .tapError(failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}"))
     }
