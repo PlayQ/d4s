@@ -7,7 +7,7 @@ final case class IndexProvisionedThroughputConfig(
 
 /**
   * @param tableName regex matching the tables this configuration should apply to
-  * */
+  */
 final case class TableProvisionedThroughputConfig(
   tableName: String,
   tableProvisioning: ProvisionedThroughputConfig,

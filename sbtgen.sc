@@ -5,7 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.63`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
+import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.64`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -178,6 +178,7 @@ object ProjectBuilder {
       "logBuffered" in SettingScope.Test := true,
 
       "resolvers" += "DefaultMavenRepository".raw,
+      "resolvers" += "Opts.resolver.sonatypeSnapshots".raw,
     )
 
     final val crossScalaSources = Defaults.CrossScalaSources

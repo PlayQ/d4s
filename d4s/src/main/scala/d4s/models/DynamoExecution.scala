@@ -9,7 +9,7 @@ import d4s.models.query.responses.HasScannedCount
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import d4s.models.table.{TableDDL, TableReference}
 import fs2.Stream
-import izumi.functional.bio.BIOMonadError
+import izumi.functional.bio.Error2
 import izumi.functional.bio.catz._
 import software.amazon.awssdk.services.dynamodb.model.{ConditionalCheckFailedException, CreateTableResponse, ResourceInUseException, ResourceNotFoundException}
 
@@ -187,7 +187,7 @@ object DynamoExecution {
       }
 
       if (offsetLimit.offset <= 0) {
-        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(query, F, interpreter, interpreterErrorLogger = interpreterErrorLogger))
+        pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(query, interpreter, interpreterErrorLogger = interpreterErrorLogger))
       } else {
         for {
           lastKey <- firstOffsetKey()
@@ -197,7 +197,7 @@ object DynamoExecution {
                 .fold(rq)(paging.withPageMarker(rq, _))
                 .withLimit(offsetLimit.limit.toInt)
           }
-          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(newReq, F, interpreter, interpreterErrorLogger = interpreterErrorLogger))
+          res <- pagedFlatten[DR, Dec, A](Some(offsetLimit.limit.toInt)).apply(StrategyInput(newReq, interpreter, interpreterErrorLogger = interpreterErrorLogger))
         } yield res
       }
   }
@@ -255,7 +255,7 @@ object DynamoExecution {
       import in._
 
       val newTableReq = DynamoExecution.createTable(query.table, ddl)
-      val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
+      val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
       retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
         nested(in.discardInterpreterError[ResourceNotFoundException])
@@ -373,7 +373,7 @@ object DynamoExecution {
         import in._
 
         val newTableReq = DynamoExecution.createTable(query.table, ddl)
-        val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, F, interpreter))
+        val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
         retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
           nested(in.discardInterpreterError[ResourceNotFoundException])

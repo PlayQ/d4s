@@ -103,8 +103,8 @@ private[metrics] sealed trait LowPriorityInstances {
       } yield (role, label, initial)
     }
 
-    io.circe.Decoder
-      .instance(cursor => {
+    io.circe.Decoder.instance {
+      cursor =>
         val maybeContent =
           cursor.keys
             .flatMap(_.headOption)
@@ -128,7 +128,7 @@ private[metrics] sealed trait LowPriorityInstances {
           }) yield {
           result
         }
-      }).asInstanceOf[R[MetricDef]]
+    }.asInstanceOf[R[MetricDef]]
   }
 }
 

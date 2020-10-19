@@ -8,7 +8,7 @@ import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.DynamoRequest
 import d4s.models.{DynamoException, DynamoExecution}
 import fs2.Stream
-import izumi.functional.bio.{BIOTemporal, F}
+import izumi.functional.bio.{Async2, Temporal2}
 import izumi.fundamentals.platform.language.unused
 import logstage.LogBIO
 import net.playq.metrics.Metrics
@@ -35,7 +35,7 @@ trait DynamoConnector[F[_, _]] {
 }
 
 object DynamoConnector {
-  final class Impl[F[+_, +_]: BIOTemporal](
+  final class Impl[F[+_, +_]: Async2: Temporal2](
     interpreter: DynamoInterpreter[F],
     @unused dynamoDBHealthChecker: DynamoDBHealthChecker[F],
     @unused dynamoDDLService: DynamoDDLService[F],
@@ -50,7 +50,7 @@ object DynamoConnector {
       runUnrecordedImpl(q).translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]](_.leftMap(QueryException(_))))
 
     private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[_, _]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
-      q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, interpreter))
     }
 
     override def run[DR <: DynamoRequest, Dec, A](
@@ -74,7 +74,7 @@ object DynamoConnector {
     ): Stream[F[DynamoException, ?], A] = {
       val recordStreamPageMetrics = Lambda[F[Throwable, ?] ~> F[Throwable, ?]](recordMetrics(label)(_))
 
-      q.executionStrategy(StrategyInput(q.dynamoQuery, F, interpreter, streamExecutionWrapper = recordStreamPageMetrics))
+      q.executionStrategy(StrategyInput(q.dynamoQuery, interpreter, streamExecutionWrapper = recordStreamPageMetrics))
         .translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]](_.leftMap(QueryException(label, _))))
     }
 

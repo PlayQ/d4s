@@ -1,8 +1,8 @@
 object V {
-  val scala_212                = "2.12.12"
-  val scala_213                = "2.13.3"
+  val scala_212               = "2.12.12"
+  val scala_213               = "2.13.3"
   val scala_collection_compat = "2.2.0"
-  val izumi_version            = "0.10.19"
+  val izumi_version           = "1.0.0-M1"
 
   // compiler
   val kind_projector = "0.11.0"
@@ -26,8 +26,8 @@ object V {
 
   val cats             = "2.1.1"
   val cats_effect      = "2.2.0"
-  val zio              = "1.0.1"
-  val zio_interop_cats = "2.1.4.0"
+  val zio              = "1.0.3"
+  val zio_interop_cats = "2.1.4.1"
 
   val scalatest                = "3.2.2"
   val scalatestplus_scalacheck = "3.2.2.0"

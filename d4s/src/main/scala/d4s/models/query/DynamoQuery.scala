@@ -13,36 +13,36 @@ import d4s.models.query.requests.UpdateTable
 import d4s.models.query.responses.{HasAttributes, HasConsumedCapacity, HasItem, HasItems, HasScannedCount}
 import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex, TableIndex}
 import d4s.models.table.{DynamoField, TableDDL, TableReference}
-import d4s.models.{DynamoExecution, FnBIO, OffsetLimit}
-import izumi.functional.bio.{BIO, BIOError, F}
+import d4s.models.{DynamoExecution, FnIO2, OffsetLimit}
+import izumi.functional.bio.{IO2, Error2, F}
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, BatchGetItemResponse, ConsumedCapacity, ReturnValue, Select}
 
 import scala.language.implicitConversions
 
 final case class DynamoQuery[DR <: DynamoRequest, +Dec](
   request: DR,
-  decoder: FnBIO[DR#Rsp, Dec],
+  decoder: FnIO2[DR#Rsp, Dec],
 ) {
   def toAmz: DR#Rq = request.toAmz
 
   def modify(f: DR => DR): DynamoQuery[DR, Dec] = copy(request = f(request))
 
-  def decode[C1](f: DR#Rsp => C1): DynamoQuery[DR, C1] = copy(decoder = FnBIO.lift(f))
+  def decode[C1](f: DR#Rsp => C1): DynamoQuery[DR, C1] = copy(decoder = FnIO2.lift(f))
 
-  def decodeF[C1](f: FnBIO[DR#Rsp, C1]): DynamoQuery[DR, C1] = copy(decoder = f)
+  def decodeF[C1](f: FnIO2[DR#Rsp, C1]): DynamoQuery[DR, C1] = copy(decoder = f)
 
-  def decodeWith[C1](f: (DR#Rsp, Dec) => C1): DynamoQuery[DR, C1] = decodeWithF(FnBIO.lift(f.tupled))
+  def decodeWith[C1](f: (DR#Rsp, Dec) => C1): DynamoQuery[DR, C1] = decodeWithF(FnIO2.lift(f.tupled))
 
-  def decodeWithF[C1](f: FnBIO[(DR#Rsp, Dec), C1]): DynamoQuery[DR, C1] =
-    copy(decoder = new FnBIO[DR#Rsp, C1] {
-      override def apply[F[+_, +_]: BIO](b: DR#Rsp): F[Throwable, C1] = {
+  def decodeWithF[C1](f: FnIO2[(DR#Rsp, Dec), C1]): DynamoQuery[DR, C1] =
+    copy(decoder = new FnIO2[DR#Rsp, C1] {
+      override def apply[F[+_, +_]: IO2](b: DR#Rsp): F[Throwable, C1] = {
         decoder[F](b).flatMap(c => f[F]((b, c)))
       }
     })
 }
 
 object DynamoQuery {
-  def apply[DR <: DynamoRequest](request: DR): DynamoQuery[DR, DR#Rsp] = DynamoQuery[DR, DR#Rsp](request, FnBIO.lift(identity[DR#Rsp]))
+  def apply[DR <: DynamoRequest](request: DR): DynamoQuery[DR, DR#Rsp] = DynamoQuery[DR, DR#Rsp](request, FnIO2.lift(identity[DR#Rsp]))
 
   @inline implicit final def toDynamoExecution[DR <: DynamoRequest, Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
@@ -358,7 +358,7 @@ object DynamoQuery {
   ) {
 
     def decodeItems[Item: D4SDecoder]: DynamoQuery[DR, List[Item]] = {
-      dynamoQuery.decodeF(FnBIO {
+      dynamoQuery.decodeF(FnIO2 {
         rsp => implicit F =>
           import scala.jdk.CollectionConverters._
 
@@ -376,7 +376,7 @@ object DynamoQuery {
       dynamoQuery
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
-        ).decodeF(FnBIO {
+        ).decodeF(FnIO2 {
           response => implicit F =>
             import scala.jdk.CollectionConverters._
 
@@ -392,7 +392,7 @@ object DynamoQuery {
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
             .withProjectionExpression(ttlName)
-        ).decodeF(FnBIO {
+        ).decodeF(FnIO2 {
           response => implicit F =>
             import scala.jdk.CollectionConverters._
 
@@ -408,7 +408,7 @@ object DynamoQuery {
   )(implicit ev: HasAttributes[DR#Rsp]
   ) {
     def decodeItem[Item: D4SDecoder]: DynamoQuery[DR, Option[Item]] = {
-      dynamoQuery.decodeF(FnBIO {
+      dynamoQuery.decodeF(FnIO2 {
         response => implicit F =>
           decodeItemImpl(ev.attributes(response))
       })
@@ -423,7 +423,7 @@ object DynamoQuery {
       dynamoQuery
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
-        ).decodeF(FnBIO {
+        ).decodeF(FnIO2 {
           response => implicit F =>
             decodeItemImpl(ev.item(response))
         })
@@ -437,7 +437,7 @@ object DynamoQuery {
         .modify(
           _.withProjectionExpression(AttributeNames[Item].projectionExpression)
             .withProjectionExpression(ttlName)
-        ).decodeF(FnBIO {
+        ).decodeF(FnIO2 {
           response => implicit F =>
             decodeItemTTLImpl(ttlName)(ev.item(response))
         })
@@ -459,7 +459,7 @@ object DynamoQuery {
     }
   }
 
-  @inline private[this] def decodeItemImpl[F[+_, +_]: BIOError, Item: D4SDecoder](
+  @inline private[this] def decodeItemImpl[F[+_, +_]: Error2, Item: D4SDecoder](
     itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DecoderException, Option[Item]] = {
     if (!itemJavaMap.isEmpty) {
@@ -469,7 +469,7 @@ object DynamoQuery {
     }
   }
 
-  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: BIOError, Item: D4SDecoder](
+  @inline private[this] def decodeItemTTLImpl[F[+_, +_]: Error2, Item: D4SDecoder](
     ttlName: String
   )(itemJavaMap: java.util.Map[String, AttributeValue]
   ): F[DecoderException, Option[(Item, Option[Long])]] = {

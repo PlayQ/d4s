@@ -32,7 +32,8 @@ object DynamoException {
     }
   }
 
-  final case class DecoderException(override val message: String, maybeCause: Option[Throwable]) extends DynamoException(message, maybeCause.getOrElse(new RuntimeException(message))) {
+  final case class DecoderException(override val message: String, maybeCause: Option[Throwable])
+    extends DynamoException(message, maybeCause.getOrElse(new RuntimeException(message))) {
     def union(that: DecoderException): DecoderException = {
       val errorLog = message + "\n" + that.getMessage
       DecoderException(errorLog, maybeCause.orElse(that.maybeCause))

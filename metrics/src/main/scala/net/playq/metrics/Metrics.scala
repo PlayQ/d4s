@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit.MILLIS
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-import izumi.functional.bio.{BIOApplicative, BIOMonad, Clock2, F}
+import izumi.functional.bio.{Applicative2, Monad2, Clock2, F}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -25,7 +25,7 @@ trait Metrics[F[_, _]] {
 object Metrics {
   def apply[F[_, _]: Metrics]: Metrics[F] = implicitly
 
-  final class Empty[F[+_, +_]: BIOApplicative] extends Metrics[F] {
+  final class Empty[F[+_, +_]: Applicative2] extends Metrics[F] {
     override def inc(label: String, value: Int)(implicit macroSaveCounterMetric: MacroMetricCounter[label.type]): F[Nothing, Unit] = F.unit
     override def dec(label: String, value: Int)(implicit macroSaveCounterMetric: MacroMetricCounter[label.type]): F[Nothing, Unit] = F.unit
     override def mark(label: String, value: Long = 0)(implicit macroSaveMeterMetric: MacroMetricMeter[label.type]): F[Nothing, Unit] = F.unit
@@ -51,7 +51,7 @@ object Metrics {
     )(implicit
       macroSaveTimerMetric: MacroMetricTimer[metric.type],
       clock: Clock2[F],
-      F: BIOMonad[F],
+      F: Monad2[F],
     ): F[Nothing, Unit] = {
       for {
         end     <- clock.now()
