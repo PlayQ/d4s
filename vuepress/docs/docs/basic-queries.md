@@ -25,7 +25,7 @@ trait Ladder[F[_, _]] {
 ```
 Typical implementation of the persistence layer using D4S could look like this: 
 ```scala
-final class D4SLadder[F[+_, +_]: IO2Bifunctor](connector: DynamoConnector[F], ladderTable: LadderTable) extends Ladder[F] {
+final class D4SLadder[F[+_, +_]: Bifunctor2](connector: DynamoConnector[F], ladderTable: LadderTable) extends Ladder[F] {
   import ladderTable._
 
   override def getScores: F[QueryFailure, List[UserWithScore]] = {
@@ -46,7 +46,7 @@ final class D4SLadder[F[+_, +_]: IO2Bifunctor](connector: DynamoConnector[F], la
 }
 ```
 A lot of things happening here, but don't worry we'll explain everything in a bit. `D4SLadder` constructor requires two parameters: `DynamoConnector`
-to run a query and `LadderTable` which is our [table definition](table-definition.md). We also require and instance of `IO2Bifunctor` from Izumi for `leftMap`.
+to run a query and `LadderTable` which is our [table definition](table-definition.md). We also require and instance of `Bifunctor2` from Izumi for `leftMap`.
 
 ## Scan and Query
 In order to retrieve scores, we need to scan the whole ladder table. All queries are implemented as extension methods for `TableReferece` data type.

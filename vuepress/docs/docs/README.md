@@ -6,7 +6,7 @@
 + __D4S__ uses Bifunctor IO and allows you to choose whatever effect type you want to use.
 + __D4S__ provides flexible and extensible DSL 
 + __D4S__ supports AWS SDK v2
-+ __D4S__ has great integration with [ZIO](https://zio.dev/) and [Monix-IO2](https://bio.monix.io/) (not yet but soon).
++ __D4S__ has great integration with [ZIO](https://zio.dev/) and [Monix-BIO](https://bio.monix.io/) (not yet but soon).
 
 ## Dependencies
 
