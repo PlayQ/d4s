@@ -3,7 +3,7 @@ package d4s
 import d4s.models.DynamoExecution
 import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.table.{TableDef, TablePrefix, TableReference}
-import izumi.functional.bio.{BIOApplicative, BIOAsync, BIOTemporal, F}
+import izumi.functional.bio.{Applicative2, Async2, Temporal2, F}
 import logstage.LogBIO
 
 import scala.collection.mutable
@@ -22,7 +22,7 @@ trait DynamoTablesService[F[_, _]] {
 
 object DynamoTablesService {
 
-  final class Empty[F[+_, +_]: BIOApplicative] extends DynamoTablesService[F] {
+  final class Empty[F[+_, +_]: Applicative2] extends DynamoTablesService[F] {
     override def create(tables: Set[TableDef]): F[Throwable, Unit]                                    = F.unit
     override def createPrefixed[P: TablePrefix](prefix: P)(tables: Set[TableDef]): F[Throwable, Unit] = F.unit
     override def delete(tables: Set[TableDef]): F[Throwable, Unit]                                    = F.unit
@@ -31,7 +31,7 @@ object DynamoTablesService {
     override def listTablesByRegex(regex: Regex): F[Throwable, List[String]]                          = F.pure(List.empty)
   }
 
-  final class Memo[F[+_, +_]: BIOAsync: BIOTemporal](
+  final class Memo[F[+_, +_]: Async2: Temporal2](
     logger: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService.Impl[F](logger, interpreter) {
@@ -48,7 +48,7 @@ object DynamoTablesService {
     }
   }
 
-  sealed class Impl[F[+_, +_]: BIOAsync: BIOTemporal](
+  sealed class Impl[F[+_, +_]: Async2: Temporal2](
     log: LogBIO[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService[F] {

@@ -7,7 +7,7 @@ import izumi.distage.model.definition.DIResource
 import izumi.distage.model.definition.StandardAxis.Scene
 import izumi.distage.testkit.TestConfig
 import izumi.distage.testkit.services.scalatest.dstest.DistageAbstractScalatestSpec
-import izumi.functional.bio.{BIOApplicative, F}
+import izumi.functional.bio.{Applicative2, F}
 import logstage.LogBIO
 
 trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
@@ -27,7 +27,7 @@ trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable,
 }
 
 object DynamoTestEnv {
-  final case class DDLDown[F[+_, +_]: BIOApplicative](
+  final case class DDLDown[F[+_, +_]: Applicative2](
     dynamoDDLService: DynamoDDLService[F],
     logger: LogBIO[F],
   ) extends DIResource.Self[F[Throwable, ?], DDLDown[F]] {

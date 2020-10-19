@@ -6,7 +6,7 @@ import d4s.DynamoInterpreter
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput}
 import d4s.models.query.{DynamoQuery, DynamoRequest}
 import fs2.Stream
-import izumi.functional.bio.{BIOAsync, BIOTemporal}
+import izumi.functional.bio.{Async2, Temporal2}
 
 import scala.reflect.ClassTag
 
@@ -17,8 +17,8 @@ trait ExecutionStrategy[DR <: DynamoRequest, -Dec, +A] extends ExecutionStrategy
 object ExecutionStrategy {
   final case class StrategyInput[F[+_, +_], DR <: DynamoRequest, +Dec](
     query: DynamoQuery[DR, Dec],
-    implicit val F: BIOAsync[F],
-    implicit val FT: BIOTemporal[F],
+    implicit val F: Async2[F],
+    implicit val FT: Temporal2[F],
     implicit val interpreter: DynamoInterpreter[F],
     streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?],
     interpreterErrorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
@@ -31,7 +31,7 @@ object ExecutionStrategy {
     }
   }
   object StrategyInput {
-    def apply[F[+_, +_]: BIOAsync: BIOTemporal, DR <: DynamoRequest, Dec](
+    def apply[F[+_, +_]: Async2: Temporal2, DR <: DynamoRequest, Dec](
       query: DynamoQuery[DR, Dec],
       interpreter: DynamoInterpreter[F],
       streamExecutionWrapper: F[Throwable, ?] ~> F[Throwable, ?]                 = FunctionK.id[F[Throwable, ?]],

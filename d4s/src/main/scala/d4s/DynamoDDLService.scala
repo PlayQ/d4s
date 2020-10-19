@@ -2,11 +2,11 @@ package d4s
 
 import d4s.models.table.TableDef
 import izumi.distage.model.definition.DIResource
-import izumi.functional.bio.{BIOAsync, BIOMonad}
+import izumi.functional.bio.{Async2, Monad2}
 import logstage.LogBIO
 import logstage.LogBIO.log
 
-final class DynamoDDLService[F[+_, +_]: BIOMonad: LogBIO](
+final class DynamoDDLService[F[+_, +_]: Monad2: LogBIO](
   instances: Set[TableDef],
   tablesManager: DynamoTablesService[F],
 ) extends DIResource.SelfNoClose[F[Throwable, ?], DynamoDDLService[F]] {

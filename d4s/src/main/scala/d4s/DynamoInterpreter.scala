@@ -8,7 +8,7 @@ import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest,
 import d4s.models.query._
 import d4s.models.query.requests._
 import d4s.models.query.responses.HasItems
-import izumi.functional.bio.{BIOAsync, BIOError, BIOFork, BIOTemporal, F}
+import izumi.functional.bio.{Async2, BIOError, BIOFork, Temporal2, F}
 import logstage.LogBIO
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
@@ -24,7 +24,7 @@ trait DynamoInterpreter[F[_, _]] {
 }
 
 object DynamoInterpreter {
-  final class Impl[F[+_, +_]: BIOAsync: BIOTemporal: BIOFork](
+  final class Impl[F[+_, +_]: Async2: Temporal2: BIOFork](
     client: DynamoClient[F],
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
