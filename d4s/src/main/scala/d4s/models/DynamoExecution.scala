@@ -135,8 +135,8 @@ object DynamoExecution {
               interpreter.run(DynamoQuery(UpdateTableTags(table, rsp.tableDescription().tableArn())), resourceNotFoundHandler).void
             }
             val updateContinuousBackups = ddl.backupEnabled match {
-              case Some(true) => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)), resourceNotFoundHandler)
-              case _          => F.unit
+              case Some(false) => F.unit
+              case _           => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)), resourceNotFoundHandler)
             }
 
             // wait until the table appears
