@@ -5,6 +5,7 @@ buildinfo.sh
 .DS_Store
 .metals
 .bloop
+.bsp
 
 # Compiled class file
 *.class

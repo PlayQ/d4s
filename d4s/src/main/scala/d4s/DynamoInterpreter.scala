@@ -8,11 +8,11 @@ import d4s.models.query.DynamoRequest.{DynamoWriteBatchRequest, PageableRequest,
 import d4s.models.query._
 import d4s.models.query.requests._
 import d4s.models.query.responses.HasItems
-import izumi.functional.bio.{Async2, Error2, Fork2, Temporal2, F}
+import izumi.functional.bio.catz._
+import izumi.functional.bio.{Async2, Error2, F, Fork2, Temporal2}
 import logstage.LogBIO
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
-import izumi.functional.bio.catz._
 
 import scala.concurrent.duration._
 
@@ -53,12 +53,18 @@ object DynamoInterpreter {
         case q: DeleteTable =>
           client.raw(_.deleteTable(q.toAmz)).logWrapError("DeleteTable", q.table.fullName, tapError) <*
           log.info(s"Deleted ${q.table.fullName -> "tableName"}.")
+        case q: CreateBackup =>
+          createBackup(q.toAmz).logWrapError("CreateBackup", q.table.fullName, tapError) <*
+          log.info(s"Created backup of ${q.table.fullName -> "tableName"}.")
         case q: UpdateTableTags =>
           updateTableTags(q.toAmz).logWrapError("UpdateTableTags", q.table.fullName, tapError) <*
           log.info(s"Tags for ${q.table.fullName -> "tableName"} were updated, ${q.dynamoResourceName}. ${q.table.tags ++ q.tagsToAdd -> "tags"}")
         case q: UpdateTable =>
           client.raw(_.updateTable(q.toAmz)).logWrapError("UpdateTable", q.table.fullName, tapError) <*
           log.info(s"Table ${q.table.fullName -> "tableName"} were updated, ${q.toAmz.toString -> "request"}")
+        case q: UpdateContinuousBackups =>
+          updateContinuousBackups(q.toAmz).logWrapError("UpdateContinuousBackups", q.table.fullName, tapError) <*
+          log.info(s"Continuous backup for ${q.table.fullName -> "tableName"} were updated, ${q.backupEnabled}.")
 
         case q: DescribeTable => client.raw(_.describeTable(q.toAmz)).logWrapError("DescribeTable", q.table.fullName, tapError)
         case q: ListTables    => client.raw(_.listTables(q.toAmz)).logWrapError("ListTables")
@@ -74,10 +80,8 @@ object DynamoInterpreter {
         case q: DeleteItemBatch  => runWriteBatch(q).logWrapError("DeleteItemBatch", q.table.fullName, tapError)
         case q: PutItemBatch     => runWriteBatch(q).logWrapError("WriteItemBatch", q.table.fullName, tapError)
         case q: GetItemBatch     => runGetBatch(q).logWrapError("GetItemBatch", q.table.fullName, tapError)
-        case q: QueryDeleteBatch => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes).logWrapError("QueryDeleteBatch", q.table.fullName, tapError)
-        case q: ScanDeleteBatch  => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes).logWrapError("ScanDeleteBatch", q.table.fullName, tapError)
-
-        case q: UpdateContinuousBackups => updateContinuousBackups(q.toAmz).logWrapError("UpdateContinuousBackups", q.table.fullName, tapError)
+        case q: QueryDeleteBatch => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes, tapError).logWrapError("QueryDeleteBatch", q.table.fullName, tapError)
+        case q: ScanDeleteBatch  => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes, tapError).logWrapError("ScanDeleteBatch", q.table.fullName, tapError)
 
         case r: RawRequest[_, _] => r.interpret(r.toAmz)(F, client).logWrapError("RawRequest")
       }
@@ -86,6 +90,7 @@ object DynamoInterpreter {
     private[this] def runStreamDeleteBatch[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR]](
       dynamoQuery: DynamoQuery[DR, _],
       parallelism: Option[Int],
+      interpreterErrorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
     )(implicit ev: HasItems[DR#Rsp],
       ev1: PageableRequest[DR],
     ): F[Throwable, List[BatchWriteItemResponse]] = {
@@ -97,7 +102,7 @@ object DynamoInterpreter {
         .execStreamedFlatten
 
       exec
-        .executionStrategy(StrategyInput(exec.dynamoQuery, this))
+        .executionStrategy(StrategyInput(exec.dynamoQuery, this, interpreterErrorLogger = interpreterErrorLogger))
         .chunkN(batchConfig.writeBatchSize)
         .parEvalMap(parallelism.getOrElse(Int.MaxValue))(itemsChunk => runWriteBatch(DeleteItemBatch(dynamoQuery.table, itemsChunk.toList)))
         .flatMap(fs2.Stream.emits)
@@ -174,6 +179,14 @@ object DynamoInterpreter {
         F.pure(UpdateContinuousBackupsResponse.builder().build())
     }
 
+    private[this] def createBackup(request: CreateBackupRequest): F[Throwable, CreateBackupResponse] = {
+      if (dynamoConfig.maybeLocalUrl.isEmpty)
+        client.raw(_.createBackup(request))
+      else
+        log.info(s"Skipping backup creation for mock environment: found ${dynamoConfig.maybeLocalUrl} in $dynamoConfig") *>
+        F.pure(CreateBackupResponse.builder().build())
+    }
+
   }
 
   private[this] implicit final class ThrowableDynamoOps[F[+_, +_], A](private val f: F[Throwable, A]) extends AnyVal {
@@ -192,8 +205,8 @@ object DynamoInterpreter {
     }
 
     def logWrapError(operation: String)(implicit F: Error2[F], log: LogBIO[F]): F[DynamoException, A] = {
-      f.leftMap(InterpreterException(operation, None, _))
-        .tapError(failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.cause -> "Failure"}"))
+      f.tapError(failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.getCause -> "Failure"}"))
+        .leftMap(InterpreterException(operation, None, _))
     }
   }
 

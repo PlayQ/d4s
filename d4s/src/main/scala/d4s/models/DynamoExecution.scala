@@ -11,7 +11,7 @@ import d4s.models.table.{TableDDL, TableReference}
 import fs2.Stream
 import izumi.functional.bio.Error2
 import izumi.functional.bio.catz._
-import software.amazon.awssdk.services.dynamodb.model.{ConditionalCheckFailedException, CreateTableResponse, ResourceInUseException, ResourceNotFoundException}
+import software.amazon.awssdk.services.dynamodb.model.{ConditionalCheckFailedException, ContinuousBackupsUnavailableException, CreateTableResponse, ResourceInUseException, ResourceNotFoundException, TableNotFoundException}
 
 import scala.collection.immutable.Queue
 import scala.concurrent.duration._
@@ -126,7 +126,11 @@ object DynamoExecution {
           rsp => in =>
             import in._
 
-            val resourceNotFoundHandler: PartialFunction[Throwable, UnknownF[Nothing, Unit]] = { case _: ResourceNotFoundException => F.unit }
+            val resourceNotFoundHandler: PartialFunction[DynamoException, UnknownF[Nothing, Unit]] = {
+              case DynamoException(_, _: ResourceNotFoundException) => F.unit
+              case DynamoException(_, _: TableNotFoundException) => F.unit
+              case DynamoException(_, _: ContinuousBackupsUnavailableException) => F.unit
+            }
             val updateTTL = table.ttlField match {
               case None    => F.unit
               case Some(_) => interpreter.run(DynamoQuery(UpdateTTL(table)), resourceNotFoundHandler).void
@@ -136,13 +140,13 @@ object DynamoExecution {
             }
             val updateContinuousBackups = ddl.backupEnabled match {
               case Some(false) => F.unit
-              case _           => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)), resourceNotFoundHandler)
+              case _           => interpreter.run(DynamoQuery(UpdateContinuousBackups(table, backupEnabled = true)), resourceNotFoundHandler).void
             }
 
             // wait until the table appears
-            retryIfTableNotFound(attempts = 120, F.sleep(sleep).widenError[Throwable])(F.unit) {
-              updateTTL *> tagResources *> updateContinuousBackups.void
-            }
+            retryOnFailure(120,F.sleep(sleep).widenError[Throwable], defaultTableNotFoundCondition)(F.unit)(updateTTL) *>
+              retryOnFailure(120,F.sleep(sleep).widenError[Throwable], defaultTableNotFoundCondition)(F.unit)(tagResources) *>
+              retryOnFailure(120,F.sleep(sleep).widenError[Throwable], defaultTableNotFoundCondition.orElse{case e@DynamoException(_, _: ContinuousBackupsUnavailableException) => e})(F.unit)(updateContinuousBackups)
         }
       )
   }
@@ -257,33 +261,37 @@ object DynamoExecution {
       val newTableReq = DynamoExecution.createTable(query.table, ddl)
       val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
-      retryIfTableNotFound[F[Throwable, ?], A](attempts = 120, F.sleep(sleep))(mkTable) {
+      retryOnFailure[F[Throwable, +?], A](attempts = 120, F.sleep(sleep), defaultTableNotFoundCondition)(mkTable) {
         nested(in.discardInterpreterError[ResourceNotFoundException])
       }
   }
 
-  private[this] def retryIfTableNotFound[F[_], A](
+  private[this] def retryOnFailure[F[+_], A](
     attempts: Int,
     sleep: F[Unit],
-  )(prepareTable: F[Unit]
+    condition: PartialFunction[Throwable, Throwable],
+  )(prepareAction: F[Unit]
   )(attemptAction: F[A]
   )(implicit F: MonadError[F, Throwable]
   ): F[A] = {
     import cats.syntax.applicativeError._
     import cats.syntax.flatMap._
-
     attemptAction.handleErrorWith {
-      case e @ DynamoException(_, _: ResourceNotFoundException | _: ResourceInUseException) =>
-        if (attempts > 0) {
-          prepareTable >>
-          sleep >>
-          retryIfTableNotFound(attempts - 1, sleep)(prepareTable)(attemptAction)
-        } else {
-          F.raiseError(e)
-        }
-      case e =>
-        F.raiseError(e)
+      condition.andThen {
+        e =>
+          if (attempts > 0) {
+            prepareAction >>
+            sleep >>
+            retryOnFailure(attempts - 1, sleep, condition)(F.unit)(attemptAction)
+          } else {
+            F.raiseError(e)
+          }
+      }.orElse({ case e => F.raiseError(e) })
     }
+  }
+
+  private[this] val defaultTableNotFoundCondition: PartialFunction[Throwable, Throwable] = {
+    case e @ DynamoException(_, _: ResourceNotFoundException | _: ResourceInUseException | _: TableNotFoundException) => e
   }
 
   final case class Streamed[DR <: DynamoRequest, Dec, +A](
@@ -375,7 +383,7 @@ object DynamoExecution {
         val newTableReq = DynamoExecution.createTable(query.table, ddl)
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
-        retryIfTableNotFound[Stream[F[Throwable, ?], ?], A](attempts = 120, Stream.eval(F.sleep(sleep)))(Stream.eval(mkTable)) {
+        retryOnFailure[Stream[F[Throwable, ?], +?], A](attempts = 120, Stream.eval(F.sleep(sleep)), defaultTableNotFoundCondition)(Stream.eval(mkTable)) {
           nested(in.discardInterpreterError[ResourceNotFoundException])
         }
     }
