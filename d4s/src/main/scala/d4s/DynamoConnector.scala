@@ -89,7 +89,7 @@ object DynamoConnector {
         f.tapError {
           exception =>
             metrics.mark(label) *>
-            metrics.mark("dynamo:query-exception") *>
+            metrics.mark("dynamo/query-exception") *>
             log.error(s"Uncaught DynamoDB Exception $exception")
         }
       }
