@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '12.0.1'
-      - uses: rlespinasse/github-slug-action@2.0.0
+      - uses: rlespinasse/github-slug-action@2.1.1
       - name: Set env
         run: echo name=BRANCH_TAG::$(git describe --contains | grep v | grep -v '~' | head -n 1 || true) >> $GITHUB_ENV
       - name: Cache SBT ivy cache
