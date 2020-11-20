@@ -88,7 +88,7 @@ Let's use it to remove a particular score from the ladder:
 table.deleteItem(mainFullKey(userId))
 ```
 
-Okay, in this section we finally discovered how to make queries with D4S and before we go to know for other operation and possibilities
+Okay, in this section we finally discovered how to make queries with D4S and before we go to know for other operations and possibilities
 that D4S provides, we would like to highlight what we've learnt so far:
 - we able to setup project with D4S
 - we able to define a table
