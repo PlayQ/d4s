@@ -20,7 +20,7 @@ object V {
   // Izumi Deps
   val circe                = "0.13.0"
   val circe_generic_extras = "0.13.0"
-  val circe_derivation     = "0.13.0-M4"
+  val circe_derivation     = "0.13.0-M5"
 
   val magnolia_version = "0.16.0"
 
