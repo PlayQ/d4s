@@ -65,7 +65,7 @@ object ZIOPlugin extends PluginDef {
       Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(pool))
   }
 
-  make[LogBIO[IO]].from(LogBIO.fromLogger[IO] _)
+  make[LogIO2[IO]].from(LogIO2.fromLogger[IO] _)
 }
 ```
 

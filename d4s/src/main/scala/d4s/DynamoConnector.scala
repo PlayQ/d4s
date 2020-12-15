@@ -10,7 +10,7 @@ import d4s.models.{DynamoException, DynamoExecution}
 import fs2.Stream
 import izumi.functional.bio.{Async2, Temporal2}
 import izumi.fundamentals.platform.language.unused
-import logstage.LogBIO
+import logstage.LogIO2
 import net.playq.metrics.Metrics
 
 trait DynamoConnector[F[_, _]] {
@@ -40,7 +40,7 @@ object DynamoConnector {
     @unused dynamoDBHealthChecker: DynamoDBHealthChecker[F],
     @unused dynamoDDLService: DynamoDDLService[F],
     metrics: Metrics[F],
-    log: LogBIO[F],
+    log: LogIO2[F],
   ) extends DynamoConnector[F] {
 
     override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A] =

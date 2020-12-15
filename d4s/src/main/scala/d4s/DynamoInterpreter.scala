@@ -10,7 +10,7 @@ import d4s.models.query.requests._
 import d4s.models.query.responses.HasItems
 import izumi.functional.bio.catz._
 import izumi.functional.bio.{Async2, Error2, F, Fork2, Temporal2}
-import logstage.LogBIO
+import logstage.LogIO2
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 
@@ -29,7 +29,7 @@ object DynamoInterpreter {
     batchConfig: DynamoBatchConfig,
     dynamoConfig: DynamoConfig,
   )(implicit
-    log: LogBIO[F]
+    log: LogIO2[F]
   ) extends DynamoInterpreter[F] {
 
     override def run[DR <: DynamoRequest.Aux[_, _], Dec](
@@ -195,7 +195,7 @@ object DynamoInterpreter {
       tableName: String,
       errorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
     )(implicit F: Error2[F],
-      log: LogBIO[F],
+      log: LogIO2[F],
     ): F[DynamoException, A] = {
       f.leftMap(InterpreterException(operation, Some(tableName), _)).tapError {
         errorLogger.orElse {
@@ -204,7 +204,7 @@ object DynamoInterpreter {
       }
     }
 
-    def logWrapError(operation: String)(implicit F: Error2[F], log: LogBIO[F]): F[DynamoException, A] = {
+    def logWrapError(operation: String)(implicit F: Error2[F], log: LogIO2[F]): F[DynamoException, A] = {
       f.tapError(failure => log.error(s"Dynamo: Got error during executing $operation. ${failure.getCause -> "Failure"}"))
         .leftMap(InterpreterException(operation, None, _))
     }

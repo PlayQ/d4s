@@ -8,7 +8,7 @@ import izumi.distage.model.definition.StandardAxis.Scene
 import izumi.distage.testkit.TestConfig
 import izumi.distage.testkit.services.scalatest.dstest.DistageAbstractScalatestSpec
 import izumi.functional.bio.{Applicative2, F}
-import logstage.LogBIO
+import logstage.LogIO2
 
 trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
   implicit def tagBIO: TagKK[F]
@@ -29,7 +29,7 @@ trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable,
 object DynamoTestEnv {
   final case class DDLDown[F[+_, +_]: Applicative2](
     dynamoDDLService: DynamoDDLService[F],
-    logger: LogBIO[F],
+    logger: LogIO2[F],
   ) extends DIResource.Self[F[Throwable, ?], DDLDown[F]] {
     override def acquire: F[Throwable, Unit] = F.unit
     override def release: F[Throwable, Unit] = {

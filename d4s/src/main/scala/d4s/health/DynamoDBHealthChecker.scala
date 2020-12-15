@@ -14,6 +14,8 @@ final class DynamoDBHealthChecker[F[+_, +_]: Panic2](client: DynamoClient[F]) {
           Set(HealthCheckStatus("dynamodb.session", HealthState.DEFUNCT))
         case _: Exit.Termination =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.UNKNOWN))
+        case _: Exit.Interruption =>
+          Set(HealthCheckStatus("dynamodb.session", HealthState.UNKNOWN))
       }
   }
 }

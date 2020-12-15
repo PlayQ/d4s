@@ -5,7 +5,7 @@ import d4s.models.ExecutionStrategy.StrategyInput
 import d4s.models.query.requests.{CreateBackup, DeleteTable}
 import d4s.models.table.{TableDef, TablePrefix, TableReference}
 import izumi.functional.bio.{Applicative2, Async2, F, Temporal2}
-import logstage.LogBIO
+import logstage.LogIO2
 
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -44,7 +44,7 @@ object DynamoTablesService {
 
   // For test purposes
   final class Memo[F[+_, +_]: Async2: Temporal2](
-    logger: LogBIO[F],
+    logger: LogIO2[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService.Impl[F](logger, interpreter) {
     val prefixedTables: mutable.Set[String] = mutable.Set.empty[String]
@@ -66,7 +66,7 @@ object DynamoTablesService {
   }
 
   sealed class Impl[F[+_, +_]: Async2: Temporal2](
-    log: LogBIO[F],
+    log: LogIO2[F],
     interpreter: DynamoInterpreter[F],
   ) extends DynamoTablesService[F] {
 

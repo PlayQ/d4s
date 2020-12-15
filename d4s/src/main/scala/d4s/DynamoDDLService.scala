@@ -3,10 +3,10 @@ package d4s
 import d4s.models.table.TableDef
 import izumi.distage.model.definition.Lifecycle
 import izumi.functional.bio.Monad2
-import logstage.LogBIO
-import logstage.LogBIO.log
+import logstage.LogIO2
+import logstage.LogIO2.log
 
-final class DynamoDDLService[F[+_, +_]: Monad2: LogBIO](
+final class DynamoDDLService[F[+_, +_]: Monad2: LogIO2](
   instances: Set[TableDef],
   tablesManager: DynamoTablesService[F],
 ) extends Lifecycle.SelfNoClose[F[Throwable, ?], DynamoDDLService[F]] {
