@@ -5,7 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.65`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
+import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.66`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -92,7 +92,7 @@ object ProjectBuilder {
     final val fs2         = Library("co.fs2", "fs2-io", Version.VExpr("V.fs2"), LibraryType.Auto)
 
     final val scalatest                = Library("org.scalatest", "scalatest", Version.VExpr("V.scalatest"), LibraryType.Auto)
-    final val scalatestplus_scalacheck = Library("org.scalatestplus", "scalacheck-1-14", Version.VExpr("V.scalatestplus_scalacheck"), LibraryType.Auto)
+    final val scalatestplus_scalacheck = Library("org.scalatestplus", "scalacheck-1-15", Version.VExpr("V.scalatestplus_scalacheck"), LibraryType.Auto)
     final val scalacheck_shapeless     = Library("com.github.alexarchambault", "scalacheck-shapeless_1.14", Version.VExpr("V.scalacheck_shapeless"), LibraryType.Auto)
 
     final val fundamentals_bio = Library("io.7mind.izumi", "fundamentals-bio", Version.VExpr("V.izumi_version"), LibraryType.Auto)

@@ -12,7 +12,7 @@ object V {
   val aws_java_sdk_2 = "2.15.1"
 
   // scala
-  val scalacheck           = "1.14.1"
+  val scalacheck           = "1.15.2"
   val scalacheck_shapeless = "1.2.5"
 
   val fs2 = "2.4.6"
@@ -30,5 +30,5 @@ object V {
   val zio_interop_cats = "2.2.0.1"
 
   val scalatest                = "3.2.3"
-  val scalatestplus_scalacheck = "3.2.2.0"
+  val scalatestplus_scalacheck = "3.2.3.0"
 }
