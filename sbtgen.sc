@@ -146,6 +146,7 @@ object ProjectBuilder {
 
       "scmInfo" in SettingScope.Build := """Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git"))""".raw,
       "scalacOptions" in SettingScope.Build += s"""${"\"" * 3}-Xmacro-settings:scalatest-version=${Version.VExpr("V.scalatest")}${"\"" * 3}""".raw,
+      "scalacOptions" in SettingScope.Build += """s"-Wconf:msg=kind_projector:silent"""".raw,
 
       "releaseProcess" := """Seq[ReleaseStep](
                             |  checkSnapshotDependencies,

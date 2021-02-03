@@ -15,11 +15,11 @@ lazy val `aws-common` = project.in(file("./aws-common"))
   .settings(
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.12"
+      "2.13.4",
+      "2.12.13"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.12") => Seq(
+      case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
@@ -59,7 +59,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.3") => Seq(
+      case (_, "2.13.4") => Seq(
         "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
@@ -78,12 +78,12 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.12") => Seq(
+      case (false, "2.12.13") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.3") => Seq(
+      case (false, "2.13.4") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -149,11 +149,11 @@ lazy val `metrics` = project.in(file("./metrics"))
   .settings(
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.12"
+      "2.13.4",
+      "2.12.13"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.12") => Seq(
+      case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
@@ -193,7 +193,7 @@ lazy val `metrics` = project.in(file("./metrics"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.3") => Seq(
+      case (_, "2.13.4") => Seq(
         "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
@@ -212,12 +212,12 @@ lazy val `metrics` = project.in(file("./metrics"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.12") => Seq(
+      case (false, "2.12.13") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.3") => Seq(
+      case (false, "2.13.4") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -287,11 +287,11 @@ lazy val `d4s` = project.in(file("./d4s"))
   .settings(
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.12"
+      "2.13.4",
+      "2.12.13"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.12") => Seq(
+      case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
@@ -331,7 +331,7 @@ lazy val `d4s` = project.in(file("./d4s"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.3") => Seq(
+      case (_, "2.13.4") => Seq(
         "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
@@ -350,12 +350,12 @@ lazy val `d4s` = project.in(file("./d4s"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.12") => Seq(
+      case (false, "2.12.13") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.3") => Seq(
+      case (false, "2.13.4") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -419,11 +419,11 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
   .settings(
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.12"
+      "2.13.4",
+      "2.12.13"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.12") => Seq(
+      case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
@@ -463,7 +463,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.3") => Seq(
+      case (_, "2.13.4") => Seq(
         "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
@@ -482,12 +482,12 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.12") => Seq(
+      case (false, "2.12.13") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.3") => Seq(
+      case (false, "2.13.4") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -554,11 +554,11 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
   .settings(
     scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
-      "2.13.3",
-      "2.12.12"
+      "2.13.4",
+      "2.12.13"
     ),
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.12") => Seq(
+      case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
@@ -598,7 +598,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.3") => Seq(
+      case (_, "2.13.4") => Seq(
         "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
@@ -617,12 +617,12 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.12") => Seq(
+      case (false, "2.12.13") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.3") => Seq(
+      case (false, "2.13.4") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
@@ -739,7 +739,7 @@ lazy val `d4s-root` = (project in file("."))
     ),
     fork in Global := false,
     crossScalaVersions := Nil,
-    scalaVersion := "2.13.3",
+    scalaVersion := "2.13.4",
     coverageOutputXML in Global := true,
     coverageOutputHTML in Global := true,
     organization in Global := "net.playq",
@@ -760,6 +760,7 @@ lazy val `d4s-root` = (project in file("."))
             ),
     scmInfo in ThisBuild := Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git")),
     scalacOptions in ThisBuild += """-Xmacro-settings:scalatest-version=VExpr(V.scalatest)""",
+    scalacOptions in ThisBuild += s"-Wconf:msg=kind_projector:silent",
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,

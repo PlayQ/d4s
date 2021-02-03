@@ -64,6 +64,8 @@ final case class UpdateItem(
           beforeSET + s"SET $setExprsString, $afterSET"
         case List(updateExpression) =>
           s"SET $setExprsString $updateExpression"
+        case _ =>
+          updateExpression
       }
     }
     val condExpr = condition.eval
