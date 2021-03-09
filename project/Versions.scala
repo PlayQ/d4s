@@ -29,6 +29,6 @@ object V {
   val zio              = "1.0.4-2"
   val zio_interop_cats = "2.3.1.0"
 
-  val scalatest                = "3.2.5"
+  val scalatest                = "3.2.6"
   val scalatestplus_scalacheck = "3.2.6.0"
 }
