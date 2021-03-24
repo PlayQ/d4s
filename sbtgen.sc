@@ -51,7 +51,7 @@ object Targets {
         SettingKey.Default := Const.EmptySeq
       ),
       "scalacOptions" ++= Seq(
-        SettingKey(Some(scala213), Some(true)) := Seq("-Wmacros:after"),
+        SettingKey(Some(scala213), None) := Seq("-Wmacros:after"),
         SettingKey.Default := Const.EmptySeq
       ),
     )

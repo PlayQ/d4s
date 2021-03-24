@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   dynamoQuery: DynamoQuery[DR, Dec],
   executionStrategy: ExecutionStrategy[DR, Dec, A],
-) extends DynamoExecution.Dependent[DR, Dec, FThrowable[?[_, `+_`], A]] {
+) extends DynamoExecution.Dependent[DR, Dec, FThrowable[?[`+_`, `+_`], A]] {
 
   def map[B](f: A => B): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => _.F.map(io)(f))
@@ -297,7 +297,7 @@ object DynamoExecution {
   final case class Streamed[DR <: DynamoRequest, Dec, +A](
     dynamoQuery: DynamoQuery[DR, Dec],
     executionStrategy: ExecutionStrategy.Streamed[DR, Dec, A],
-  ) extends DynamoExecution.Dependent[DR, Dec, StreamFThrowable[?[_, `+_`], A]] {
+  ) extends DynamoExecution.Dependent[DR, Dec, StreamFThrowable[?[`+_`, `+_`], A]] {
 
     def map[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
       through(_.map(f))

@@ -93,7 +93,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.13.5") => Seq(
+      case (_, "2.13.5") => Seq(
         "-Wmacros:after"
       )
       case (_, _) => Seq.empty
@@ -235,7 +235,7 @@ lazy val `metrics` = project.in(file("./metrics"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.13.5") => Seq(
+      case (_, "2.13.5") => Seq(
         "-Wmacros:after"
       )
       case (_, _) => Seq.empty
@@ -381,7 +381,7 @@ lazy val `d4s` = project.in(file("./d4s"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.13.5") => Seq(
+      case (_, "2.13.5") => Seq(
         "-Wmacros:after"
       )
       case (_, _) => Seq.empty
@@ -521,7 +521,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.13.5") => Seq(
+      case (_, "2.13.5") => Seq(
         "-Wmacros:after"
       )
       case (_, _) => Seq.empty
@@ -664,7 +664,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.13.5") => Seq(
+      case (_, "2.13.5") => Seq(
         "-Wmacros:after"
       )
       case (_, _) => Seq.empty
