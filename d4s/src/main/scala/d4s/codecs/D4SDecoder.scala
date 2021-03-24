@@ -12,7 +12,6 @@ import software.amazon.awssdk.core.util.{DefaultSdkAutoConstructList, DefaultSdk
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import java.util.UUID
-import scala.annotation.unused
 import scala.collection.compat._
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -202,7 +201,7 @@ object D4SDecoder extends D4SDecoderScala213 {
     }
   }
 
-  implicit def eitherDecoder[A, B](implicit @unused a: D4SDecoder[A], @unused b: D4SDecoder[B]): D4SDecoder[Either[A, B]] = {
+  implicit def eitherDecoder[A: D4SDecoder, B: D4SDecoder]: D4SDecoder[Either[A, B]] = {
     D4SDecoder.derived
   }
 

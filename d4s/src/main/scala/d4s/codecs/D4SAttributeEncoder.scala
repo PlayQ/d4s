@@ -1,11 +1,11 @@
 package d4s.codecs
 
+import java.util.UUID
+
 import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
-import java.util.UUID
-import scala.annotation.unused
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
@@ -86,7 +86,7 @@ object D4SAttributeEncoder {
     case (k, v) => D4SAttributeEncoder.encodeField(k, v)
   }
 
-  implicit def eitherEncoder[A, B](implicit @unused a: D4SAttributeEncoder[A], @unused b: D4SAttributeEncoder[B]): D4SEncoder[Either[A, B]] = {
+  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = {
     D4SEncoder.derived
   }
 
