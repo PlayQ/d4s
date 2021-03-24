@@ -13,11 +13,11 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     )
   )
   .settings(
-    scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.4",
       "2.12.13"
     ),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
@@ -149,11 +149,11 @@ lazy val `metrics` = project.in(file("./metrics"))
     )
   )
   .settings(
-    scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.4",
       "2.12.13"
     ),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
@@ -289,11 +289,11 @@ lazy val `d4s` = project.in(file("./d4s"))
     )
   )
   .settings(
-    scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.4",
       "2.12.13"
     ),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
@@ -423,11 +423,11 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
     )
   )
   .settings(
-    scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.4",
       "2.12.13"
     ),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (_, "2.12.13") => Seq(
         "-Xsource:2.13",
@@ -560,11 +560,11 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
     )
   )
   .settings(
-    scalaVersion := crossScalaVersions.value.head,
     crossScalaVersions := Seq(
       "2.13.4",
       "2.12.13"
     ),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (_, "2.12.13") => Seq(
         "-Xsource:2.13",

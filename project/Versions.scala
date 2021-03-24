@@ -1,6 +1,6 @@
 object V {
   val scala_212               = "2.12.13"
-  val scala_213               = "2.13.4"
+  val scala_213               = "2.13.5"
   val scala_collection_compat = "2.4.2"
   val izumi_version           = "1.0.4"
 
@@ -8,7 +8,6 @@ object V {
   val kind_projector = "0.11.3"
 
   // java
-  val aws_java_sdk   = "1.11.750"
   val aws_java_sdk_2 = "2.16.1"
 
   // scala
@@ -24,7 +23,7 @@ object V {
 
   val magnolia_version = "0.16.0"
 
-  val cats             = "2.2.0"
+  val cats             = "2.2.2"
   val cats_effect      = "2.4.0"
   val zio              = "1.0.5"
   val zio_interop_cats = "2.3.1.0"
