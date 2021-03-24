@@ -69,7 +69,7 @@ object ExecutionStrategy {
       }
   }
 
-  trait Dependent[DR <: DynamoRequest, -Dec, +Out[_[_, _]]] {
+  trait Dependent[DR <: DynamoRequest, -Dec, +Out[_[+_, +_]]] {
     def apply[F[+_, +_]](input: StrategyInput[F, DR, Dec]): Out[F]
   }
 

@@ -390,7 +390,7 @@ object DynamoExecution {
 
   }
 
-  trait Dependent[DR <: DynamoRequest, Dec, +Out0[_[_, _]]] {
+  trait Dependent[DR <: DynamoRequest, Dec, +Out0[_[+_, +_]]] {
     def dynamoQuery: DynamoQuery[DR, Dec]
     def executionStrategy: ExecutionStrategy.Dependent[DR, Dec, Out0]
   }

@@ -49,7 +49,7 @@ object DynamoConnector {
     override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[DynamoException, ?], A] =
       runUnrecordedImpl(q).translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]](_.leftMap(QueryException(_))))
 
-    private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[_, _]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
+    private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[+_, +_]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
       q.executionStrategy(StrategyInput(q.dynamoQuery, interpreter))
     }
 
