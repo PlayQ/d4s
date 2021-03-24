@@ -5,7 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.69`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
+import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.70`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
@@ -49,11 +49,7 @@ object Targets {
           "-opt-inline-from:net.playq.**",
         ),
         SettingKey.Default := Const.EmptySeq
-      ),
-      "scalacOptions" ++= Seq(
-        SettingKey(Some(scala213), None) := Seq("-Wmacros:after"),
-        SettingKey.Default := Const.EmptySeq
-      ),
+      )
     )
   )
 

@@ -72,8 +72,9 @@ lazy val `aws-common` = project.in(file("./aws-common"))
         "-Wextra-implicit",
         "-Wnumeric-widen",
         "-Woctal-literal",
-        "-Wunused:_",
         "-Wvalue-discard",
+        "-Wunused:_",
+        "-Wmacros:after",
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
@@ -89,12 +90,6 @@ lazy val `aws-common` = project.in(file("./aws-common"))
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.13.5") => Seq(
-        "-Wmacros:after"
       )
       case (_, _) => Seq.empty
     } },
@@ -214,8 +209,9 @@ lazy val `metrics` = project.in(file("./metrics"))
         "-Wextra-implicit",
         "-Wnumeric-widen",
         "-Woctal-literal",
-        "-Wunused:_",
         "-Wvalue-discard",
+        "-Wunused:_",
+        "-Wmacros:after",
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
@@ -231,12 +227,6 @@ lazy val `metrics` = project.in(file("./metrics"))
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.13.5") => Seq(
-        "-Wmacros:after"
       )
       case (_, _) => Seq.empty
     } },
@@ -360,8 +350,9 @@ lazy val `d4s` = project.in(file("./d4s"))
         "-Wextra-implicit",
         "-Wnumeric-widen",
         "-Woctal-literal",
-        "-Wunused:_",
         "-Wvalue-discard",
+        "-Wunused:_",
+        "-Wmacros:after",
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
@@ -377,12 +368,6 @@ lazy val `d4s` = project.in(file("./d4s"))
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.13.5") => Seq(
-        "-Wmacros:after"
       )
       case (_, _) => Seq.empty
     } },
@@ -500,8 +485,9 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
         "-Wextra-implicit",
         "-Wnumeric-widen",
         "-Woctal-literal",
-        "-Wunused:_",
         "-Wvalue-discard",
+        "-Wunused:_",
+        "-Wmacros:after",
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
@@ -517,12 +503,6 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.13.5") => Seq(
-        "-Wmacros:after"
       )
       case (_, _) => Seq.empty
     } },
@@ -643,8 +623,9 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
         "-Wextra-implicit",
         "-Wnumeric-widen",
         "-Woctal-literal",
-        "-Wunused:_",
         "-Wvalue-discard",
+        "-Wunused:_",
+        "-Wmacros:after",
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
@@ -660,12 +641,6 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
         "-opt:l:inline",
         "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
-      )
-      case (_, _) => Seq.empty
-    } },
-    scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.13.5") => Seq(
-        "-Wmacros:after"
       )
       case (_, _) => Seq.empty
     } },
