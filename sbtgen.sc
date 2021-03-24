@@ -50,6 +50,7 @@ object Targets {
         ),
         SettingKey.Default := Const.EmptySeq
       ),
+      "scalacOptions" += "-Wmacros:after"
     )
   )
 

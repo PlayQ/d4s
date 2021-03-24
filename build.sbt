@@ -92,6 +92,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       )
       case (_, _) => Seq.empty
     } },
+    scalacOptions += "-Wmacros:after",
     organization := "net.playq",
     unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
@@ -228,6 +229,7 @@ lazy val `metrics` = project.in(file("./metrics"))
       )
       case (_, _) => Seq.empty
     } },
+    scalacOptions += "-Wmacros:after",
     organization := "net.playq",
     unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
@@ -368,6 +370,7 @@ lazy val `d4s` = project.in(file("./d4s"))
       )
       case (_, _) => Seq.empty
     } },
+    scalacOptions += "-Wmacros:after",
     organization := "net.playq",
     unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
@@ -502,6 +505,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       )
       case (_, _) => Seq.empty
     } },
+    scalacOptions += "-Wmacros:after",
     organization := "net.playq",
     unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
@@ -639,6 +643,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       )
       case (_, _) => Seq.empty
     } },
+    scalacOptions += "-Wmacros:after",
     organization := "net.playq",
     unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
     unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
