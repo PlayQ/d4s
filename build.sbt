@@ -83,12 +83,10 @@ lazy val `aws-common` = project.in(file("./aws-common"))
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (false, "2.12.13") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (false, "2.13.5") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (_, _) => Seq.empty
@@ -220,12 +218,10 @@ lazy val `metrics` = project.in(file("./metrics"))
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (false, "2.12.13") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (false, "2.13.5") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (_, _) => Seq.empty
@@ -361,12 +357,10 @@ lazy val `d4s` = project.in(file("./d4s"))
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (false, "2.12.13") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (false, "2.13.5") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (_, _) => Seq.empty
@@ -496,12 +490,10 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (false, "2.12.13") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (false, "2.13.5") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (_, _) => Seq.empty
@@ -634,12 +626,10 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
       case (false, "2.12.13") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (false, "2.13.5") => Seq(
         "-opt:l:inline",
-        "-opt-inline-from:izumi.**",
         "-opt-inline-from:net.playq.**"
       )
       case (_, _) => Seq.empty

@@ -40,12 +40,10 @@ object Targets {
       "scalacOptions" ++= Seq(
         SettingKey(Some(scala212), Some(true)) := Seq(
           "-opt:l:inline",
-          "-opt-inline-from:izumi.**",
           "-opt-inline-from:net.playq.**",
         ),
         SettingKey(Some(scala213), Some(true)) := Seq(
           "-opt:l:inline",
-          "-opt-inline-from:izumi.**",
           "-opt-inline-from:net.playq.**",
         ),
         SettingKey.Default := Const.EmptySeq
