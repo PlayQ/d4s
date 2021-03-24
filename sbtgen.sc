@@ -27,6 +27,7 @@ object Targets {
       ).map(_.group(1)).getOrElse(throw new RuntimeException(s"Couldn't get `scala_$v` version from project/Versions.scala"))
   }
   val targetScala = Seq(scala213, scala212)
+//  val targetScala = Seq(scala212, scala213)
   private val jvmPlatform = PlatformEnv(
     platform = Platform.Jvm,
     language = targetScala,

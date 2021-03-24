@@ -26,7 +26,7 @@ final case class ProvisionedThroughputConfig(
     }
   }
 
-  def configureBilling[T: HasBillingMode](builder: T)(implicit ev: HasBillingMode[T]): T = {
+  def configureBilling[T](builder: T)(implicit ev: HasBillingMode[T]): T = {
     ev.billingMode(builder, mode)
   }
 

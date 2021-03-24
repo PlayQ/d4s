@@ -1,14 +1,13 @@
 package d4s.codecs
 
-import java.util.UUID
-
 import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
-import scala.language.experimental.macros
-
+import java.util.UUID
+import scala.annotation.unused
 import scala.jdk.CollectionConverters._
+import scala.language.experimental.macros
 
 trait D4SAttributeEncoder[T] {
   def encode(item: T): AttributeValue
@@ -87,7 +86,9 @@ object D4SAttributeEncoder {
     case (k, v) => D4SAttributeEncoder.encodeField(k, v)
   }
 
-  implicit def eitherEncoder[A: D4SAttributeEncoder, B: D4SAttributeEncoder]: D4SEncoder[Either[A, B]] = D4SEncoder.derived
+  implicit def eitherEncoder[A, B](implicit @unused a: D4SAttributeEncoder[A], @unused b: D4SAttributeEncoder[B]): D4SEncoder[Either[A, B]] = {
+    D4SEncoder.derived
+  }
 
   implicit def iterableEncoder[L[_], T: D4SAttributeEncoder](implicit ev: L[T] <:< Iterable[T]): D4SAttributeEncoder[L[T]] = {
     item: L[T] =>

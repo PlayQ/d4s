@@ -9,6 +9,7 @@ import distage.{ModuleDef, TagKK}
 import izumi.fundamentals.platform.integration.PortCheck
 import net.playq.aws.tagging.AwsNameSpace
 
+import scala.annotation.unused
 import scala.concurrent.duration._
 
 class D4SModule[F[+_, +_]: TagKK] extends ModuleDef {
@@ -19,7 +20,7 @@ class D4SModule[F[+_, +_]: TagKK] extends ModuleDef {
 object D4SModule {
   def apply[F[+_, +_]: TagKK]: ModuleDef = new D4SModule[F]
 
-  def base[F[+_, +_]: TagKK]: ModuleDef = new ModuleDef {
+  def base[F[+_, +_]](implicit @unused ev: TagKK[F]): ModuleDef = new ModuleDef {
     make[DynamoClient[F]].from[DynamoClient.Impl[F]]
     make[DynamoConnector[F]].from[DynamoConnector.Impl[F]]
     make[DynamoInterpreter[F]].from[DynamoInterpreter.Impl[F]]
