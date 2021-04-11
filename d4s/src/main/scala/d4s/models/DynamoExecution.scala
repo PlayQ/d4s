@@ -1,7 +1,6 @@
 package d4s.models
 
 import cats.MonadError
-import cats.effect.concurrent.Ref
 import d4s.models.ExecutionStrategy.{FThrowable, StrategyInput, StreamFThrowable, UnknownF}
 import d4s.models.query.DynamoRequest.{PageableRequest, WithLimit, WithProjectionExpression, WithSelect, WithTableReference}
 import d4s.models.query.requests._
@@ -17,6 +16,7 @@ import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
+import cats.effect.Ref
 
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   dynamoQuery: DynamoQuery[DR, Dec],
