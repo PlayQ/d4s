@@ -53,6 +53,6 @@ object D4SEncoder {
   }
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
-    traitEncoder(ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+    traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
   }
 }

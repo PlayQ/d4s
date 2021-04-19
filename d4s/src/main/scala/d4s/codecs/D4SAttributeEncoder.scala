@@ -51,7 +51,7 @@ object D4SAttributeEncoder {
   }
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
-    traitEncoder(ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+    traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
   }
 
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a

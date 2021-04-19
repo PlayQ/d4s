@@ -111,7 +111,7 @@ object D4SDecoder extends D4SDecoderScala213 {
       }
   }
 
-  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = traitDecoder(ctx.typeName.full)(Function.unlift {
+  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = traitDecoder[T](ctx.typeName.full)(Function.unlift {
     s => ctx.subtypes.find(_.typeName.short == s).map(_.typeclass)
   })
 
