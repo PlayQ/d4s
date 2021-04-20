@@ -99,6 +99,35 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
     }
   }
 
+  "custom sealed trait test" in check {
+    Prop.forAllNoShrink {
+      v: AmbiguousResult =>
+        val codec: D4SCodec[AmbiguousResult] = {
+          implicit val customEitherCodec: D4SCodec[Either[String, Int]] = D4SCodec.fromPair(
+            D4SEncoder.traitEncoder[Either[String, Int]] {
+              case Left(_)  => "l" -> D4SEncoder.derived[Left[String, Int]]
+              case Right(_) => "r" -> D4SEncoder.derived[Right[String, Int]]
+            },
+            D4SDecoder.traitDecoder[Either[String, Int]]("Either[String, Int]") {
+              Map(
+                "l" -> D4SDecoder.derived[Left[String, Int]],
+                "r" -> D4SDecoder.derived[Right[String, Int]],
+              )
+            },
+          )
+          val _ = customEitherCodec
+          D4SCodec.derived
+        }
+        val map       = codec.encodeObject(v)
+        val result    = codec.decodeObject(map)
+        val qualifier = map("v").m().asScala.head._1
+        assert(qualifier == "r" || qualifier == "l")
+        assert(result == Right(v))
+        (qualifier == "r" || qualifier == "l"
+        || result == Right(v))
+    }
+  }
+
   "binary set test" in check {
     Prop.forAllNoShrink {
       testData: TestBinarySet =>

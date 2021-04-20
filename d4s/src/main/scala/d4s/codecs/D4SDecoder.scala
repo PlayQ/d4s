@@ -78,6 +78,27 @@ object D4SDecoder extends D4SDecoderScala213 {
     }
   }
 
+  def traitDecoder[T](traitName: String)(caseMap: PartialFunction[String, D4SDecoder[_ <: T]]): D4SDecoder[T] = attributeDecoder {
+    item =>
+      if (item.m().isEmpty) {
+        val objectName = item.s()
+        caseMap
+          .lift(objectName)
+          .toRight(DecoderException(s"Cannot decode item of type [$traitName] from string: $objectName", None))
+          .flatMap(_.decode(item))
+      } else {
+        if (item.m().size != 1) {
+          Left(DecoderException(s"Invalid format when decoding a sealed trait - attribute map size is not 1, attribute map: ${item.m().asScala}", None))
+        } else {
+          val (typeName, attrValue) = item.m().asScala.head
+          caseMap
+            .lift(typeName)
+            .toRight(DecoderException(s"Cannot find a subtype [$typeName] for a sealed trait [$traitName]", None))
+            .flatMap(_.decode(attrValue))
+        }
+      }
+  }
+
   /** Magnolia instances. */
   private[D4SDecoder] type Typeclass[T] = D4SDecoder[T]
 
@@ -90,25 +111,9 @@ object D4SDecoder extends D4SDecoderScala213 {
       }
   }
 
-  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = attributeDecoder {
-    item =>
-      if (item.m().isEmpty) {
-        ctx.subtypes
-          .find(_.typeName.short == item.s())
-          .toRight(DecoderException(s"Cannot decode item of type [${ctx.typeName.full}] from string: ${item.s()}", None))
-          .flatMap(_.typeclass.decode(item))
-      } else {
-        if (item.m().size != 1) {
-          Left(DecoderException(s"Invalid format when decoding a sealed trait - attribute map size is not 1, attribute map: ${item.m().asScala}", None))
-        } else {
-          val (typeName, attrValue) = item.m().asScala.head
-          ctx.subtypes
-            .find(_.typeName.short == typeName)
-            .toRight(DecoderException(s"Cannot find a subtype [$typeName] for a sealed trait [${ctx.typeName.full}]", None))
-            .flatMap(_.typeclass.decode(attrValue))
-        }
-      }
-  }
+  def dispatch[T](ctx: SealedTrait[D4SDecoder, T]): D4SDecoder[T] = traitDecoder[T](ctx.typeName.full)(Function.unlift {
+    s => ctx.subtypes.find(_.typeName.short == s).map(_.typeclass)
+  })
 
   implicit val attributeDecoder: D4SDecoder[AttributeValue] = attributeDecoder(Right(_))
   implicit val stringDecoder: D4SDecoder[String] = attributeDecoder {
