@@ -92,21 +92,21 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/main/scala" ,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/main/resources" ,
+    Test / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/test/scala" ,
+    Test / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/test/resources" ,
+    Compile / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    Compile / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    Test / testOptions += Tests.Argument("-oDF"),
+    Test / logBuffered := true,
     resolvers += DefaultMavenRepository,
     resolvers += Opts.resolver.sonatypeSnapshots,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+    Compile / unmanagedSourceDirectories ++= (Compile / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -116,7 +116,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
          case None         => Seq.empty
        })
     },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+    Test / unmanagedSourceDirectories ++= (Test / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -126,7 +126,7 @@ lazy val `aws-common` = project.in(file("./aws-common"))
          case None         => Seq.empty
        })
     },
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default"
+    Compile / scalacOptions += "-Xmacro-settings:metricsRole=default"
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
@@ -227,21 +227,21 @@ lazy val `metrics` = project.in(file("./metrics"))
       case (_, _) => Seq.empty
     } },
     organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/main/scala" ,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/main/resources" ,
+    Test / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/test/scala" ,
+    Test / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/test/resources" ,
+    Compile / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    Compile / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    Test / testOptions += Tests.Argument("-oDF"),
+    Test / logBuffered := true,
     resolvers += DefaultMavenRepository,
     resolvers += Opts.resolver.sonatypeSnapshots,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+    Compile / unmanagedSourceDirectories ++= (Compile / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -251,7 +251,7 @@ lazy val `metrics` = project.in(file("./metrics"))
          case None         => Seq.empty
        })
     },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+    Test / unmanagedSourceDirectories ++= (Test / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -261,7 +261,7 @@ lazy val `metrics` = project.in(file("./metrics"))
          case None         => Seq.empty
        })
     },
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default"
+    Compile / scalacOptions += "-Xmacro-settings:metricsRole=default"
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
@@ -366,21 +366,21 @@ lazy val `d4s` = project.in(file("./d4s"))
       case (_, _) => Seq.empty
     } },
     organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/main/scala" ,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/main/resources" ,
+    Test / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/test/scala" ,
+    Test / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/test/resources" ,
+    Compile / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    Compile / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    Test / testOptions += Tests.Argument("-oDF"),
+    Test / logBuffered := true,
     resolvers += DefaultMavenRepository,
     resolvers += Opts.resolver.sonatypeSnapshots,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+    Compile / unmanagedSourceDirectories ++= (Compile / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -390,7 +390,7 @@ lazy val `d4s` = project.in(file("./d4s"))
          case None         => Seq.empty
        })
     },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+    Test / unmanagedSourceDirectories ++= (Test / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -400,7 +400,7 @@ lazy val `d4s` = project.in(file("./d4s"))
          case None         => Seq.empty
        })
     },
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default"
+    Compile / scalacOptions += "-Xmacro-settings:metricsRole=default"
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
@@ -499,21 +499,21 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/main/scala" ,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/main/resources" ,
+    Test / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/test/scala" ,
+    Test / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/test/resources" ,
+    Compile / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    Compile / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    Test / testOptions += Tests.Argument("-oDF"),
+    Test / logBuffered := true,
     resolvers += DefaultMavenRepository,
     resolvers += Opts.resolver.sonatypeSnapshots,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+    Compile / unmanagedSourceDirectories ++= (Compile / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -523,7 +523,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
          case None         => Seq.empty
        })
     },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+    Test / unmanagedSourceDirectories ++= (Test / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -533,7 +533,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
          case None         => Seq.empty
        })
     },
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default"
+    Compile / scalacOptions += "-Xmacro-settings:metricsRole=default"
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
@@ -635,21 +635,21 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     organization := "net.playq",
-    unmanagedSourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/scala" ,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / ".jvm/src/main/resources" ,
-    unmanagedSourceDirectories in Test += baseDirectory.value / ".jvm/src/test/scala" ,
-    unmanagedResourceDirectories in Test += baseDirectory.value / ".jvm/src/test/resources" ,
-    scalacOptions in Compile += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
-    scalacOptions in Compile += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
-    scalacOptions in Test += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
-    testOptions in Test += Tests.Argument("-oDF"),
-    logBuffered in Test := true,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/main/scala" ,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/main/resources" ,
+    Test / unmanagedSourceDirectories += baseDirectory.value / ".jvm/src/test/scala" ,
+    Test / unmanagedResourceDirectories += baseDirectory.value / ".jvm/src/test/resources" ,
+    Compile / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}",
+    Compile / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}",
+    Test / scalacOptions += s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}",
+    Test / testOptions += Tests.Argument("-oDF"),
+    Test / logBuffered := true,
     resolvers += DefaultMavenRepository,
     resolvers += Opts.resolver.sonatypeSnapshots,
-    unmanagedSourceDirectories in Compile ++= (unmanagedSourceDirectories in Compile).value.flatMap {
+    Compile / unmanagedSourceDirectories ++= (Compile / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -659,7 +659,7 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
          case None         => Seq.empty
        })
     },
-    unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Test).value.flatMap {
+    Test / unmanagedSourceDirectories ++= (Test / unmanagedSourceDirectories).value.flatMap {
       dir =>
        val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
        def scalaDir(s: String) = file(dir.getPath + s)
@@ -669,13 +669,13 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
          case None         => Seq.empty
        })
     },
-    scalacOptions in Compile += "-Xmacro-settings:metricsRole=default"
+    Compile / scalacOptions += "-Xmacro-settings:metricsRole=default"
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
 
 lazy val `d4s-agg` = (project in file(".agg/.-d4s-agg"))
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     crossScalaVersions := Nil
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
@@ -689,7 +689,7 @@ lazy val `d4s-agg` = (project in file(".agg/.-d4s-agg"))
 
 lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     crossScalaVersions := Nil
   )
   .aggregate(
@@ -702,7 +702,7 @@ lazy val `d4s-agg-jvm` = (project in file(".agg/.-d4s-agg-jvm"))
 
 lazy val `d4s-root-jvm` = (project in file(".agg/.agg-jvm"))
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     crossScalaVersions := Nil
   )
   .aggregate(
@@ -711,9 +711,9 @@ lazy val `d4s-root-jvm` = (project in file(".agg/.agg-jvm"))
 
 lazy val `d4s-root` = (project in file("."))
   .settings(
-    skip in publish := true,
-    publishMavenStyle in ThisBuild := true,
-    scalacOptions in ThisBuild ++= Seq(
+    publish / skip := true,
+    ThisBuild / publishMavenStyle := true,
+    ThisBuild / scalacOptions ++= Seq(
       "-encoding",
       "UTF-8",
       "-target:jvm-1.8",
@@ -723,7 +723,7 @@ lazy val `d4s-root` = (project in file("."))
       "-language:higherKinds",
       "-explaintypes"
     ),
-    javacOptions in ThisBuild ++= Seq(
+    ThisBuild / javacOptions ++= Seq(
       "-encoding",
       "UTF-8",
       "-source",
@@ -735,36 +735,36 @@ lazy val `d4s-root` = (project in file("."))
       "-Xlint:all",
       "-XDignore.symbol.file"
     ),
-    scalacOptions in ThisBuild ++= Seq(
+    ThisBuild / scalacOptions ++= Seq(
       s"-Xmacro-settings:sbt-version=${sbtVersion.value}",
       s"-Xmacro-settings:git-repo-clean=${com.typesafe.sbt.SbtGit.GitKeys.gitUncommittedChanges.value}",
       s"-Xmacro-settings:git-branch=${com.typesafe.sbt.SbtGit.GitKeys.gitCurrentBranch.value}",
       s"-Xmacro-settings:git-described-version=${com.typesafe.sbt.SbtGit.GitKeys.gitDescribedVersion.value.getOrElse("")}",
       s"-Xmacro-settings:git-head-commit=${com.typesafe.sbt.SbtGit.GitKeys.gitHeadCommit.value.getOrElse("")}"
     ),
-    fork in Global := false,
+    Global / fork := false,
     crossScalaVersions := Nil,
     scalaVersion := "2.13.5",
-    coverageOutputXML in Global := true,
-    coverageOutputHTML in Global := true,
-    organization in Global := "net.playq",
+    Global / coverageOutputXML := true,
+    Global / coverageOutputHTML := true,
+    Global / organization := "net.playq",
     sonatypeProfileName := "net.playq",
     sonatypeSessionName := s"[sbt-sonatype] ${name.value} ${version.value} ${java.util.UUID.randomUUID}",
-    publishTo in ThisBuild := 
+    ThisBuild / publishTo := 
     (if (!isSnapshot.value) {
         sonatypePublishToBundle.value
       } else {
         Some(Opts.resolver.sonatypeSnapshots)
     })
     ,
-    credentials in ThisBuild += Credentials(file(".secrets/credentials.sonatype-nexus.properties")),
-    homepage in ThisBuild := Some(url("https://www.playq.com/")),
-    licenses in ThisBuild := Seq("Apache-License" -> url("https://opensource.org/licenses/Apache-2.0")),
-    developers in ThisBuild := List(
+    ThisBuild / credentials += Credentials(file(".secrets/credentials.sonatype-nexus.properties")),
+    ThisBuild / homepage := Some(url("https://www.playq.com/")),
+    ThisBuild / licenses := Seq("Apache-License" -> url("https://opensource.org/licenses/Apache-2.0")),
+    ThisBuild / developers := List(
               Developer(id = "playq", name = "PlayQ", url = url("https://github.com/PlayQ"), email = "platform-team@playq.net"),
             ),
-    scmInfo in ThisBuild := Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git")),
-    scalacOptions in ThisBuild += """-Xmacro-settings:scalatest-version=VExpr(V.scalatest)""",
+    ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/PlayQ/d4s"), "scm:git:https://github.com/PlayQ/d4s.git")),
+    ThisBuild / scalacOptions += """-Xmacro-settings:scalatest-version=VExpr(V.scalatest)""",
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
@@ -778,7 +778,7 @@ lazy val `d4s-root` = (project in file("."))
       commitNextVersion,
       pushChanges
     ),
-    onChangedBuildSource in Global := ReloadOnSourceChanges
+    Global / onChangedBuildSource := ReloadOnSourceChanges
   )
   .enablePlugins(IzumiPublishingPlugin, IzumiResolverPlugin)
   .aggregate(
