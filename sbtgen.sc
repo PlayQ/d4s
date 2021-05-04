@@ -165,13 +165,13 @@ object ProjectBuilder {
     )
 
     final val sharedSettings = Seq(
-      "scalacOptions" in SettingScope.Compile += """s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}"""".raw,
-      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsDir=${(classDirectory in Compile).value}"""".raw,
-      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsDir=${(classDirectory in Test).value}"""".raw,
+      "scalacOptions" in SettingScope.Compile += """s"-Xmacro-settings:metricsDir=${(Compile / classDirectory).value}"""".raw,
+      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsDir=${(Compile / classDirectory).value}"""".raw,
+      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsDir=${(Test / classDirectory).value}"""".raw,
 
-      "scalacOptions" in SettingScope.Compile += """s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}"""".raw,
-      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsRole=${(name in Compile).value};${(moduleName in Compile).value}"""".raw,
-      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsRole=${(name in Test).value};${(moduleName in Test).value}"""".raw,
+      "scalacOptions" in SettingScope.Compile += """s"-Xmacro-settings:metricsRole=${(Compile / name).value};${(Compile / moduleName).value}"""".raw,
+      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsRole=${(Compile / name).value};${(Compile / moduleName).value}"""".raw,
+      "scalacOptions" in SettingScope.Test += """s"-Xmacro-settings:metricsRole=${(Test / name).value};${(Test / moduleName).value}"""".raw,
 
       "testOptions" in SettingScope.Test += """Tests.Argument("-oDF")""".raw,
       "logBuffered" in SettingScope.Test := true,
