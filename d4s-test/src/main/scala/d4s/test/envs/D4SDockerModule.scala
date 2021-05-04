@@ -14,7 +14,7 @@ class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
     make[DynamoConfig].from {
       (cfg: DynamoConfig @Id("test-config"), docker: DynamoDocker.Container) =>
         val knownAddress = docker.availablePorts.first(DynamoDocker.primaryPort)
-        cfg.copy(endpointUrl = Some(s"http://${knownAddress.hostV4}:${knownAddress.port}"))
+        cfg.copy(endpointUrl = Some(s"http://${knownAddress.host.host}:${knownAddress.port}"))
     }
   })
 }
