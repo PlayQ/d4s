@@ -8,7 +8,7 @@ object V {
   val kind_projector = "0.11.3"
 
   // java
-  val aws_java_sdk_2 = "2.16.1"
+  val aws_java_sdk_2 = "2.16.54"
 
   // scala
   val scalacheck           = "1.15.2"
