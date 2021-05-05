@@ -8,6 +8,7 @@ on:
       docs/**
       resources/**
       vuepress/**
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,23 +38,24 @@ jobs:
         with:
           path: ~/.cache/coursier
           key: ${{ runner.os }}-coursier
-      - name: Install Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
-          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-          sudo apt-get update
-          sudo apt-get install docker-ce
-          sudo rm -rf /var/lib/docker
-          sudo systemctl restart docker.service
-          sudo systemctl status docker
+#      - name: Install Docker
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+#          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+#          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+#          sudo apt-get update
+#          sudo apt-get install docker-ce
+#          sudo rm -rf /var/lib/docker
+#          sudo systemctl restart docker.service
+#          sudo systemctl status docker
       - name: Build and Test
         env:
           OPENSSL_IV: ${{ secrets.OPENSSL_IV }}
           OPENSSL_KEY: ${{ secrets.OPENSSL_KEY }}
         run: |
           env
+          sudo service docker restart
           sudo curl -Lo /usr/local/bin/coursier https://git.io/coursier-cli-linux && sudo chmod +x /usr/local/bin/coursier && \
           ./sbtgen.sc
           COMMAND="sbt +clean +test"
