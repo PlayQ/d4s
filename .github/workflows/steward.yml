@@ -1,0 +1,19 @@
+name: Scala Steward
+
+on: [workflow_dispatch]
+#  schedule:
+#    - cron: "0 10 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      JAVA_OPTS: -Xms1g -Xmx4g -XX:+UseG1GC -XX:ReservedCodeCacheSize=256m -XX:MaxMetaspaceSize=1024m
+    steps:
+      - name: Launch Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2
+        with:
+          github-token: ${{ secrets.STEWARD_TOKEN }}
+          github-repository: PlayQ/d4s
+          author-email: ${{ secrets.STEWARD_AUTHOR_EMAIL }}
+          author-name: ${{ secrets.STEWARD_AUTHOR_NAME }}
