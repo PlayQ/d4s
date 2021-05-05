@@ -1,8 +1,9 @@
 name: Scala Steward
 
-on: [workflow_dispatch]
-#  schedule:
-#    - cron: "0 10 * * *"
+on:
+  schedule:
+    - cron: "0 10 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
