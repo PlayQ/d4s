@@ -1,5 +1,5 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-addSbtPlugin("io.7mind.izumi.sbt" % "sbt-izumi" % "0.0.73")
+addSbtPlugin("io.7mind.izumi.sbt" % "sbt-izumi" % "0.0.75")
 
