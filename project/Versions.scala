@@ -25,7 +25,7 @@ object V {
 
   val cats             = "2.2.2"
   val cats_effect      = "2.5.1"
-  val zio              = "1.0.7"
+  val zio              = "1.0.8"
   val zio_interop_cats = "2.4.1.0"
 
   val scalatest                = "3.2.9"
