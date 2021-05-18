@@ -744,7 +744,7 @@ lazy val `d4s-root` = (project in file("."))
     ),
     Global / fork := false,
     crossScalaVersions := Nil,
-    scalaVersion := "2.13.5",
+    scalaVersion := "2.13.6",
     Global / coverageOutputXML := true,
     Global / coverageOutputHTML := true,
     Global / organization := "net.playq",
