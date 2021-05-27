@@ -17,8 +17,8 @@ object V {
   val fs2 = "2.5.6"
 
   // Izumi Deps
-  val circe                = "0.13.0"
-  val circe_generic_extras = "0.13.0"
+  val circe                = "0.14.1"
+  val circe_generic_extras = "0.14.1"
   val circe_derivation     = "0.13.0-M5"
 
   val magnolia_version = "0.16.0"
