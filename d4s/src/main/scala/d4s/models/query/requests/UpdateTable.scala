@@ -13,7 +13,7 @@ import scala.util.chaining._
 final case class UpdateTable(
   table: TableReference,
   newProvisioning: Option[ProvisionedThroughputConfig] = None,
-  newGlobalIndex: Option[ProvisionedGlobalIndex[_, _]] = None,
+  newGlobalIndex: Option[ProvisionedGlobalIndex[?, ?]] = None,
   updateGlobalIndexes: Set[GlobalIndexUpdate]          = Set.empty,
   deleteGlobalIndex: Option[String]                    = None,
 ) extends DynamoRequest
@@ -26,7 +26,7 @@ final case class UpdateTable(
 
   def withNewProvisioning(provisioning: ProvisionedThroughputConfig): UpdateTable = copy(newProvisioning = Some(provisioning))
 
-  def withIndexToCreate(index: ProvisionedGlobalIndex[_, _]): UpdateTable = copy(newGlobalIndex = Some(index))
+  def withIndexToCreate(index: ProvisionedGlobalIndex[?, ?]): UpdateTable = copy(newGlobalIndex = Some(index))
 
   def withIndexesToUpdate(indexes: Set[GlobalIndexUpdate]): UpdateTable = copy(updateGlobalIndexes = indexes)
 

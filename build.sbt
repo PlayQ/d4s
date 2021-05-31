@@ -14,18 +14,19 @@ lazy val `aws-common` = project.in(file("./aws-common"))
   )
   .settings(
     crossScalaVersions := Seq(
-      "2.13.5",
-      "2.12.13"
+      "2.13.6",
+      "2.12.14"
     ),
     scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.13") => Seq(
-        "-Xsource:2.13",
+      case (_, "2.12.14") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Xlint:adapted-args",
@@ -60,12 +61,15 @@ lazy val `aws-common` = project.in(file("./aws-common"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.5") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+      case (_, "2.13.6") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
+        "-Vimplicits",
+        "-Vtype-diffs",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -81,11 +85,11 @@ lazy val `aws-common` = project.in(file("./aws-common"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.13") => Seq(
+      case (false, "2.12.14") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.5") => Seq(
+      case (false, "2.13.6") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
@@ -149,18 +153,19 @@ lazy val `metrics` = project.in(file("./metrics"))
   )
   .settings(
     crossScalaVersions := Seq(
-      "2.13.5",
-      "2.12.13"
+      "2.13.6",
+      "2.12.14"
     ),
     scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.13") => Seq(
-        "-Xsource:2.13",
+      case (_, "2.12.14") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Xlint:adapted-args",
@@ -195,12 +200,15 @@ lazy val `metrics` = project.in(file("./metrics"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.5") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+      case (_, "2.13.6") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
+        "-Vimplicits",
+        "-Vtype-diffs",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -216,11 +224,11 @@ lazy val `metrics` = project.in(file("./metrics"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.13") => Seq(
+      case (false, "2.12.14") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.5") => Seq(
+      case (false, "2.13.6") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
@@ -288,18 +296,19 @@ lazy val `d4s` = project.in(file("./d4s"))
   )
   .settings(
     crossScalaVersions := Seq(
-      "2.13.5",
-      "2.12.13"
+      "2.13.6",
+      "2.12.14"
     ),
     scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.13") => Seq(
-        "-Xsource:2.13",
+      case (_, "2.12.14") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Xlint:adapted-args",
@@ -334,12 +343,15 @@ lazy val `d4s` = project.in(file("./d4s"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.5") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+      case (_, "2.13.6") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
+        "-Vimplicits",
+        "-Vtype-diffs",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -355,11 +367,11 @@ lazy val `d4s` = project.in(file("./d4s"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.13") => Seq(
+      case (false, "2.12.14") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.5") => Seq(
+      case (false, "2.13.6") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
@@ -421,18 +433,19 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
   )
   .settings(
     crossScalaVersions := Seq(
-      "2.13.5",
-      "2.12.13"
+      "2.13.6",
+      "2.12.14"
     ),
     scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.13") => Seq(
-        "-Xsource:2.13",
+      case (_, "2.12.14") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Xlint:adapted-args",
@@ -467,12 +480,15 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.5") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+      case (_, "2.13.6") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
+        "-Vimplicits",
+        "-Vtype-diffs",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -488,11 +504,11 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.13") => Seq(
+      case (false, "2.12.14") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.5") => Seq(
+      case (false, "2.13.6") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
@@ -557,18 +573,19 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
   )
   .settings(
     crossScalaVersions := Seq(
-      "2.13.5",
-      "2.12.13"
+      "2.13.6",
+      "2.12.14"
     ),
     scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (_, "2.12.13") => Seq(
-        "-Xsource:2.13",
+      case (_, "2.12.14") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         "-Ypartial-unification",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Xlint:adapted-args",
@@ -603,12 +620,15 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
         "-Ycache-plugin-class-loader:always",
         "-Ycache-macro-class-loader:last-modified"
       )
-      case (_, "2.13.5") => Seq(
-        "-Xlint:_,-eta-sam,-multiarg-infix,-byname-implicit",
+      case (_, "2.13.6") => Seq(
+        "-Xsource:3",
+        "-P:kind-projector:underscore-placeholders",
+        "-Wconf:msg=package.object.inheritance:silent",
         if (insideCI.value) "-Wconf:any:error" else "-Wconf:any:warning",
         "-Wconf:cat=optimizer:warning",
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=kind-projector:silent",
+        "-Vimplicits",
+        "-Vtype-diffs",
         "-Ybackend-parallelism",
         math.min(16, math.max(1, sys.runtime.availableProcessors() - 1)).toString,
         "-Wdead-code",
@@ -624,11 +644,11 @@ lazy val `d4s-circe` = project.in(file("./d4s-circe"))
       case (_, _) => Seq.empty
     } },
     scalacOptions ++= { (isSnapshot.value, scalaVersion.value) match {
-      case (false, "2.12.13") => Seq(
+      case (false, "2.12.14") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
-      case (false, "2.13.5") => Seq(
+      case (false, "2.13.6") => Seq(
         "-opt:l:inline",
         "-opt-inline-from:net.playq.**"
       )
@@ -744,7 +764,7 @@ lazy val `d4s-root` = (project in file("."))
     ),
     Global / fork := false,
     crossScalaVersions := Nil,
-    scalaVersion := "2.13.5",
+    scalaVersion := "2.13.6",
     Global / coverageOutputXML := true,
     Global / coverageOutputHTML := true,
     Global / organization := "net.playq",

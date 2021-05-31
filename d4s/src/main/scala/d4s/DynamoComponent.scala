@@ -6,7 +6,7 @@ import d4s.config.DynamoConfig
 import distage.Lifecycle
 import izumi.distage.framework.model.IntegrationCheck
 import izumi.distage.model.definition.Id
-import izumi.functional.bio.{IO2, F}
+import izumi.functional.bio.{F, IO2}
 import izumi.fundamentals.platform.integration.{PortCheck, ResourceCheck}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder
@@ -24,8 +24,8 @@ object DynamoComponent {
   final class Impl[F[+_, +_]: IO2](
     conf: DynamoConfig,
     portCheck: PortCheck @Id("dynamo-port"),
-  ) extends Lifecycle.Basic[F[Throwable, ?], DynamoComponent]
-    with IntegrationCheck[F[Throwable, ?]] {
+  ) extends Lifecycle.Basic[F[Throwable, _], DynamoComponent]
+    with IntegrationCheck[F[Throwable, _]] {
 
     override def resourcesAvailable(): F[Throwable, ResourceCheck] = F.sync {
       conf.maybeLocalUrl.fold(ResourceCheck.Success(): ResourceCheck) {

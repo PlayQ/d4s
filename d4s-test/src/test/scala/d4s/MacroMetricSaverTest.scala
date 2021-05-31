@@ -13,7 +13,7 @@ final class MacroMetricSaverTest extends AnyWordSpec {
   }
 
   "print an error message if there is no implicit for mentioned metric" in {
-    shapeless.test.illTyped("implicitly[MacroMetricSaverTest.TestMetric.MetricBase[str.type, Nothing]]", "import Nothing.discarded._ to disable.*")
+    shapeless.test.illTyped("implicitly[MacroMetricSaverTest.TestMetric.MetricBase[str.type, Nothing]]", ".*import Nothing.discarded._ to disable.*")
     shapeless.test.illTyped("implicitly[d4s.metrics.MacroMetricDynamoMeter[str.type]]", ".*import.*MacroMetricsDynamo.discarded._.*")
   }
 

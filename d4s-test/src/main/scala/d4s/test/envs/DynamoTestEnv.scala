@@ -10,7 +10,7 @@ import izumi.distage.testkit.services.scalatest.dstest.DistageAbstractScalatestS
 import izumi.functional.bio.{Applicative2, F}
 import logstage.LogIO2
 
-trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, ?]] {
+trait DynamoTestEnv[F[+_, +_]] extends DistageAbstractScalatestSpec[F[Throwable, _]] {
   implicit def tagBIO: TagKK[F]
 
   override protected def config: TestConfig = super.config.copy(
@@ -30,7 +30,7 @@ object DynamoTestEnv {
   final case class DDLDown[F[+_, +_]: Applicative2](
     dynamoDDLService: DynamoDDLService[F],
     logger: LogIO2[F],
-  ) extends DIResource.Self[F[Throwable, ?], DDLDown[F]] {
+  ) extends DIResource.Self[F[Throwable, _], DDLDown[F]] {
     override def acquire: F[Throwable, Unit] = F.unit
     override def release: F[Throwable, Unit] = {
       logger.info("Deleting all tables") *>

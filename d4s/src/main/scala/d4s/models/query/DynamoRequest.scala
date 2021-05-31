@@ -55,7 +55,7 @@ object DynamoRequest {
   }
 
   trait WithIndex[A] {
-    def withIndex(index: TableIndex[_, _]): A
+    def withIndex(index: TableIndex[?, ?]): A
   }
 
   trait WithCondition[A] {
@@ -70,7 +70,7 @@ object DynamoRequest {
     def withProjectionExpression(f: Option[String] => Option[String]): A
 
     final def withProjectionExpression(expr: String): A            = withProjectionExpression(p => Some(p.fold("")(existingExpr => s"$existingExpr, ") + expr))
-    final def withProjectionExpression(fields: DynamoField[_]*): A = withProjectionExpression(fields.mkString("", ", ", ""))
+    final def withProjectionExpression(fields: DynamoField[?]*): A = withProjectionExpression(fields.mkString("", ", ", ""))
   }
 
   trait WithUpdateExpression[A] {

@@ -9,7 +9,7 @@ import izumi.distage.model.definition.Id
 
 class D4SDockerModule[F[+_, +_]: TagKK] extends ConfigModuleDef {
   include(D4SDockerModule.config)
-  include(DynamoDockerModule[F[Throwable, ?]])
+  include(DynamoDockerModule[F[Throwable, _]])
   include(D4SModule[F] overriddenBy new ModuleDef {
     make[DynamoConfig].from {
       (cfg: DynamoConfig @Id("test-config"), docker: DynamoDocker.Container) =>

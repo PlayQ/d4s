@@ -1,11 +1,11 @@
 object V {
-  val scala_212               = "2.12.13"
-  val scala_213               = "2.13.5"
+  val scala_212               = "2.12.14"
+  val scala_213               = "2.13.6"
   val scala_collection_compat = "2.4.4"
-  val izumi_version           = "1.0.6"
+  val izumi_version           = "1.0.7"
 
   // compiler
-  val kind_projector = "0.11.3"
+  val kind_projector = "0.13.0"
 
   // java
   val aws_java_sdk_2 = "2.16.54"

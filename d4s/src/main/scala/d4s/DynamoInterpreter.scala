@@ -32,7 +32,7 @@ object DynamoInterpreter {
     log: LogIO2[F]
   ) extends DynamoInterpreter[F] {
 
-    override def run[DR <: DynamoRequest.Aux[_, _], Dec](
+    override def run[DR <: DynamoRequest.Aux[?, ?], Dec](
       q: DynamoQuery[DR, Dec],
       tapError: PartialFunction[DynamoException, F[Nothing, Unit]],
     ): F[DynamoException, DR#Rsp] = {
@@ -83,14 +83,14 @@ object DynamoInterpreter {
         case q: QueryDeleteBatch => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes, tapError).logWrapError("QueryDeleteBatch", q.table.fullName, tapError)
         case q: ScanDeleteBatch  => runStreamDeleteBatch(q.wrapped.toQuery, q.maxParallelDeletes, tapError).logWrapError("ScanDeleteBatch", q.table.fullName, tapError)
 
-        case r: RawRequest[_, _] => r.interpret(r.toAmz)(F, client).logWrapError("RawRequest")
+        case r: RawRequest[?, ?] => r.interpret(r.toAmz)(F, client).logWrapError("RawRequest")
 
         case other => F.fail(DynamoException.InterpreterException("UNKNOWN", None, new RuntimeException(s"Unexpected internal in interpreter: $other.")))
       }
     }
 
     private[this] def runStreamDeleteBatch[DR <: DynamoRequest with WithProjectionExpression[DR] with WithTableReference[DR]](
-      dynamoQuery: DynamoQuery[DR, _],
+      dynamoQuery: DynamoQuery[DR, ?],
       parallelism: Option[Int],
       interpreterErrorLogger: PartialFunction[DynamoException, F[Nothing, Unit]],
     )(implicit ev: HasItems[DR#Rsp],

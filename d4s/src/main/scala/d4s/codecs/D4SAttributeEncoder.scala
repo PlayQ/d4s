@@ -24,10 +24,10 @@ object D4SAttributeEncoder {
   def encode[T: D4SAttributeEncoder](item: T): AttributeValue                                 = D4SAttributeEncoder[T].encode(item)
   def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
 
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[_ <: A])): D4SAttributeEncoder[A] = {
+  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SAttributeEncoder[A] = {
     item =>
       val typeNameEncoder = caseMap(item)
-      if (typeNameEncoder._2.isInstanceOf[CaseObjectEncoder[_]]) {
+      if (typeNameEncoder._2.isInstanceOf[CaseObjectEncoder[?]]) {
         typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)
       } else {
         AttributeValue.builder().m(Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)).asJava).build()

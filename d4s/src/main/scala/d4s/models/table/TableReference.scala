@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.dynamodb.model._
 final case class TableReference(
   tableName: String,
   nameSpace: AwsNameSpace,
-  key: DynamoKey[_, _],
+  key: DynamoKey[?, ?],
   ttlField: Option[String],
   prefix: Option[NamedPrefix],
 ) {
@@ -33,7 +33,7 @@ object TableReference {
 
   def apply(
     tableName: String,
-    key: DynamoKey[_, _],
+    key: DynamoKey[?, ?],
     ttlField: Option[String]    = None,
     prefix: Option[NamedPrefix] = None,
   )(implicit dynamoMeta: DynamoMeta
@@ -99,32 +99,32 @@ object TableReference {
     def getItemBatch[I: D4SEncoder](getBatch: List[I]): DynamoQuery[GetItemBatch, List[BatchGetItemResponse]] = GetItemBatch(table).toQuery.withBatch(getBatch)
 
     def scan: DynamoQuery[Scan, ScanResponse]                          = Scan(table).toQuery
-    def scan(index: TableIndex[_, _]): DynamoQuery[Scan, ScanResponse] = Scan(table).withIndex(index).toQuery
+    def scan(index: TableIndex[?, ?]): DynamoQuery[Scan, ScanResponse] = Scan(table).withIndex(index).toQuery
 
     def update: DynamoQuery[UpdateTable, UpdateTableResponse]                                                         = UpdateTable(table).toQuery
     def describe: DynamoQuery[DescribeTable, DescribeTableResponse]                                                   = DescribeTable(table).toQuery
     def updateTags(arn: String, tagsToUpdate: Map[String, String]): DynamoQuery[UpdateTableTags, TagResourceResponse] = UpdateTableTags(table, arn, tagsToUpdate).toQuery
-    def markForDeletion(arn: String): DynamoQuery[UpdateTableTags, TagResourceResponse]                               = UpdateTableTags(table, arn, Map(SharedTags.markedForDeletion)).toQuery
+    def markForDeletion(arn: String): DynamoQuery[UpdateTableTags, TagResourceResponse] = UpdateTableTags(table, arn, Map(SharedTags.markedForDeletion)).toQuery
 
     def query: DynamoQuery[Query, QueryResponse]                                   = Query(table).toQuery
-    def query(index: TableIndex[_, _]): DynamoQuery[Query, QueryResponse]          = Query(table).withIndex(index).toQuery
+    def query(index: TableIndex[?, ?]): DynamoQuery[Query, QueryResponse]          = Query(table).withIndex(index).toQuery
     def query(key: Map[String, AttributeValue]): DynamoQuery[Query, QueryResponse] = Query(table).withKey(key).toQuery
     @deprecated("Use .query(index).withKey(key)", "1.0.8")
-    def query(index: TableIndex[_, _], key: Map[String, AttributeValue]): DynamoQuery[Query, QueryResponse] = Query(table).withIndex(index).withKey(key).toQuery
-    def query[H](index: TableIndex[H, _], hashKey: H): DynamoQuery[Query, QueryResponse]                    = Query(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
+    def query(index: TableIndex[?, ?], key: Map[String, AttributeValue]): DynamoQuery[Query, QueryResponse] = Query(table).withIndex(index).withKey(key).toQuery
+    def query[H](index: TableIndex[H, ?], hashKey: H): DynamoQuery[Query, QueryResponse] = Query(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
     def query[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[Query, QueryResponse] =
       Query(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery
 
     def queryDeleteBatch: DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]]                          = QueryDeleteBatch(table).toQuery
     def queryDeleteBatch(maxParallelDeletes: Int): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] = QueryDeleteBatch(table, Some(maxParallelDeletes)).toQuery
-    def queryDeleteBatch(index: TableIndex[_, _]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+    def queryDeleteBatch(index: TableIndex[?, ?]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).toQuery
     def queryDeleteBatch(key: Map[String, AttributeValue]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withKey(key).toQuery
     @deprecated("Use .queryDeleteBatch(index).withKey(key)", "1.0.8")
-    def queryDeleteBatch(index: TableIndex[_, _], key: Map[String, AttributeValue]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+    def queryDeleteBatch(index: TableIndex[?, ?], key: Map[String, AttributeValue]): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKey(key).toQuery
-    def queryDeleteBatch[H](index: TableIndex[H, _], hashKey: H): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
+    def queryDeleteBatch[H](index: TableIndex[H, ?], hashKey: H): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKeyField(index.key.hashKey)(hashKey).toQuery
     def queryDeleteBatch[H, R](index: TableIndex[H, R], hashKey: H, rangeKey: R): DynamoQuery[QueryDeleteBatch, List[BatchWriteItemResponse]] =
       QueryDeleteBatch(table).withIndex(index).withKey(index.key.bind(hashKey, rangeKey)).toQuery

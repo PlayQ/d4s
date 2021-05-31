@@ -33,7 +33,7 @@ object TableDDLOps {
         }
     }
 
-    val create: Set[ProvisionedGlobalIndex[_, _]] = newDDL.globalIndexes
+    val create: Set[ProvisionedGlobalIndex[?, ?]] = newDDL.globalIndexes
       .filter(i => namesToCreate.contains(i.name))
       .map(i => ProvisionedGlobalIndex(i.name, i.key, i.projection, newDDL.provisioning.getIndexProvisioning(i.name)))
 

@@ -379,7 +379,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           _ <-
             connector
               .runUnrecorded(get)
-              .evalMap[IO[Throwable, ?], Unit](res => ref.update(_ ++ res)).compile.drain
+              .evalMap[IO[Throwable, _], Unit](res => ref.update(_ ++ res)).compile.drain
           all <- ref.get
           _   <- assertIO(all.size == expectedSize)
 

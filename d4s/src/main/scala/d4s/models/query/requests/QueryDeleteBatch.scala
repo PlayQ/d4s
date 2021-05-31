@@ -53,7 +53,7 @@ final case class QueryDeleteBatch(
 
   override def withScanIndexForward(sif: Boolean): QueryDeleteBatch = copy(scanIndexForward = sif)
 
-  override def withIndex(index: TableIndex[_, _]): QueryDeleteBatch = copy(index = Some(index.name))
+  override def withIndex(index: TableIndex[?, ?]): QueryDeleteBatch = copy(index = Some(index.name))
 
   override def withStartKeyMap(startKey: util.Map[String, AttributeValue]): QueryDeleteBatch = copy(startKey = Some(startKey))
 

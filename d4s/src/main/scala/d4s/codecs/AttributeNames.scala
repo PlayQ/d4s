@@ -5,8 +5,8 @@ import scala.language.experimental.macros
 /** Describes a `ProjectionExpression` required for case class `T` */
 final case class AttributeNames[T](attributeNames: Set[String]) {
   def projectionExpression: String                           = attributeNames.mkString("", ", ", "")
-  def combine[A](that: AttributeNames[_]): AttributeNames[A] = AttributeNames(this.attributeNames ++ that.attributeNames)
-  def ++[A](that: AttributeNames[_]): AttributeNames[A]      = AttributeNames(this.attributeNames ++ that.attributeNames)
+  def combine[A](that: AttributeNames[?]): AttributeNames[A] = AttributeNames(this.attributeNames ++ that.attributeNames)
+  def ++[A](that: AttributeNames[?]): AttributeNames[A]      = AttributeNames(this.attributeNames ++ that.attributeNames)
 }
 
 object AttributeNames extends AttributeNamesScala213 with AttributeNamesInstances {
