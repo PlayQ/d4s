@@ -35,7 +35,7 @@ object D4SEncoder {
   def encodeObjectJava[A: D4SEncoder](item: A): java.util.Map[String, AttributeValue]        = D4SEncoder[A].encodeObjectJava(item)
   def encodeField[A: D4SAttributeEncoder](key: String, item: A): Map[String, AttributeValue] = D4SAttributeEncoder.encodeField(key, item)
 
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[_ <: A])): D4SEncoder[A] = {
+  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
     item =>
       val typeNameEncoder = caseMap(item)
       Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))

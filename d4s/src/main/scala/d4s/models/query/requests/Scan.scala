@@ -44,7 +44,7 @@ final case class Scan(
 
   override def withSelect(newSelect: Select): Scan = copy(select = Some(newSelect))
 
-  override def withIndex(index: TableIndex[_, _]): Scan = copy(index = Some(index.name))
+  override def withIndex(index: TableIndex[?, ?]): Scan = copy(index = Some(index.name))
 
   override def withStartKeyMap(startKey: util.Map[String, AttributeValue]): Scan = copy(startKey = Some(startKey))
 

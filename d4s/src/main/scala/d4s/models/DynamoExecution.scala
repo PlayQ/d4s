@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
 final case class DynamoExecution[DR <: DynamoRequest, Dec, +A](
   dynamoQuery: DynamoQuery[DR, Dec],
   executionStrategy: ExecutionStrategy[DR, Dec, A],
-) extends DynamoExecution.Dependent[DR, Dec, FThrowable[?[`+_`, `+_`], A]] {
+) extends DynamoExecution.Dependent[DR, Dec, FThrowable[_[+ _, + _], A]] {
 
   def map[B](f: A => B): DynamoExecution[DR, Dec, B] = {
     modifyExecution(io => _.F.map(io)(f))
@@ -206,7 +206,7 @@ object DynamoExecution {
       }
   }
 
-  def pagedFlatten[DR <: DynamoRequest: PageableRequest, Dec: ? <:< List[A], A](limit: Option[Int] = None): ExecutionStrategy[DR, Dec, List[A]] = {
+  def pagedFlatten[DR <: DynamoRequest: PageableRequest, Dec: _ <:< List[A], A](limit: Option[Int] = None): ExecutionStrategy[DR, Dec, List[A]] = {
     pagedImpl[DR, Dec, A](limit)(_.flatten)
   }
 
@@ -261,7 +261,7 @@ object DynamoExecution {
       val newTableReq = DynamoExecution.createTable(query.table, ddl)
       val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
-      retryOnFailure[F[Throwable, +?], A](attempts = 120, F.sleep(sleep), defaultTableNotFoundCondition)(mkTable) {
+      retryOnFailure[F[Throwable, + _], A](attempts = 120, F.sleep(sleep), defaultTableNotFoundCondition)(mkTable) {
         nested(in.discardInterpreterError[ResourceNotFoundException])
       }
   }
@@ -286,7 +286,7 @@ object DynamoExecution {
           } else {
             F.raiseError(e)
           }
-      }.orElse({ case e => F.raiseError(e) })
+      }.orElse { case e => F.raiseError(e) }
     }
   }
 
@@ -297,7 +297,7 @@ object DynamoExecution {
   final case class Streamed[DR <: DynamoRequest, Dec, +A](
     dynamoQuery: DynamoQuery[DR, Dec],
     executionStrategy: ExecutionStrategy.Streamed[DR, Dec, A],
-  ) extends DynamoExecution.Dependent[DR, Dec, StreamFThrowable[?[`+_`, `+_`], A]] {
+  ) extends DynamoExecution.Dependent[DR, Dec, StreamFThrowable[_[+ _, + _], A]] {
 
     def map[B](f: A => B): DynamoExecution.Streamed[DR, Dec, B] = {
       through(_.map(f))
@@ -366,7 +366,7 @@ object DynamoExecution {
             } yield stream).flatten
       }
 
-    def streamedFlatten[DR <: DynamoRequest: PageableRequest, Dec: ? <:< List[A], A]: ExecutionStrategy.Streamed[DR, Dec, A] =
+    def streamedFlatten[DR <: DynamoRequest: PageableRequest, Dec: _ <:< List[A], A]: ExecutionStrategy.Streamed[DR, Dec, A] =
       ExecutionStrategy.Streamed[DR, Dec, A] {
         in =>
           streamed[DR, Dec].apply(in).flatMap(Stream.emits(_))
@@ -383,7 +383,7 @@ object DynamoExecution {
         val newTableReq = DynamoExecution.createTable(query.table, ddl)
         val mkTable     = newTableReq.executionStrategy(StrategyInput(newTableReq.dynamoQuery, interpreter))
 
-        retryOnFailure[Stream[F[Throwable, ?], +?], A](attempts = 120, Stream.eval(F.sleep(sleep)), defaultTableNotFoundCondition)(Stream.eval(mkTable)) {
+        retryOnFailure[Stream[F[Throwable, _], + _], A](attempts = 120, Stream.eval(F.sleep(sleep)), defaultTableNotFoundCondition)(Stream.eval(mkTable)) {
           nested(in.discardInterpreterError[ResourceNotFoundException])
         }
     }

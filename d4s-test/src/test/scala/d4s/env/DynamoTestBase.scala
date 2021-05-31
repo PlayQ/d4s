@@ -15,9 +15,9 @@ import software.amazon.awssdk.services.dynamodb.model.BillingMode
 import zio.{IO, ZIO}
 
 abstract class DynamoTestBase[Ctx](implicit val ctor: AnyConstructor[Ctx]) extends Spec3[ZIO] with DynamoTestEnv[IO] with AssertZIO {
-  protected[d4s] final def scopeIO(f: Ctx => IO[_, _]): Functoid[IO[_, Unit]] = ctor.provider.map(f(_).unit)
+  protected[d4s] final def scopeIO(f: Ctx => IO[?, ?]): Functoid[IO[?, Unit]] = ctor.provider.map(f(_).unit)
 
-  protected[d4s] final def scopeZIO[R: HasConstructor](f: Ctx => ZIO[R, _, _]): Functoid[IO[_, Unit]] = ctor.provider.map2(HasConstructor[R])(f(_).unit.provide(_))
+  protected[d4s] final def scopeZIO[R: HasConstructor](f: Ctx => ZIO[R, ?, ?]): Functoid[IO[?, Unit]] = ctor.provider.map2(HasConstructor[R])(f(_).unit.provide(_))
 
   override def config: TestConfig = super.config.copy(
     pluginConfig = PluginConfig.const(D4STestPlugin),

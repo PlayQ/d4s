@@ -50,7 +50,7 @@ final case class Query(
 
   override def withScanIndexForward(sif: Boolean): Query = copy(scanIndexForward = sif)
 
-  override def withIndex(index: TableIndex[_, _]): Query = copy(index = Some(index.name))
+  override def withIndex(index: TableIndex[?, ?]): Query = copy(index = Some(index.name))
 
   override def withStartKeyMap(startKey: util.Map[String, AttributeValue]): Query = copy(startKey = Some(startKey))
 

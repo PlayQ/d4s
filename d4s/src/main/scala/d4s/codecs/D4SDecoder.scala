@@ -78,7 +78,7 @@ object D4SDecoder extends D4SDecoderScala213 {
     }
   }
 
-  def traitDecoder[T](traitName: String)(caseMap: PartialFunction[String, D4SDecoder[_ <: T]]): D4SDecoder[T] = attributeDecoder {
+  def traitDecoder[T](traitName: String)(caseMap: PartialFunction[String, D4SDecoder[? <: T]]): D4SDecoder[T] = attributeDecoder {
     item =>
       if (item.m().isEmpty) {
         val objectName = item.s()
@@ -142,7 +142,7 @@ object D4SDecoder extends D4SDecoderScala213 {
     attr =>
       Either
         .fromOption(
-          Option(attr.bs()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]]),
+          Option(attr.bs()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[?]]),
           DecoderException(s"Cannot decode $attr as Set[SdkBytes]", None),
         ).map(_.asScala.toSet)
   }
@@ -152,7 +152,7 @@ object D4SDecoder extends D4SDecoderScala213 {
     attr =>
       Either
         .fromOption(
-          Option(attr.ss()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]]),
+          Option(attr.ss()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[?]]),
           DecoderException(s"Cannot decode $attr as Set[String]", None),
         ).map(_.asScala.toSet)
   }
@@ -166,11 +166,11 @@ object D4SDecoder extends D4SDecoderScala213 {
 
   implicit def iterableDecoder[A, C[x] <: Iterable[x]](implicit T: D4SDecoder[A], factory: Factory[A, C[A]]): D4SDecoder[C[A]] = attributeDecoder {
     attr =>
-      Either.fromTry(Try(attr.l()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]])) match {
+      Either.fromTry(Try(attr.l()).filter(!_.isInstanceOf[DefaultSdkAutoConstructList[?]])) match {
         case Left(err) => Left(DecoderException(s"Cannot decode $attr as List", Some(err)))
         case Right(value) =>
           value.asScala.toList
-            .foldM[Either[DecoderException, ?], mutable.Builder[A, C[A]]](factory.newBuilder) {
+            .foldM[Either[DecoderException, _], mutable.Builder[A, C[A]]](factory.newBuilder) {
               (acc, attr) =>
                 T.decode(attr).map(acc += _)
             }.map(_.result())
@@ -180,11 +180,11 @@ object D4SDecoder extends D4SDecoderScala213 {
   implicit def mapLikeDecoder[K, V, M[k, v] <: Map[k, v]](implicit V: D4SDecoder[V], K: D4SKeyDecoder[K], factory: Factory[(K, V), M[K, V]]): D4SDecoder[M[K, V]] =
     attributeDecoder {
       attr =>
-        Either.fromTry(Try(attr.m()).filter(!_.isInstanceOf[DefaultSdkAutoConstructMap[_, _]])) match {
+        Either.fromTry(Try(attr.m()).filter(!_.isInstanceOf[DefaultSdkAutoConstructMap[?, ?]])) match {
           case Left(err) => Left(DecoderException(s"Cannot decode $attr as Map", Some(err)))
           case Right(value) =>
             value.asScala.toList
-              .foldM[Either[DecoderException, ?], mutable.Builder[(K, V), M[K, V]]](factory.newBuilder) {
+              .foldM[Either[DecoderException, _], mutable.Builder[(K, V), M[K, V]]](factory.newBuilder) {
                 case (acc, (key, value)) =>
                   (K.decode(key), V.decode(value)) match {
                     case (Right(k), Right(v))         => Right(acc ++= Iterable(k -> v))
@@ -224,7 +224,7 @@ object D4SDecoder extends D4SDecoderScala213 {
     attr =>
       Either.fromTry {
         Try(attr.ns())
-          .filter(!_.isInstanceOf[DefaultSdkAutoConstructList[_]])
+          .filter(!_.isInstanceOf[DefaultSdkAutoConstructList[?]])
           .map(_.asScala.map(f).toSet)
       }.leftMap(err => DecoderException(s"Cannot decode $attr as Set[$name]", Some(err)))
   }

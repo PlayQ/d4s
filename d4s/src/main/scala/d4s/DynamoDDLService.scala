@@ -9,7 +9,7 @@ import logstage.LogIO2.log
 final class DynamoDDLService[F[+_, +_]: Monad2: LogIO2](
   instances: Set[TableDef],
   tablesManager: DynamoTablesService[F],
-) extends Lifecycle.SelfNoClose[F[Throwable, ?], DynamoDDLService[F]] {
+) extends Lifecycle.SelfNoClose[F[Throwable, _], DynamoDDLService[F]] {
 
   override def acquire: F[Throwable, Unit] = {
     for {

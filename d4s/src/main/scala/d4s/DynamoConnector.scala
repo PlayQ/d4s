@@ -14,8 +14,8 @@ import logstage.LogIO2
 import net.playq.metrics.Metrics
 
 trait DynamoConnector[F[_, _]] {
-  def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A]
-  def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[DynamoException, ?], A]
+  def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, ?, A]): F[DynamoException, A]
+  def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, ?, A]): Stream[F[DynamoException, _], A]
 
   def run[DR <: DynamoRequest, Dec, A](
     label: String
@@ -31,7 +31,7 @@ trait DynamoConnector[F[_, _]] {
   )(implicit
     macroTimeSaver: MacroMetricDynamoTimer[label.type],
     macroMeterSaver: MacroMetricDynamoMeter[label.type],
-  ): Stream[F[DynamoException, ?], A]
+  ): Stream[F[DynamoException, _], A]
 }
 
 object DynamoConnector {
@@ -43,11 +43,11 @@ object DynamoConnector {
     log: LogIO2[F],
   ) extends DynamoConnector[F] {
 
-    override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, _, A]): F[DynamoException, A] =
+    override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution[DR, ?, A]): F[DynamoException, A] =
       runUnrecordedImpl(q).leftMap(QueryException(_))
 
-    override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, _, A]): Stream[F[DynamoException, ?], A] =
-      runUnrecordedImpl(q).translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]](_.leftMap(QueryException(_))))
+    override def runUnrecorded[DR <: DynamoRequest, A](q: DynamoExecution.Streamed[DR, ?, A]): Stream[F[DynamoException, _], A] =
+      runUnrecordedImpl(q).translate(Lambda[F[Throwable, _] ~> F[DynamoException, _]](_.leftMap(QueryException(_))))
 
     private[this] def runUnrecordedImpl[DR <: DynamoRequest, Dec, Out[_[+_, +_]]](q: DynamoExecution.Dependent[DR, Dec, Out]): Out[F] = {
       q.executionStrategy(StrategyInput(q.dynamoQuery, interpreter))
@@ -71,11 +71,11 @@ object DynamoConnector {
     )(implicit
       macroTimeSaver: MacroMetricDynamoTimer[label.type],
       macroMeterSaver: MacroMetricDynamoMeter[label.type],
-    ): Stream[F[DynamoException, ?], A] = {
-      val recordStreamPageMetrics = Lambda[F[Throwable, ?] ~> F[Throwable, ?]](recordMetrics(label)(_))
+    ): Stream[F[DynamoException, _], A] = {
+      val recordStreamPageMetrics = Lambda[F[Throwable, _] ~> F[Throwable, _]](recordMetrics(label)(_))
 
       q.executionStrategy(StrategyInput(q.dynamoQuery, interpreter, streamExecutionWrapper = recordStreamPageMetrics))
-        .translate(Lambda[F[Throwable, ?] ~> F[DynamoException, ?]](_.leftMap(QueryException(label, _))))
+        .translate(Lambda[F[Throwable, _] ~> F[DynamoException, _]](_.leftMap(QueryException(label, _))))
     }
 
     private[this] def recordMetrics[A](

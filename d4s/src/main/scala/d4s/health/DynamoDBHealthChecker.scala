@@ -8,9 +8,9 @@ final class DynamoDBHealthChecker[F[+_, +_]: Panic2](client: DynamoClient[F]) {
     client
       .raw(_.listTables)
       .sandboxExit.map {
-        case _: Exit.Success[_] =>
+        case _: Exit.Success[?] =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.OK))
-        case _: Exit.Error[_] =>
+        case _: Exit.Error[?] =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.DEFUNCT))
         case _: Exit.Termination =>
           Set(HealthCheckStatus("dynamodb.session", HealthState.UNKNOWN))

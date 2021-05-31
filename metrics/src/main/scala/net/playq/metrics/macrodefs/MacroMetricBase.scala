@@ -20,7 +20,7 @@ sealed trait MacroMetricBase {
     def get: Option[String]
   }
 
-  def empty[S <: String]: MetricBase[S, _] = new MetricBase[S, Nothing] {
+  def empty[S <: String]: MetricBase[S, ?] = new MetricBase[S, Nothing] {
     override val get: Option[String] = None
   }
 

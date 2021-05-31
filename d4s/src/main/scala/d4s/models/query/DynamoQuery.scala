@@ -14,7 +14,7 @@ import d4s.models.query.responses.{HasAttributes, HasConsumedCapacity, HasItem, 
 import d4s.models.table.index.{GlobalIndexUpdate, ProvisionedGlobalIndex, TableIndex}
 import d4s.models.table.{DynamoField, TableDDL, TableReference}
 import d4s.models.{DynamoExecution, FnIO2, OffsetLimit}
-import izumi.functional.bio.{IO2, Error2, F}
+import izumi.functional.bio.{Error2, F, IO2}
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, BatchGetItemResponse, ConsumedCapacity, ReturnValue, Select}
 
 import scala.language.implicitConversions
@@ -145,7 +145,7 @@ object DynamoQuery {
   implicit final class TweakIndex[DR <: DynamoRequest with WithIndex[DR], Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
   ) extends WithIndex[DynamoQuery[DR, Dec]] {
-    @inline override def withIndex(index: TableIndex[_, _]): DynamoQuery[DR, Dec] = {
+    @inline override def withIndex(index: TableIndex[?, ?]): DynamoQuery[DR, Dec] = {
       dynamoQuery.modify(_.withIndex(index))
     }
   }
@@ -167,7 +167,7 @@ object DynamoQuery {
   }
 
   implicit final class TweakBatchItems[DR <: DynamoRequest with WithBatch[DR, BatchType], BatchType[_], Dec](
-    dynamoQuery: DynamoQuery[DR, Dec] with DynamoQuery[_ <: DynamoRequest with WithBatch[DR, BatchType], Dec] // satisfy intellij & scalac gods
+    dynamoQuery: DynamoQuery[DR, Dec] with DynamoQuery[? <: DynamoRequest with WithBatch[DR, BatchType], Dec] // satisfy intellij & scalac gods
   ) extends WithBatch[DynamoQuery[DR, Dec], BatchType] {
     @inline override def withBatch[I: D4SEncoder](batchItems: List[BatchType[I]]): DynamoQuery[DR, Dec] = {
       (dynamoQuery: DynamoQuery[DR, Dec]).modify(_.withBatch(batchItems))
@@ -313,7 +313,7 @@ object DynamoQuery {
       dynamoQuery.modify(_.withNewProvisioning(provisioning))
     }
 
-    @inline def withIndexToCreate(index: ProvisionedGlobalIndex[_, _]): DynamoQuery[UpdateTable, Dec] = {
+    @inline def withIndexToCreate(index: ProvisionedGlobalIndex[?, ?]): DynamoQuery[UpdateTable, Dec] = {
       dynamoQuery.modify(_.withIndexToCreate(index))
     }
 
