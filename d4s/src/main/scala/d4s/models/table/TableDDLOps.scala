@@ -33,9 +33,9 @@ object TableDDLOps {
         }
     }
 
-    val create: Set[ProvisionedGlobalIndex[?, ?]] = newDDL.globalIndexes
+    val create = newDDL.globalIndexes
       .filter(i => namesToCreate.contains(i.name))
-      .map(i => ProvisionedGlobalIndex(i.name, i.key, i.projection, newDDL.provisioning.getIndexProvisioning(i.name)))
+      .map(i => ProvisionedGlobalIndex[Nothing, Nothing](i.name, i.key, i.projection, newDDL.provisioning.getIndexProvisioning(i.name)))
 
     val modify = newDDL.globalIndexes
       .filter(indexesToUpd.contains)

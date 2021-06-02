@@ -145,7 +145,7 @@ object DynamoQuery {
   implicit final class TweakIndex[DR <: DynamoRequest with WithIndex[DR], Dec](
     dynamoQuery: DynamoQuery[DR, Dec]
   ) extends WithIndex[DynamoQuery[DR, Dec]] {
-    @inline override def withIndex(index: TableIndex[?, ?]): DynamoQuery[DR, Dec] = {
+    @inline override def withIndex(index: TableIndex[Nothing, Nothing]): DynamoQuery[DR, Dec] = {
       dynamoQuery.modify(_.withIndex(index))
     }
   }
@@ -313,7 +313,7 @@ object DynamoQuery {
       dynamoQuery.modify(_.withNewProvisioning(provisioning))
     }
 
-    @inline def withIndexToCreate(index: ProvisionedGlobalIndex[?, ?]): DynamoQuery[UpdateTable, Dec] = {
+    @inline def withIndexToCreate(index: ProvisionedGlobalIndex[Nothing, Nothing]): DynamoQuery[UpdateTable, Dec] = {
       dynamoQuery.modify(_.withIndexToCreate(index))
     }
 

@@ -55,7 +55,7 @@ object DynamoRequest {
   }
 
   trait WithIndex[A] {
-    def withIndex(index: TableIndex[?, ?]): A
+    def withIndex(index: TableIndex[Nothing, Nothing]): A
   }
 
   trait WithCondition[A] {

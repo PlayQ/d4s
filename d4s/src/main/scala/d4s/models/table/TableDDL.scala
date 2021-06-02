@@ -5,19 +5,19 @@ import d4s.models.table.index.{GlobalIndex, LocalIndex}
 
 final case class TableDDL(
   private val tableReference: TableReference,
-  globalIndexes: Set[GlobalIndex[?, ?]],
-  localIndexes: Set[LocalIndex[?, ?]],
+  globalIndexes: Set[GlobalIndex[Nothing, Nothing]],
+  localIndexes: Set[LocalIndex[Nothing, Nothing]],
   additionalAttributes: Set[DynamoField[?]],
   provisioning: TableProvisionedThroughputConfig,
   backupEnabled: Option[Boolean],
 ) {
-  def key: DynamoKey[?, ?]     = tableReference.key
-  def ttlField: Option[String] = tableReference.ttlField
+  def key: DynamoKey[Nothing, Nothing] = tableReference.key
+  def ttlField: Option[String]         = tableReference.ttlField
 
-  def withGlobalIndexes(ind: GlobalIndex[?, ?]*): TableDDL =
+  def withGlobalIndexes(ind: GlobalIndex[Nothing, Nothing]*): TableDDL =
     copy(globalIndexes = globalIndexes ++ ind.toSet)
 
-  def withLocalIndexes(ind: LocalIndex[?, ?]*): TableDDL =
+  def withLocalIndexes(ind: LocalIndex[Nothing, Nothing]*): TableDDL =
     copy(localIndexes = localIndexes ++ ind.toSet)
 
   def withAdditionalAttributes(attr: DynamoField[?]*): TableDDL =
@@ -32,9 +32,9 @@ object TableDDL {
 
   def apply(
     tableReference: TableReference,
-    globalIndexes: Set[GlobalIndex[?, ?]]     = Set.empty,
-    localIndexes: Set[LocalIndex[?, ?]]       = Set.empty,
-    additionalAttributes: Set[DynamoField[?]] = Set.empty,
+    globalIndexes: Set[GlobalIndex[Nothing, Nothing]] = Set.empty,
+    localIndexes: Set[LocalIndex[Nothing, Nothing]]   = Set.empty,
+    additionalAttributes: Set[DynamoField[?]]         = Set.empty,
   )(implicit dynamoMeta: DynamoMeta
   ): TableDDL = {
     new TableDDL(

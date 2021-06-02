@@ -47,7 +47,7 @@ final case class ScanDeleteBatch(
 
   override def withSelect(newSelect: Select): ScanDeleteBatch = copy(select = Some(newSelect))
 
-  override def withIndex(index: TableIndex[?, ?]): ScanDeleteBatch = copy(index = Some(index.name))
+  override def withIndex(index: TableIndex[Nothing, Nothing]): ScanDeleteBatch = copy(index = Some(index.name))
 
   override def withStartKeyMap(startKey: util.Map[String, AttributeValue]): ScanDeleteBatch = copy(startKey = Some(startKey))
 
