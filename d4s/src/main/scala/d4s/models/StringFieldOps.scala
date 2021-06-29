@@ -24,6 +24,8 @@ object StringFieldOps {
     def hasType(tpe: String): Condition.attribute_type    = Condition.attribute_type(List(name), tpe)
     def sizeField: Condition.size                         = Condition.size(List(name))
     def beginsWith(substr: String): Condition.begins_with = Condition.begins_with(List(name), substr)
+    def isNull: Condition.attribute_is_null               = Condition.attribute_is_null(List(name))
+    def notNull: Condition.not                            = Condition.not(isNull)
   }
 
   final class PathBasedFieldOpsCtor(private val path: List[String]) extends AnyVal {
@@ -34,6 +36,8 @@ object StringFieldOps {
     def hasType(tpe: String): Condition.attribute_type    = Condition.attribute_type(path, tpe)
     def sizeField: Condition.size                         = Condition.size(path)
     def beginsWith(substr: String): Condition.begins_with = Condition.begins_with(path, substr)
+    def isNull: Condition.attribute_is_null               = Condition.attribute_is_null(path)
+    def notNull: Condition.not                            = Condition.not(isNull)
   }
 
   final class TypedFieldOps[T](private val path: List[String]) extends AnyVal {
@@ -42,6 +46,8 @@ object StringFieldOps {
     def hasType(tpe: String): Condition.attribute_type    = Condition.attribute_type(path, tpe)
     def size: Condition.size                              = Condition.size(path)
     def beginsWith(substr: String): Condition.begins_with = Condition.begins_with(path, substr)
+    def isNull: Condition.attribute_is_null               = Condition.attribute_is_null(path)
+    def notNull: Condition.not                            = Condition.not(isNull)
 
     def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
       Condition.contains(path, value)

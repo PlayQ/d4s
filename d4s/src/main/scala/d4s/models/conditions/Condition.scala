@@ -126,6 +126,15 @@ object Condition {
     }
   }
 
+  final case class attribute_is_null(path: List[String]) extends Condition.Direct {
+    override protected def eval(nesting: Int): FinalCondition = {
+      val (alias, map) = createAlias(path)
+      val attrValues   = Map(":null" -> AttributeValue.builder().nul(true).build())
+      val condExpr     = s"$alias = :null OR attribute_not_exists($alias)"
+      FinalCondition(attrValues, map, Some(condExpr))
+    }
+  }
+
   final case class attribute_type(path: List[String], tpe: String) extends Condition.Direct {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
