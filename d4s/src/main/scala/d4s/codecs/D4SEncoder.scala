@@ -7,7 +7,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
 trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
-  override final def encode(item: A): AttributeValue = AttributeValue.builder().m(encodeObjectJava(item)).build()
+  override final def encode(item: A): Option[AttributeValue] = Some(AttributeValue.builder().m(encodeObjectJava(item)).build())
   def encodeObject(item: A): Map[String, AttributeValue]
   final def encodeObjectJava(item: A): java.util.Map[String, AttributeValue] = encodeObject(item).asJava
 
@@ -30,7 +30,7 @@ object D4SEncoder {
 
   def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
 
-  def encode[A: D4SAttributeEncoder](item: A): AttributeValue                                = D4SAttributeEncoder[A].encode(item)
+  def encode[A: D4SAttributeEncoder](item: A): Option[AttributeValue]                        = D4SAttributeEncoder[A].encode(item)
   def encodeObject[A: D4SEncoder](item: A): Map[String, AttributeValue]                      = D4SEncoder[A].encodeObject(item)
   def encodeObjectJava[A: D4SEncoder](item: A): java.util.Map[String, AttributeValue]        = D4SEncoder[A].encodeObjectJava(item)
   def encodeField[A: D4SAttributeEncoder](key: String, item: A): Map[String, AttributeValue] = D4SAttributeEncoder.encodeField(key, item)
@@ -38,7 +38,10 @@ object D4SEncoder {
   def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
     item =>
       val typeNameEncoder = caseMap(item)
-      Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))
+      typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item) match {
+        case Some(attr) => Map(typeNameEncoder._1 -> attr)
+        case None => Map.empty
+      }
   }
 
   /** Magnolia instances. */
@@ -49,7 +52,7 @@ object D4SEncoder {
       ctx.parameters.map {
         p =>
           p.label -> p.typeclass.encode(p.dereference(item))
-      }.toMap
+      }.toMap.filter(_._2.nonEmpty).view.mapValues(_.get).toMap
   }
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {

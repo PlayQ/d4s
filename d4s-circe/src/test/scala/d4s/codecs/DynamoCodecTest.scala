@@ -4,15 +4,35 @@ import d4s.codecs.Fixtures._
 import d4s.codecs.circe.{D4SCirceAttributeCodec, D4SCirceCodec}
 import d4s.models.DynamoException.DecoderException
 import io.circe.generic.extras.semiauto
-import io.circe.{Decoder, Encoder}
+import io.circe.{Codec, Decoder, Encoder, derivation}
 import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
 final class DynamoCodecTest extends AnyWordSpec with Checkers {
+
+  "encode options" in {
+//    val encoder = D4SAttributeEncoder.optionEncoder[String]
+//    println(encoder.encode(None))
+//    println(encoder.encode(Some("stuff")))
+    case class OptTest(str: Option[String])
+
+//    implicit val circeCodecs: Codec.AsObject[OptTest] = derivation.deriveCodec[OptTest]
+    val circeCodec    = D4SCodec.derived[OptTest]
+
+//    val encoded = circeCodec.encode(OptTest(Some("2")))
+    val encoded = circeCodec.encodeObject(OptTest(Some("2")))
+    val encoded2 = circeCodec.encodeObject(OptTest(Some("2")))
+
+    println(encoded)
+    println(encoded2)
+//    println(encodedO)
+  }
+
   "decode options from missed attribute" in {
     val decoder = D4SDecoder.optionDecoder[Int]
     assert(decoder.decodeOptional(None, "").exists(_.isEmpty))
@@ -24,11 +44,22 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
         val circeCodec    = D4SCirceCodec.derived[TestCaseClass]
         val magnoliaCodec = D4SCodec.derived[TestCaseClass]
 
+        println("----------------------")
+        println(testData)
+
         val encoded = circeCodec.encodeObject(testData)
         val decoded = circeCodec.decodeObject(encoded).toOption.get
 
+        println("Encoded:")
+        println(encoded.mkString("; "))
+        println("Decoded:")
+        println(decoded)
+
         val magnoliaEncoded = magnoliaCodec.encodeObject(testData)
         val magnoliaDecoded = magnoliaCodec.decodeObject(magnoliaEncoded).toOption.get
+        println("M:")
+        println(magnoliaEncoded)
+        println(magnoliaDecoded)
         testData == decoded && decoded == magnoliaDecoded && encoded == magnoliaEncoded
     }
   }

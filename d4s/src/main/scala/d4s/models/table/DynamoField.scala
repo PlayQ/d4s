@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.dynamodb.model.{AttributeDefinition, Attr
 
 import scala.language.implicitConversions
 
-final case class DynamoField[-T](name: String, attrType: ScalarAttributeType, encoder: T => AttributeValue) {
+final case class DynamoField[-T](name: String, attrType: ScalarAttributeType, encoder: T => Option[AttributeValue]) {
   override def toString: String = name
 
   def toAttribute: AttributeDefinition = {
@@ -17,7 +17,7 @@ final case class DynamoField[-T](name: String, attrType: ScalarAttributeType, en
       .build()
   }
 
-  def bind(value: T): (String, AttributeValue) = name -> encoder(value)
+  def bind(value: T): (String, Option[AttributeValue]) = name -> encoder(value)
 
   def contramap[B](f: B => T): DynamoField[B] = copy(encoder = encoder apply f(_))
 }
