@@ -130,7 +130,7 @@ object Condition {
     override protected def eval(nesting: Int): FinalCondition = {
       val (alias, map) = createAlias(path)
       val attrValues   = Map(":null" -> AttributeValue.builder().nul(true).build())
-      val condExpr     = s"$alias = :null OR attribute_not_exists($alias)"
+      val condExpr     = s"$alias = :null"
       FinalCondition(attrValues, map, Some(condExpr))
     }
   }
