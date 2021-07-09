@@ -238,8 +238,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .updateItem(modifiedPayload1)
               .withCondition(complexCondition)
               .withUpdateExpression("SET field4 = :field4, field5 = :field5 REMOVE field9")
-              .withAttributeValues(":field4" -> D4SAttributeEncoder.encode("FIELD4"))
-              .withAttributeValues(":field5" -> D4SAttributeEncoder.encode(8))
+              .withAttribute(":field4" -> D4SAttributeEncoder.encode("FIELD4"))
+              .withAttribute(":field5" -> D4SAttributeEncoder.encode(8))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(assert(failure.isEmpty)))
 
@@ -254,7 +254,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             table
               .updateItem(key)
               .withUpdateExpression("SET field4 = :field4")
-              .withAttributeValues(":field4" -> D4SAttributeEncoder.encode("X"))
+              .withAttribute(":field4" -> D4SAttributeEncoder.encode("X"))
               .optConditionFailure
           }.flatMap(failure => IO.effectTotal(failure.isEmpty))
 
@@ -275,7 +275,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
         for {
           _ <- connector.runUnrecorded(testTable.table.putItem(payload1))
 
-          query = testTable.table.query.withKey(Map("field1" -> D4SAttributeEncoder.encode(hash))).decodeItems[InterpreterTestPayload]
+          query = testTable.table.query.withKeyItem(Map("field1" -> D4SAttributeEncoder.encode(hash))).decodeItems[InterpreterTestPayload]
           res1 <- connector.runUnrecorded(query)
           _    <- assertIO(res1.size == 1)
           _    <- connector.runUnrecorded(testTable.table.putItem(payload2))
@@ -480,7 +480,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> D4SAttributeEncoder.encode(0L))
+              .withAttribute(":value" -> D4SAttributeEncoder.encode(0L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }
@@ -489,7 +489,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
             countersTable.table
               .updateItem(Table1Key(v1, v2))
               .withUpdateExpression("ADD counterField :value")
-              .withAttributeValues(":value" -> D4SAttributeEncoder.encode(1L))
+              .withAttribute(":value" -> D4SAttributeEncoder.encode(1L))
               .withPrefix(prefix)
               .retryWithPrefix(countersTable.ddl)
           }

@@ -133,7 +133,10 @@ object DynamoRequest {
 
     final def withKey(add: Map[String, AttributeValue]): A        = withKey(_ ++ add)
     final def withKey(value: (String, AttributeValue)): A         = withKey(_ + value)
-    final def withKeyField[T](field: DynamoField[T])(value: T): A = withKey(m => field.bind(value)._2.fold(m)(v => m + v))
+    final def withKeyField[T](field: DynamoField[T])(value: T): A = {
+      val bind = field.bind(value)
+      withKey(m => bind._2.fold(m)(v => m ++ Map(bind._1 -> v)))
+    }
     final def withKeyItem[Item: D4SEncoder](value: Item): A       = withKey(_ ++ D4SEncoder[Item].encodeObject(value))
   }
 
@@ -142,7 +145,10 @@ object DynamoRequest {
 
     final def withItemAttributeValues(add: Map[String, AttributeValue]): A = withItemAttributeValues(_ ++ add)
     final def withItemAttributeValues(value: (String, AttributeValue)): A  = withItemAttributeValues(_ + value)
-    final def withItemField[T](field: DynamoField[T])(value: T): A         = withItemAttributeValues(m => field.bind(value)._2.fold(m)(v => m + v))
+    final def withItemField[T](field: DynamoField[T])(value: T): A         = {
+      val bind = field.bind(value)
+      withItemAttributeValues(m => bind._2.fold(m)(v => m ++ Map(bind._1 -> v)))
+    }
     final def withItem[Item: D4SEncoder](value: Item): A                   = withItemAttributeValues(D4SEncoder[Item].encodeObject(value))
     final def withItems[I1: D4SEncoder, I2: D4SEncoder](v1: I1, v2: I2): A = withItemAttributeValues(D4SEncoder[I1].encodeObject(v1) ++ D4SEncoder[I2].encodeObject(v2))
   }

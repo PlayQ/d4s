@@ -22,11 +22,15 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
     case class OptTest(str: Option[String])
 
 //    implicit val circeCodecs: Codec.AsObject[OptTest] = derivation.deriveCodec[OptTest]
-    val circeCodec    = D4SCodec.derived[OptTest]
+    val codec    = D4SCodec.derived[OptTest]
 
 //    val encoded = circeCodec.encode(OptTest(Some("2")))
-    val encoded = circeCodec.encodeObject(OptTest(Some("2")))
-    val encoded2 = circeCodec.encodeObject(OptTest(Some("2")))
+    val opt = codec.encode(OptTest(None))
+    val opt2 = codec.encode(OptTest(Some("2")))
+    println(opt)
+    println(opt2)
+    val encoded = codec.encodeObject(OptTest(None))
+    val encoded2 = codec.encodeObject(OptTest(Some("2")))
 
     println(encoded)
     println(encoded2)
@@ -103,7 +107,7 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
 
     val encoded = codec.encode(Red)
     assert(encoded == testCodec.encode(Red))
-    assert(codec.decode(encoded) == testCodec.decode(encoded))
+    assert(codec.decode(encoded.get) == testCodec.decode(encoded.get))
   }
 
   "sealed trait test" in check {
@@ -111,8 +115,8 @@ final class DynamoCodecTest extends AnyWordSpec with Checkers {
       v: Either[String, Int] =>
         val codec1: D4SCodec[Either[String, Int]]                  = D4SCodec.derived
         val codec2: D4SAttributeCodec[Either[String, Int]]         = D4SAttributeCodec.derived
-        val result1: Either[DecoderException, Either[String, Int]] = codec1.decode(codec1.encode(v))
-        val result2: Either[DecoderException, Either[String, Int]] = codec2.decode(codec2.encode(v))
+        val result1: Either[DecoderException, Either[String, Int]] = codec1.decode(codec1.encode(v).get)
+        val result2: Either[DecoderException, Either[String, Int]] = codec2.decode(codec2.encode(v).get)
 
         assert(result1 == result2)
         assert(result1 == Right(v))

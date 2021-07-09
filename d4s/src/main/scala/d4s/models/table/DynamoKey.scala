@@ -26,7 +26,8 @@ final case class DynamoKey[-H, -R](
       k <- rangeKey
       v <- rangeValue
     } yield Map(k.bind(v))
-    Map(hashKey.bind(hashValue)) ++ mbRange.getOrElse(Map.empty)
+    val bind = hashKey.bind(hashValue)
+    bind._2.fold(Map.empty: Map[String, AttributeValue])(v => Map(bind._1 -> v)) ++ mbRange.getOrElse(Map.empty).filter(_._2.nonEmpty).view.mapValues(_.get)
   }
   def bind(hashValue: H, rangeValue: R): Map[String, AttributeValue] = bind(hashValue, Some(rangeValue))
   def bind(hashValue: H): Map[String, AttributeValue]                = bind(hashValue, None)
