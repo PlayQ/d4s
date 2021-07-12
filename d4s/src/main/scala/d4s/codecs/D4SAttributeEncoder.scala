@@ -37,21 +37,32 @@ object D4SAttributeEncoder {
   /** Magnolia instances */
   private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
 
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+  def combineImpl[T](dropNullValues: Boolean)(ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     if (ctx.isObject) {
       new CaseObjectEncoder[T](ctx.typeName.short)
     } else {
       item =>
-        val map = ctx.parameters.map {
+        val result = ctx.parameters.map {
           p =>
             p.label -> p.typeclass.encode(p.dereference(item))
         }.toMap
+        val map = if (dropNullValues) result.view.filter { case (_, v) => !v.nul() }.toMap else result
         AttributeValue.builder().m(map.asJava).build()
     }
   }
 
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = combineImpl(false)(ctx)
+
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+  }
+
+  object WithoutNulls {
+    private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
+    def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+
+    def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T]  = combineImpl(true)(ctx)
   }
 
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a

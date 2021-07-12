@@ -9,10 +9,28 @@ import org.scalacheck.Prop
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.Checkers
 import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.jdk.CollectionConverters._
 
 final class DynamoCodecTest extends AnyWordSpec with Checkers {
+
+  "encode options" in {
+    case class TestNullable(str: Option[String])
+    val encoder  = D4SEncoder.derived[TestNullable]
+    val encoderWithoutNulls    = D4SEncoder.WithoutNulls.derived[TestNullable]
+
+    val encoded = encoder.encodeObject(TestNullable(None))
+    val encoded2 = encoder.encodeObject(TestNullable(Some("test")))
+    val encoded3 = encoderWithoutNulls.encodeObject(TestNullable(None))
+    val encoded4 = encoderWithoutNulls.encodeObject(TestNullable(Some("test")))
+
+    assert(encoded.nonEmpty)
+    assert(encoded3.isEmpty)
+    assert(encoded2.get("str").contains(AttributeValue.builder().s("test").build()))
+    assert(encoded2.equals(encoded4))
+  }
+
   "decode options from missed attribute" in {
     val decoder = D4SDecoder.optionDecoder[Int]
     assert(decoder.decodeOptional(None, "").exists(_.isEmpty))

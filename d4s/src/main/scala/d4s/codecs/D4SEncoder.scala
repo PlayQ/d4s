@@ -44,15 +44,27 @@ object D4SEncoder {
   /** Magnolia instances. */
   private[D4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
 
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
-    item =>
-      ctx.parameters.map {
+  def combineImpl[T](dropNullValues: Boolean)(ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T]  = {
+    item => {
+      val result = ctx.parameters.map {
         p =>
           p.label -> p.typeclass.encode(p.dereference(item))
       }.toMap
+      if (dropNullValues) result.view.filter { case (_, v) => !v.nul() }.toMap else result
+    }
   }
+
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = combineImpl(false)(ctx)
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+  }
+
+  object WithoutNulls {
+    private[D4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
+    def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
+
+    def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T]  = combineImpl(true)(ctx)
   }
 }
