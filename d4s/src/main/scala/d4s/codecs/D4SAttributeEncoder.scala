@@ -1,11 +1,11 @@
 package d4s.codecs
 
-import java.util.UUID
-
+import d4s.codecs.`macro`.MacroUtils
 import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
+import java.util.UUID
 import scala.jdk.CollectionConverters._
 import scala.language.experimental.macros
 
@@ -19,50 +19,55 @@ trait D4SAttributeEncoder[T] {
 object D4SAttributeEncoder {
   @inline def apply[A](implicit ev: D4SAttributeEncoder[A]): ev.type = ev
 
-  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+  def derived[T]: D4SAttributeEncoder[T]          = macro MacroUtils.attributeEncoderDefault[T]
+  def derivedDropNulls[T]: D4SAttributeEncoder[T] = macro MacroUtils.attributeEncoderDropNulls[T]
 
   def encode[T: D4SAttributeEncoder](item: T): AttributeValue                                 = D4SAttributeEncoder[T].encode(item)
   def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
 
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SAttributeEncoder[A] = {
-    item =>
-      val typeNameEncoder = caseMap(item)
-      if (typeNameEncoder._2.isInstanceOf[CaseObjectEncoder[?]]) {
-        typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)
-      } else {
-        AttributeValue.builder().m(Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)).asJava).build()
-      }
-  }
-
   /** Magnolia instances */
-  private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+  sealed trait GenericAttributeDerive {
+    private[GenericAttributeDerive] type Typeclass[T] = D4SAttributeEncoder[T]
 
-  def combineImpl[T](dropNullValues: Boolean)(ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
-    if (ctx.isObject) {
-      new CaseObjectEncoder[T](ctx.typeName.short)
-    } else {
-      item =>
-        val result = ctx.parameters.map {
-          p =>
-            p.label -> p.typeclass.encode(p.dereference(item))
-        }.toMap
-        val map = if (dropNullValues) result.view.filter { case (_, v) => !v.nul() }.toMap else result
-        AttributeValue.builder().m(map.asJava).build()
-    }
-  }
-
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = combineImpl(false)(ctx)
-
-  def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
-    traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
-  }
-
-  object WithoutNulls {
-    private[D4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+    def dropNullValues: Boolean
 
     def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
 
-    def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T]  = combineImpl(true)(ctx)
+    def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+      if (ctx.isObject) {
+        new CaseObjectEncoder[T](ctx.typeName.short)
+      } else {
+        item =>
+          val result = ctx.parameters.map {
+            p =>
+              p.label -> p.typeclass.encode(p.dereference(item))
+          }.toMap
+          val map = if (dropNullValues) result.view.filter { case (_, v) => !v.nul() }.toMap else result
+          AttributeValue.builder().m(map.asJava).build()
+      }
+    }
+
+    def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+      traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+    }
+
+    private def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SAttributeEncoder[A] = {
+      item =>
+        val typeNameEncoder = caseMap(item)
+        if (typeNameEncoder._2.isInstanceOf[CaseObjectEncoder[?]]) {
+          typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)
+        } else {
+          AttributeValue.builder().m(Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)).asJava).build()
+        }
+    }
+  }
+
+  object WithoutNulls extends GenericAttributeDerive {
+    override def dropNullValues: Boolean = true
+  }
+
+  object Default extends GenericAttributeDerive {
+    override def dropNullValues: Boolean = false
   }
 
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a
