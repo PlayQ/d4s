@@ -1,7 +1,7 @@
 object V {
   val scala_212               = "2.12.14"
   val scala_213               = "2.13.6"
-  val scala_collection_compat = "2.4.4"
+  val scala_collection_compat = "2.5.0"
   val izumi_version           = "1.0.8"
 
   // compiler
