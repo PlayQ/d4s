@@ -26,10 +26,8 @@ object D4SAttributeEncoder {
   def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
 
   /** Magnolia instances */
-  sealed trait GenericAttributeDerive {
+  sealed abstract class GenericAttributeDerive(dropNullValues: Boolean) {
     private[GenericAttributeDerive] type Typeclass[T] = D4SAttributeEncoder[T]
-
-    def dropNullValues: Boolean
 
     def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
 
@@ -62,13 +60,8 @@ object D4SAttributeEncoder {
     }
   }
 
-  object WithoutNulls extends GenericAttributeDerive {
-    override def dropNullValues: Boolean = true
-  }
-
-  object Default extends GenericAttributeDerive {
-    override def dropNullValues: Boolean = false
-  }
+  object WithoutNulls extends GenericAttributeDerive(true)
+  object Default extends GenericAttributeDerive(false)
 
   implicit val attributeEncoder: D4SAttributeEncoder[AttributeValue] = a => a
   implicit val stringEncoder: D4SAttributeEncoder[String]            = AttributeValue.builder().s(_).build()
