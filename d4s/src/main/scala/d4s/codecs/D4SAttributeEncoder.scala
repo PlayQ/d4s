@@ -1,7 +1,5 @@
 package d4s.codecs
 
-import d4s.codecs.D4SAttributeEncoder.traitEncoder
-
 import java.util.UUID
 import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.core.SdkBytes
@@ -17,7 +15,7 @@ trait D4SAttributeEncoder[T] {
   def postprocessAttributeEncoder(f: AttributeValue => AttributeValue): D4SAttributeEncoder[T] = item => f(encode(item))
 }
 
-abstract class GenericD4SAttributeEncoder(dropNulls: Boolean) {
+private[codecs] abstract class GenericD4SAttributeEncoder(dropNulls: Boolean) {
   def combineImpl[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     if (ctx.isObject) {
       new CaseObjectEncoder[T](ctx.typeName.short)
@@ -41,15 +39,8 @@ abstract class GenericD4SAttributeEncoder(dropNulls: Boolean) {
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
   }
-}
 
-object D4SAttributeEncoder extends GenericD4SAttributeEncoder(false) {
-  @inline def apply[A](implicit ev: D4SAttributeEncoder[A]): ev.type = ev
-
-  def encode[T: D4SAttributeEncoder](item: T): AttributeValue                                 = D4SAttributeEncoder[T].encode(item)
-  def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
-
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SAttributeEncoder[A] = {
+  private[codecs] def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SAttributeEncoder[A] = {
     item =>
       val typeNameEncoder = caseMap(item)
       if (typeNameEncoder._2.isInstanceOf[CaseObjectEncoder[?]]) {
@@ -58,6 +49,17 @@ object D4SAttributeEncoder extends GenericD4SAttributeEncoder(false) {
         AttributeValue.builder().m(Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item)).asJava).build()
       }
   }
+
+  private[this] final class CaseObjectEncoder[T](name: String) extends D4SAttributeEncoder[T] {
+    override def encode(item: T): AttributeValue = AttributeValue.builder().s(name).build()
+  }
+}
+
+object D4SAttributeEncoder extends GenericD4SAttributeEncoder(false) {
+  @inline def apply[A](implicit ev: D4SAttributeEncoder[A]): ev.type = ev
+
+  def encode[T: D4SAttributeEncoder](item: T): AttributeValue                                 = D4SAttributeEncoder[T].encode(item)
+  def encodeField[T: D4SAttributeEncoder](name: String, item: T): Map[String, AttributeValue] = Map(name -> D4SAttributeEncoder[T].encode(item))
 
   object WithoutNulls extends GenericD4SAttributeEncoder(true)
 
@@ -116,8 +118,4 @@ object D4SAttributeEncoder extends GenericD4SAttributeEncoder(false) {
 
   private[this] def numericAttributeEncoder[NumericType]: D4SAttributeEncoder[NumericType] = n => AttributeValue.builder().n(n.toString).build()
 
-}
-
-private[this] final class CaseObjectEncoder[T](name: String) extends D4SAttributeEncoder[T] {
-  override def encode(item: T): AttributeValue = AttributeValue.builder().s(name).build()
 }

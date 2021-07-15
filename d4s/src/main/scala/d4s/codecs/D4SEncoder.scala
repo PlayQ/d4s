@@ -1,6 +1,5 @@
 package d4s.codecs
 
-import d4s.codecs.D4SEncoder.traitEncoder
 import magnolia.{Magnolia, ReadOnlyCaseClass, SealedTrait}
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
@@ -26,7 +25,7 @@ trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
   }
 }
 
-abstract class GenericD4SEncoder(dropNulls: Boolean) {
+private[codecs] abstract class GenericD4SEncoder(dropNulls: Boolean) {
   def combineImpl[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T]  = {
     item => {
       val result = ctx.parameters.map {
@@ -46,6 +45,12 @@ abstract class GenericD4SEncoder(dropNulls: Boolean) {
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
   }
+
+  private[codecs] def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
+    item =>
+      val typeNameEncoder = caseMap(item)
+      Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))
+  }
 }
 
 object D4SEncoder extends GenericD4SEncoder(false) {
@@ -55,12 +60,6 @@ object D4SEncoder extends GenericD4SEncoder(false) {
   def encodeObject[A: D4SEncoder](item: A): Map[String, AttributeValue]                      = D4SEncoder[A].encodeObject(item)
   def encodeObjectJava[A: D4SEncoder](item: A): java.util.Map[String, AttributeValue]        = D4SEncoder[A].encodeObjectJava(item)
   def encodeField[A: D4SAttributeEncoder](key: String, item: A): Map[String, AttributeValue] = D4SAttributeEncoder.encodeField(key, item)
-
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
-    item =>
-      val typeNameEncoder = caseMap(item)
-      Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))
-  }
 
   object WithoutNulls extends GenericD4SEncoder(true)
 }
