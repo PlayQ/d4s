@@ -26,7 +26,12 @@ trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
 }
 
 private[codecs] abstract class GenericD4SEncoder(dropNulls: Boolean) {
-  def combineImpl[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T]  = {
+  def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
+
+  /** Magnolia instances. */
+  private[GenericD4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     item => {
       val result = ctx.parameters.map {
         p =>
@@ -35,12 +40,6 @@ private[codecs] abstract class GenericD4SEncoder(dropNulls: Boolean) {
       if (dropNulls) result.view.filter { case (_, v) => !v.nul() }.toMap else result
     }
   }
-  def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
-
-  /** Magnolia instances. */
-  private[GenericD4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
-
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = combineImpl(ctx)
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))

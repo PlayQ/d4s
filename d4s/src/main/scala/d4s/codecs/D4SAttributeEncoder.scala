@@ -16,7 +16,12 @@ trait D4SAttributeEncoder[T] {
 }
 
 private[codecs] abstract class GenericD4SAttributeEncoder(dropNulls: Boolean) {
-  def combineImpl[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
+  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
+
+  /** Magnolia instances */
+  private[GenericD4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     if (ctx.isObject) {
       new CaseObjectEncoder[T](ctx.typeName.short)
     } else {
@@ -29,12 +34,6 @@ private[codecs] abstract class GenericD4SAttributeEncoder(dropNulls: Boolean) {
         AttributeValue.builder().m(map.asJava).build()
     }
   }
-  def derived[T]: D4SAttributeEncoder[T] = macro Magnolia.gen[T]
-
-  /** Magnolia instances */
-  private[GenericD4SAttributeEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
-
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = combineImpl(ctx)
 
   def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SAttributeEncoder[T] = {
     traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
