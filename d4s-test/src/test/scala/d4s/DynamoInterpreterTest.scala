@@ -1,7 +1,6 @@
 package d4s
 
 import java.util.UUID
-
 import d4s.DynamoInterpreterTest.Ctx
 import d4s.codecs.{AttributeNames, D4SAttributeEncoder, D4SCodec, WithD4S}
 import d4s.env.Models._
@@ -10,6 +9,7 @@ import d4s.implicits._
 import d4s.models.{DynamoException, OffsetLimit}
 import d4s.models.query.DynamoRequest.BatchWriteEntity
 import d4s.models.query.{DynamoQuery, DynamoRequest}
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import zio.interop.catz._
 import zio.{IO, Ref, Task, ZIO}
 
@@ -182,6 +182,44 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           scan  = testTable.table.scan.decodeItems[InterpreterTestPayload]
           read <- connector.runUnrecorded(scan.execPagedFlatten())
           _    <- assertIO(read.contains(modifiedPayload1))
+        } yield ()
+    }
+
+    "perform update with null and not null condition" in scopeIO {
+      ctx =>
+        import ctx._
+
+        final case class NullableField(field4: Option[String])
+        object NullableField extends WithD4S[NullableField]
+        final case class NullTestPayload(payload: InterpreterTestPayload, nullableField: NullableField)
+        object NullTestPayload {
+          implicit val codec: D4SCodec[NullTestPayload] =
+            InterpreterTestPayload.codec.imap2(NullableField.codec)(NullTestPayload(_, _))(ext => ext.payload -> ext.nullableField)
+          implicit val attrNames: AttributeNames[NullTestPayload] = AttributeNames[InterpreterTestPayload] ++ AttributeNames[NullableField]
+        }
+
+        val payload1 = InterpreterTestPayload("perform update with null condition", 9, "f3", RandomPayload("f22"))
+        for {
+          _ <- connector.runUnrecorded(testTable.table.putItem(payload1))
+
+          _    <- connector.runUnrecorded(
+            testTable.table
+              .updateItem(payload1.key)
+              .withCondition("p".notNull)
+              .withUpdateExpression("SET field4 = :nullField")
+              .withAttributeValues(":nullField" -> AttributeValue.builder().nul(true).build())
+          )
+
+          _    <- connector.runUnrecorded(
+            testTable.table
+              .updateItem(payload1.key)
+              .withCondition("field4".isNull)
+              .withUpdateExpression("SET field4 = :notnullField")
+              .withAttributeValues(":notnullField" -> D4SAttributeEncoder.encode(Some("not null"): Option[String]))
+          )
+          scan  = testTable.table.scan.decodeItems[NullTestPayload]
+          read <- connector.runUnrecorded(scan.execPagedFlatten())
+          _ <- assertIO(read.exists(_.nullableField.field4 == Some("not null")))
         } yield ()
     }
 
