@@ -641,7 +641,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           read1 <- connector.runUnrecorded {
             testTable.table
               .query(testTable.globalIndex, "number_test", "f4")
-              .withFilterExpression(List("p", "randomArray").of[Int] contains payload.p.randomArray.head)
+              .withFilterExpression(List("p", "randomArray").of[List[Int]] contains payload.p.randomArray.head)
+              .withFilterExpression(List("p", "field1").of[String] contains "f2")
               .decodeItems[InterpreterTestPayload]
               .execPagedFlatten()
           }
@@ -650,7 +651,7 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           read2 <- connector.runUnrecorded {
             testTable.table
               .query(testTable.globalIndex, "number_test", "f4")
-              .withFilterExpression(!(List("p", "randomArray").of[Int] contains payload.p.randomArray.head))
+              .withFilterExpression(!(List("p", "randomArray").of[List[Int]] contains payload.p.randomArray.head))
               .decodeItems[InterpreterTestPayload]
               .execPagedFlatten()
           }
