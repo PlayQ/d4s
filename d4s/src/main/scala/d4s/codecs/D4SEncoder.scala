@@ -25,34 +25,40 @@ trait D4SEncoder[A] extends D4SAttributeEncoder[A] {
   }
 }
 
-object D4SEncoder {
-  @inline def apply[A](implicit ev: D4SEncoder[A]): ev.type = ev
-
+private[codecs] abstract class GenericD4SEncoder(dropNulls: Boolean) {
   def derived[A]: D4SEncoder[A] = macro Magnolia.gen[A]
+
+  /** Magnolia instances. */
+  private[GenericD4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
+
+  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
+    item => {
+      val result = ctx.parameters.map {
+        p =>
+          p.label -> p.typeclass.encode(p.dereference(item))
+      }.toMap
+      if (dropNulls) result.view.filter { case (_, v) => !v.nul() }.toMap else result
+    }
+  }
+
+  def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
+    traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
+  }
+
+  private[codecs] def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
+    item =>
+      val typeNameEncoder = caseMap(item)
+      Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))
+  }
+}
+
+object D4SEncoder extends GenericD4SEncoder(false) {
+  @inline def apply[A](implicit ev: D4SEncoder[A]): ev.type = ev
 
   def encode[A: D4SAttributeEncoder](item: A): AttributeValue                                = D4SAttributeEncoder[A].encode(item)
   def encodeObject[A: D4SEncoder](item: A): Map[String, AttributeValue]                      = D4SEncoder[A].encodeObject(item)
   def encodeObjectJava[A: D4SEncoder](item: A): java.util.Map[String, AttributeValue]        = D4SEncoder[A].encodeObjectJava(item)
   def encodeField[A: D4SAttributeEncoder](key: String, item: A): Map[String, AttributeValue] = D4SAttributeEncoder.encodeField(key, item)
 
-  def traitEncoder[A](caseMap: A => (String, D4SAttributeEncoder[? <: A])): D4SEncoder[A] = {
-    item =>
-      val typeNameEncoder = caseMap(item)
-      Map(typeNameEncoder._1 -> typeNameEncoder._2.asInstanceOf[D4SAttributeEncoder[A]].encode(item))
-  }
-
-  /** Magnolia instances. */
-  private[D4SEncoder] type Typeclass[T] = D4SAttributeEncoder[T]
-
-  def combine[T](ctx: ReadOnlyCaseClass[D4SAttributeEncoder, T]): D4SEncoder[T] = {
-    item =>
-      ctx.parameters.map {
-        p =>
-          p.label -> p.typeclass.encode(p.dereference(item))
-      }.toMap
-  }
-
-  def dispatch[T](ctx: SealedTrait[D4SAttributeEncoder, T]): D4SEncoder[T] = {
-    traitEncoder[T](ctx.dispatch(_)(subtype => subtype.typeName.short -> subtype.typeclass))
-  }
+  object WithoutNulls extends GenericD4SEncoder(true)
 }
