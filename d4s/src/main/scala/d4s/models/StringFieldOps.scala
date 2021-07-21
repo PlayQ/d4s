@@ -53,6 +53,11 @@ object StringFieldOps {
       Condition.contains(path, value)
     }
 
+    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], ev: T <:< Iterable[In]): Condition.contains[In] = {
+      val _ = ev
+      Condition.contains(path, value)
+    }
+
     def isIn(set: Set[T])(implicit enc: D4SAttributeEncoder[T]): Condition.in[T] = {
       Condition.in(path, set)
     }
