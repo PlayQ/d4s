@@ -4,7 +4,7 @@ import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
 import d4s.models.StringFieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
 import d4s.models.conditions._
 import d4s.models.table.DynamoField
-import izumi.fundamentals.platform.language.unused
+import izumi.fundamentals.platform.language.Quirks
 
 import scala.language.implicitConversions
 
@@ -55,7 +55,8 @@ object StringFieldOps {
       Condition.contains(path, value)
     }
 
-    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], @unused ev: T <:< Iterable[In]): Condition.contains[In] = {
+    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], ev: T <:< Iterable[In]): Condition.contains[In] = {
+      Quirks.discard(ev)
       Condition.contains(path, value)
     }
 
