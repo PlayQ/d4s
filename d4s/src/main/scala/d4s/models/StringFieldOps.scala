@@ -4,6 +4,7 @@ import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
 import d4s.models.StringFieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
 import d4s.models.conditions._
 import d4s.models.table.DynamoField
+import izumi.fundamentals.platform.language.unused
 
 import scala.language.implicitConversions
 
@@ -49,12 +50,12 @@ object StringFieldOps {
     def isNull: Condition.attribute_is_null               = Condition.attribute_is_null(path)
     def notNull: Condition.not                            = Condition.not(isNull)
 
+    @deprecated("Will be removed in favor of the `contains[In]` version with collection contract.", "1.0.23")
     def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
       Condition.contains(path, value)
     }
 
-    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], ev: T <:< Iterable[In]): Condition.contains[In] = {
-      val _ = ev
+    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], @unused ev: T <:< Iterable[In]): Condition.contains[In] = {
       Condition.contains(path, value)
     }
 
