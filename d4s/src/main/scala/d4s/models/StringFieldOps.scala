@@ -1,19 +1,24 @@
 package d4s.models
 
 import d4s.codecs.{D4SAttributeEncoder, DynamoKeyAttribute}
-import d4s.models.StringFieldOps.{PathBasedFieldOpsCtor, StringTypedFieldOpsCtor}
+import d4s.models.StringFieldOps._
 import d4s.models.conditions._
 import d4s.models.table.DynamoField
-import izumi.fundamentals.platform.language.Quirks
 
 import scala.language.implicitConversions
 
-trait StringFieldOps {
-  @inline implicit final def stringToTypedFieldOps(s: String): StringTypedFieldOpsCtor = new StringTypedFieldOpsCtor(s)
-  @inline implicit final def pathToFieldOps(path: List[String]): PathBasedFieldOpsCtor = new PathBasedFieldOpsCtor(path)
+trait StringFieldOps extends StringFieldOpsLowPriority {
+  @inline implicit final def stringToTypedFieldOps(s: String): StringTypedFieldOpsCtor                                          = new StringTypedFieldOpsCtor(s)
+  @inline implicit final def pathToFieldOps(path: List[String]): PathBasedFieldOpsCtor                                          = new PathBasedFieldOpsCtor(path)
+  @inline implicit final def genericTypedFieldOps[T](t: TypedFieldOps[T]): GenericTypedFieldsOps[T]                             = new GenericTypedFieldsOps(t)
+  @inline implicit final def iterableTypedFieldOps[T, C[t] <: Iterable[t]](t: TypedFieldOps[C[T]]): IterableTypedFieldOps[T, C] = new IterableTypedFieldOps(t)
 }
 
 object StringFieldOps {
+
+  trait StringFieldOpsLowPriority {
+    @inline implicit final def uncheckedTypedFieldOps[T](t: TypedFieldOps[T]): UncheckedTypedFieldOps[T] = new UncheckedTypedFieldOps(t)
+  }
 
   final class StringTypedFieldOpsCtor(private val name: String) extends AnyVal {
     def of[T]: TypedFieldOps[T] = new TypedFieldOps[T](List(name))
@@ -41,7 +46,7 @@ object StringFieldOps {
     def notNull: Condition.not                            = Condition.not(isNull)
   }
 
-  final class TypedFieldOps[T](private val path: List[String]) extends AnyVal {
+  final case class TypedFieldOps[+T](path: List[String]) {
     def exists: Condition.attribute_exists                = Condition.attribute_exists(path)
     def notExists: Condition.attribute_not_exists         = Condition.attribute_not_exists(path)
     def hasType(tpe: String): Condition.attribute_type    = Condition.attribute_type(path, tpe)
@@ -49,16 +54,10 @@ object StringFieldOps {
     def beginsWith(substr: String): Condition.begins_with = Condition.begins_with(path, substr)
     def isNull: Condition.attribute_is_null               = Condition.attribute_is_null(path)
     def notNull: Condition.not                            = Condition.not(isNull)
+  }
 
-    @deprecated("Will be removed in favor of the `contains[In]` version with collection contract.", "1.0.23")
-    def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
-      Condition.contains(path, value)
-    }
-
-    def contains[In](value: In)(implicit enc: D4SAttributeEncoder[In], ev: T <:< Iterable[In]): Condition.contains[In] = {
-      Quirks.discard(ev)
-      Condition.contains(path, value)
-    }
+  final class GenericTypedFieldsOps[T](private val t: TypedFieldOps[T]) extends AnyVal {
+    import t.path
 
     def isIn(set: Set[T])(implicit enc: D4SAttributeEncoder[T]): Condition.in[T] = {
       Condition.in(path, set)
@@ -94,4 +93,15 @@ object StringFieldOps {
     }
   }
 
+  final class IterableTypedFieldOps[T, C[t] <: Iterable[t]](private val t: TypedFieldOps[C[T]]) extends AnyVal {
+    def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
+      Condition.contains(t.path, value)
+    }
+  }
+
+  final class UncheckedTypedFieldOps[T](private val t: TypedFieldOps[T]) extends AnyVal {
+    def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
+      Condition.contains(t.path, value)
+    }
+  }
 }

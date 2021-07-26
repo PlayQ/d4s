@@ -679,8 +679,8 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
           read1 <- connector.runUnrecorded {
             testTable.table
               .query(testTable.globalIndex, "number_test", "f4")
-              .withFilterExpression(List("p", "randomArray").of[List[Int]] contains payload.p.randomArray.head)
-              .withFilterExpression(List("p", "field1").of[List[String]] contains "f2")
+              .withFilterExpression(iterableTypedFieldOps(List("p", "randomArray").of[List[Int]]) contains payload.p.randomArray.head)
+              .withFilterExpression(List("p", "field1").of[String] contains "f2")
               .decodeItems[InterpreterTestPayload]
               .execPagedFlatten()
           }
@@ -694,6 +694,23 @@ final class DynamoInterpreterTest extends DynamoTestBase[Ctx] with DynamoRnd {
               .execPagedFlatten()
           }
           _ <- assertIO(read2.isEmpty)
+          read3 <- connector.runUnrecorded {
+            testTable.table
+              .query(testTable.globalIndex, "number_test", "f4")
+              .withFilterExpression(List("p", "field1").of[String] contains "2")
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+          }
+          _ <- assertIO(read3.size == 1)
+          _ <- assertIO(read3.head == payload)
+          read4 <- connector.runUnrecorded {
+            testTable.table
+              .query(testTable.globalIndex, "number_test", "f4")
+              .withFilterExpression(List("p", "field1").of[String] contains "234")
+              .decodeItems[InterpreterTestPayload]
+              .execPagedFlatten()
+          }
+          _ <- assertIO(read4.size == 0)
         } yield ()
     }
 
