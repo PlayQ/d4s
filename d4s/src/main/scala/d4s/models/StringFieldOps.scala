@@ -7,16 +7,18 @@ import d4s.models.table.DynamoField
 
 import scala.language.implicitConversions
 
-trait StringFieldOps {
+trait StringFieldOps extends StringFieldOpsLowPriority {
   @inline implicit final def stringToTypedFieldOps(s: String): StringTypedFieldOpsCtor                                          = new StringTypedFieldOpsCtor(s)
   @inline implicit final def pathToFieldOps(path: List[String]): PathBasedFieldOpsCtor                                          = new PathBasedFieldOpsCtor(path)
   @inline implicit final def genericTypedFieldOps[T](t: TypedFieldOps[T]): GenericTypedFieldsOps[T]                             = new GenericTypedFieldsOps(t)
   @inline implicit final def iterableTypedFieldOps[T, C[t] <: Iterable[t]](t: TypedFieldOps[C[T]]): IterableTypedFieldOps[T, C] = new IterableTypedFieldOps(t)
-  @inline implicit final def stringTypedFieldOps(t: TypedFieldOps[String]): StringTypedFieldOps                                 = new StringTypedFieldOps(t)
-  @inline implicit final def uncheckedTypedFieldOps[T](t: TypedFieldOps[T]): UncheckedTypedFieldOps[T]                          = new UncheckedTypedFieldOps(t)
 }
 
 object StringFieldOps {
+
+  trait StringFieldOpsLowPriority {
+    @inline implicit final def uncheckedTypedFieldOps[T](t: TypedFieldOps[T]): UncheckedTypedFieldOps[T] = new UncheckedTypedFieldOps(t)
+  }
 
   final class StringTypedFieldOpsCtor(private val name: String) extends AnyVal {
     def of[T]: TypedFieldOps[T] = new TypedFieldOps[T](List(name))
@@ -91,12 +93,6 @@ object StringFieldOps {
     }
   }
 
-  final class StringTypedFieldOps(private val t: TypedFieldOps[String]) extends AnyVal {
-    def contains(value: String): Condition.contains[String] = {
-      Condition.contains(t.path, value)
-    }
-  }
-
   final class IterableTypedFieldOps[T, C[t] <: Iterable[t]](private val t: TypedFieldOps[C[T]]) extends AnyVal {
     def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
       Condition.contains(t.path, value)
@@ -104,7 +100,6 @@ object StringFieldOps {
   }
 
   final class UncheckedTypedFieldOps[T](private val t: TypedFieldOps[T]) extends AnyVal {
-    @deprecated("Will be removed in favor of the `contains[In]` version with collection contract.", "1.0.23")
     def contains(value: T)(implicit enc: D4SAttributeEncoder[T]): Condition.contains[T] = {
       Condition.contains(t.path, value)
     }
