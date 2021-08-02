@@ -24,7 +24,7 @@ object V {
   val magnolia_version = "0.16.0"
 
   val cats             = "2.2.2"
-  val cats_effect      = "2.5.1"
+  val cats_effect      = "2.5.2"
   val zio              = "1.0.10"
   val zio_interop_cats = "2.5.1.0"
 
