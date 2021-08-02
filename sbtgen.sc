@@ -5,7 +5,7 @@ exit
 
 import java.nio.file.{FileSystems, Files}
 
-import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.77`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
+import $ivy.`io.7mind.izumi.sbt:sbtgen_2.13:0.0.78`, izumi.sbtgen._, izumi.sbtgen.model._, izumi.sbtgen.model.LibSetting.Exclusion
 import ProjectBuilder.ProjectDeps._
 
 val settings = GlobalSettings(
