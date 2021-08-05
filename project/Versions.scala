@@ -8,7 +8,7 @@ object V {
   val kind_projector = "0.13.0"
 
   // java
-  val aws_java_sdk_2 = "2.17.0"
+  val aws_java_sdk = "2.17.0"
 
   // scala
   val scalacheck           = "1.15.2"
@@ -22,11 +22,6 @@ object V {
   val circe_derivation     = "0.13.0-M5"
 
   val magnolia_version = "0.16.0"
-
-  val cats             = "2.2.2"
-  val cats_effect      = "2.5.2"
-  val zio              = "1.0.10"
-  val zio_interop_cats = "2.5.1.0"
 
   val scalatest                = "3.2.9"
   val scalatestplus_scalacheck = "3.2.9.0"

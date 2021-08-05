@@ -57,49 +57,66 @@ object Targets {
 
 object ProjectBuilder {
 
+  object V {
+    val izumi = Version.VExpr("V.izumi_version")
+
+    val cats = Version.VExpr("Izumi.Deps.fundamentals_bioJVM.org_typelevel_cats_core_version")
+    val cats_effect = Version.VExpr("Izumi.Deps.fundamentals_bioJVM.org_typelevel_cats_effect_version")
+
+    val zio = Version.VExpr("Izumi.Deps.fundamentals_bioJVM.dev_zio_zio_version")
+    val zio_interop_cats = Version.VExpr("Izumi.Deps.fundamentals_bioJVM.dev_zio_zio_interop_cats_version")
+
+    val circe = Version.VExpr("V.circe")
+    val circe_generic_extras = Version.VExpr("V.circe_generic_extras")
+    val circe_derivation = Version.VExpr("V.circe_derivation")
+
+    val aws_sdk = Version.VExpr("V.aws_java_sdk")
+  }
+
+
   object ProjectDeps {
     private val circe_exclude = LibSetting.Raw("""excludeAll (ExclusionRule(organization = "io.circe"))""")
 
     final val scala_collection_compat = Library("org.scala-lang.modules", "scala-collection-compat", Version.VExpr("V.scala_collection_compat"), LibraryType.Auto)
-    final val distage_core      = Library("io.7mind.izumi", "distage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_framework = Library("io.7mind.izumi", "distage-framework", Version.VExpr("V.izumi_version"), LibraryType.Auto).more(circe_exclude)
-    final val distage_plugins   = Library("io.7mind.izumi", "distage-extension-plugins", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_config    = Library("io.7mind.izumi", "distage-extension-config", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_testkit   = Library("io.7mind.izumi", "distage-testkit-scalatest", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val distage_docker    = Library("io.7mind.izumi", "distage-framework-docker", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val distage_core      = Library("io.7mind.izumi", "distage-core", V.izumi, LibraryType.Auto)
+    final val distage_framework = Library("io.7mind.izumi", "distage-framework", V.izumi, LibraryType.Auto).more(circe_exclude)
+    final val distage_plugins   = Library("io.7mind.izumi", "distage-extension-plugins", V.izumi, LibraryType.Auto)
+    final val distage_config    = Library("io.7mind.izumi", "distage-extension-config", V.izumi, LibraryType.Auto)
+    final val distage_testkit   = Library("io.7mind.izumi", "distage-testkit-scalatest", V.izumi, LibraryType.Auto)
+    final val distage_docker    = Library("io.7mind.izumi", "distage-framework-docker", V.izumi, LibraryType.Auto)
 
     final val circe = Seq(
-      Library("io.circe", "circe-core", Version.VExpr("V.circe"), LibraryType.Auto),
-      Library("io.circe", "circe-generic", Version.VExpr("V.circe"), LibraryType.Auto),
-      Library("io.circe", "circe-generic-extras", Version.VExpr("V.circe_generic_extras"), LibraryType.Auto),
-      Library("io.circe", "circe-parser", Version.VExpr("V.circe"), LibraryType.Auto),
-      Library("io.circe", "circe-literal", Version.VExpr("V.circe"), LibraryType.Auto),
-      Library("io.circe", "circe-derivation", Version.VExpr("V.circe_derivation"), LibraryType.Auto),
+      Library("io.circe", "circe-core", V.circe, LibraryType.Auto),
+      Library("io.circe", "circe-generic", V.circe, LibraryType.Auto),
+      Library("io.circe", "circe-generic-extras", V.circe_generic_extras, LibraryType.Auto),
+      Library("io.circe", "circe-parser", V.circe, LibraryType.Auto),
+      Library("io.circe", "circe-literal", V.circe, LibraryType.Auto),
+      Library("io.circe", "circe-derivation", V.circe_derivation, LibraryType.Auto),
     )
 
     final val magnolia = Library("com.propensive", "magnolia", Version.VExpr("V.magnolia_version"), LibraryType.Auto)
 
     final val scala_reflect = Library("org.scala-lang", "scala-reflect", Version.VExpr("scalaVersion.value"), LibraryType.Invariant)
 
-    final val logstage_rendering_circe = Library("io.7mind.izumi", "logstage-rendering-circe", Version.VExpr("V.izumi_version"), LibraryType.Auto)
-    final val logstage_core            = Library("io.7mind.izumi", "logstage-core", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val logstage_rendering_circe = Library("io.7mind.izumi", "logstage-rendering-circe", V.izumi, LibraryType.Auto)
+    final val logstage_core            = Library("io.7mind.izumi", "logstage-core", V.izumi, LibraryType.Auto)
 
-    final val cats_core   = Library("org.typelevel", "cats-core", Version.VExpr("V.cats"), LibraryType.Auto)
-    final val cats_effect = Library("org.typelevel", "cats-effect", Version.VExpr("V.cats_effect"), LibraryType.Auto)
-    final val zio_core    = Library("dev.zio", "zio", Version.VExpr("V.zio"), LibraryType.Auto)
-    final val zio_interop = Library("dev.zio", "zio-interop-cats", Version.VExpr("V.zio_interop_cats"), LibraryType.Auto)
+    final val cats_core   = Library("org.typelevel", "cats-core", V.cats, LibraryType.Auto)
+    final val cats_effect = Library("org.typelevel", "cats-effect", V.cats_effect, LibraryType.Auto)
+    final val zio_core    = Library("dev.zio", "zio", V.zio, LibraryType.Auto)
+    final val zio_interop = Library("dev.zio", "zio-interop-cats", V.zio_interop_cats, LibraryType.Auto)
     final val fs2         = Library("co.fs2", "fs2-io", Version.VExpr("V.fs2"), LibraryType.Auto)
 
     final val scalatest                = Library("org.scalatest", "scalatest", Version.VExpr("V.scalatest"), LibraryType.Auto)
     final val scalatestplus_scalacheck = Library("org.scalatestplus", "scalacheck-1-15", Version.VExpr("V.scalatestplus_scalacheck"), LibraryType.Auto)
     final val scalacheck_shapeless     = Library("com.github.alexarchambault", "scalacheck-shapeless_1.14", Version.VExpr("V.scalacheck_shapeless"), LibraryType.Auto)
 
-    final val fundamentals_bio = Library("io.7mind.izumi", "fundamentals-bio", Version.VExpr("V.izumi_version"), LibraryType.Auto)
+    final val fundamentals_bio = Library("io.7mind.izumi", "fundamentals-bio", V.izumi, LibraryType.Auto)
 
-    final val aws_dynamo = Library("software.amazon.awssdk", "dynamodb", Version.VExpr("V.aws_java_sdk_2"), LibraryType.Invariant)
+    final val aws_dynamo = Library("software.amazon.awssdk", "dynamodb", V.aws_sdk, LibraryType.Invariant)
       .more(LibSetting.Exclusions(Seq(Exclusion("log4j", "log4j"))))
 
-    final val aws_impl_apache = Library("software.amazon.awssdk", "apache-client", Version.VExpr("V.aws_java_sdk_2"), LibraryType.Invariant)
+    final val aws_impl_apache = Library("software.amazon.awssdk", "apache-client", V.aws_sdk, LibraryType.Invariant)
       .more(LibSetting.Exclusions(Seq(Exclusion("log4j", "log4j"))))
 
     final val projector = Library("org.typelevel", "kind-projector", Version.VExpr("V.kind_projector"), LibraryType.Invariant)
@@ -295,6 +312,8 @@ object ProjectBuilder {
         Plugin("IzumiResolverPlugin"),
       ),
     ),
-    appendPlugins = Defaults.SbtGenPlugins,
+    appendPlugins = Defaults.SbtGenPlugins ++ Seq(
+      SbtPlugin("io.7mind.izumi", "sbt-izumi-deps", Version.VExpr("PV.izumi_deps")),
+    ),
   )
 }

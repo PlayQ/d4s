@@ -281,12 +281,12 @@ lazy val `d4s` = project.in(file("./d4s"))
   .settings(
     libraryDependencies ++= Seq(
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
-      "org.typelevel" %% "cats-effect" % V.cats_effect,
-      "dev.zio" %% "zio" % V.zio,
+      "org.typelevel" %% "cats-effect" % Izumi.Deps.fundamentals_bioJVM.org_typelevel_cats_effect_version,
+      "dev.zio" %% "zio" % Izumi.Deps.fundamentals_bioJVM.dev_zio_zio_version,
       "co.fs2" %% "fs2-io" % V.fs2,
       "io.7mind.izumi" %% "fundamentals-bio" % V.izumi_version,
-      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
-      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk_2 exclude ("log4j", "log4j"),
+      "software.amazon.awssdk" % "dynamodb" % V.aws_java_sdk exclude ("log4j", "log4j"),
+      "software.amazon.awssdk" % "apache-client" % V.aws_java_sdk exclude ("log4j", "log4j"),
       "com.propensive" %% "magnolia" % V.magnolia_version,
       "io.7mind.izumi" %% "distage-extension-plugins" % V.izumi_version,
       "org.scala-lang.modules" %% "scala-collection-compat" % V.scala_collection_compat,
@@ -425,7 +425,7 @@ lazy val `d4s-test` = project.in(file("./d4s-test"))
       compilerPlugin("org.typelevel" % "kind-projector" % V.kind_projector cross CrossVersion.full),
       "io.7mind.izumi" %% "distage-framework-docker" % V.izumi_version,
       "io.7mind.izumi" %% "distage-testkit-scalatest" % V.izumi_version,
-      "dev.zio" %% "zio-interop-cats" % V.zio_interop_cats % Test,
+      "dev.zio" %% "zio-interop-cats" % Izumi.Deps.fundamentals_bioJVM.dev_zio_zio_interop_cats_version % Test,
       "org.scalatest" %% "scalatest" % V.scalatest % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % V.scalatestplus_scalacheck % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % V.scalacheck_shapeless % Test
