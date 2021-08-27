@@ -5,7 +5,7 @@ object V {
   val izumi_version           = "1.0.8"
 
   // compiler
-  val kind_projector = "0.13.0"
+  val kind_projector = "0.13.1"
 
   // java
   val aws_java_sdk = "2.17.0"
