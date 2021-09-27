@@ -3,6 +3,10 @@
 <img width="40%" src="./vuepress/docs/.vuepress/public/D4S_logo.svg" alt="Logo"/>
 </p>
 
+ATTENTION:
+==========
+ ### __The repo is archived. D4S is distributed as a part of [PlayQ Toolkit](https://github.com/PlayQ/playq-tk/tree/develop/d4s).__
+
 What is it?  ![Build](https://github.com/PlayQ/d4s/workflows/Build/badge.svg)
 ===========
 __*D4S*__ - is a Scala library that allows you to work with DynamoDB in a pure functional way.
