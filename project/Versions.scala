@@ -1,5 +1,5 @@
 object V {
-  val scala_212               = "2.12.14"
+  val scala_212               = "2.12.15"
   val scala_213               = "2.13.6"
   val scala_collection_compat = "2.5.0"
   val izumi_version           = "1.0.8"
