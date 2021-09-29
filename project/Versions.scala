@@ -24,5 +24,5 @@ object V {
   val magnolia_version = "0.16.0"
 
   val scalatest                = "3.2.9"
-  val scalatestplus_scalacheck = "3.2.9.0"
+  val scalatestplus_scalacheck = "3.2.10.0"
 }
